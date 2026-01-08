@@ -11,14 +11,15 @@ import java.util.Optional;
 @Repository
 public class TraineeDao {
 
-    private final Map<Long, Trainee> traineeStorage;
+    private Map<Long, Trainee> traineeStorage;
     private long traineeIdSeq = 1L;
 
 
     @Autowired
-    public TraineeDao(@Qualifier("traineeStorage") Map<Long, Trainee> traineeStorage) {
+    public void setTraineeStorage(@Qualifier("traineeStorage") Map<Long, Trainee> traineeStorage) {
         this.traineeStorage = traineeStorage;
     }
+
 
     // Create a new trainee
     public Trainee createTrainee(Trainee trainee) {

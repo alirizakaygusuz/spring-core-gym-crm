@@ -11,13 +11,16 @@ import java.util.Optional;
 @Repository
 public class TrainingDao {
 
-    private final Map<Long, Training> trainingStorage;
+    private  Map<Long, Training> trainingStorage;
     private long trainingIdSeq = 1L;
 
+
+    //Set training storage via setter injection
     @Autowired
-    public TrainingDao(@Qualifier("trainingStorage") Map<Long, Training> trainingStorage) {
+    public void setTrainingStorage(@Qualifier("trainingStorage") Map<Long, Training> trainingStorage) {
         this.trainingStorage = trainingStorage;
     }
+
 
     // Create a new training
     public Training createTraining(Training training) {
@@ -37,18 +40,6 @@ public class TrainingDao {
     public Map<Long, Training> getAllTrainings() {
         return Map.copyOf(trainingStorage);
 
-    }
-
-    // Update an existing training
-    public Training updateTraining(Long id, Training training) {
-        training.setId(id);
-        trainingStorage.put(id, training);
-        return training;
-    }
-
-    //Delete a training by ID
-    public void deleteTraining(Long id) {
-        trainingStorage.remove(id);
     }
 
 }
