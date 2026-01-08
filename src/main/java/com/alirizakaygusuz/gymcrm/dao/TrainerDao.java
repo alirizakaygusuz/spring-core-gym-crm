@@ -11,11 +11,13 @@ import java.util.Optional;
 @Repository
 public class TrainerDao {
 
-    private final Map<Long, Trainer> trainerStorage;
+    private Map<Long, Trainer> trainerStorage;
     private long trainerIdSeq = 1L;
 
+
+    //Set trainer storage via setter injection
     @Autowired
-    public TrainerDao(@Qualifier("trainerStorage") Map<Long, Trainer> trainerStorage) {
+    public void setTrainerStorage(@Qualifier("trainerStorage") Map<Long, Trainer> trainerStorage) {
         this.trainerStorage = trainerStorage;
     }
 
@@ -43,10 +45,6 @@ public class TrainerDao {
         trainer.setId(id);
         trainerStorage.put(id, trainer);
         return trainer;
-    }
-    // Delete a trainer by ID
-    public void deleteTrainer(Long id) {
-        trainerStorage.remove(id);
     }
 
     // Check if a trainer exists by Username
