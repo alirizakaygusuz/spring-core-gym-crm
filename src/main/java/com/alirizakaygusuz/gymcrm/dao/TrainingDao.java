@@ -23,7 +23,7 @@ public class TrainingDao {
 
 
     // Create a new training
-    public Training createTraining(Training training) {
+    public Training save(Training training) {
         long id = trainingIdSeq++;
         training.setId(id);
         trainingStorage.put(id, training);
@@ -32,12 +32,12 @@ public class TrainingDao {
 
 
     //Retrieve a training by ID should return Optional <Training> instead of null
-    public Optional<Training> findTrainingById(Long id) {
+    public Optional<Training> findById(Long id) {
         return Optional.ofNullable(trainingStorage.get(id));
     }
 
     //Retrieve all trainings
-    public Map<Long, Training> getAllTrainings() {
+    public Map<Long, Training> getAll() {
         return Map.copyOf(trainingStorage);
 
     }

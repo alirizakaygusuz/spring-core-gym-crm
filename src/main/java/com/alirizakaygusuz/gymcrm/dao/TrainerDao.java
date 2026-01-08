@@ -22,26 +22,39 @@ public class TrainerDao {
     }
 
 
+
     // Create a new trainer
-    public Trainer createTrainer(Trainer trainer) {
+    public Trainer save(Trainer trainer) {
         long id = trainerIdSeq++;
         trainer.setId(id);
         trainerStorage.put(id, trainer);
         return trainer;
     }
 
+
     // Retrieve a trainer by ID should return Optional <Trainer> instead of null
-    public Optional<Trainer> findTrainerById(Long id) {
+    public Optional<Trainer> findById(Long id) {
         return Optional.ofNullable(trainerStorage.get(id));
     }
 
+    // Retrieve a trainer by username should return Optional <Trainer> instead of null and check for null username
+    public Optional<Trainer> findByUsername(String username) {
+        if(username == null) {
+            return Optional.empty();
+        }
+        return trainerStorage.values().stream()
+                .filter(trainer -> username.equals(trainer.getUsername()))
+                .findFirst();
+    }
+
+
     //Retrieve all trainers
-    public Map<Long, Trainer> getAllTrainers() {
+    public Map<Long, Trainer> getAll() {
         return Map.copyOf(trainerStorage);
     }
 
     // Update an existing trainer
-    public Trainer updateTrainer(Long id, Trainer trainer) {
+    public Trainer update(Long id, Trainer trainer) {
         trainer.setId(id);
         trainerStorage.put(id, trainer);
         return trainer;
