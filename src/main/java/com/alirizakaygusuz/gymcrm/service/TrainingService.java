@@ -2,6 +2,8 @@ package com.alirizakaygusuz.gymcrm.service;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
 import com.alirizakaygusuz.gymcrm.model.Training;
+import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.logging.Logger;
@@ -11,12 +13,20 @@ public class TrainingService {
 
     private final TrainingDao trainingDao;
 
+    private CommonValidator commonValidator;
+
     private static final Logger log =
             Logger.getLogger(TrainingService.class.getName());
 
     //Inject DAOs via constructor injection
     public TrainingService(TrainingDao trainingDao) {
         this.trainingDao = trainingDao;
+    }
+
+    //Inject CommonValidator via setter injection
+    @Autowired
+    public void setCommonValidator(CommonValidator commonValidator) {
+        this.commonValidator = commonValidator;
     }
 
     //Create a new training profile and method name is createProfile
@@ -36,8 +46,13 @@ public class TrainingService {
 
     //Select training profile by id
     public Training selectProfile(Long id) {
+        commonValidator.validateId(id);
+
         //Create a log when selecting a training profile
         log.info("Selecting training profile with id: " + id);
+
+
+
         return trainingDao.findById(id).orElseThrow(() -> {
             log.warning("Training not found with id: " + id);
             return new RuntimeException("Training not found with id: " + id);
@@ -47,9 +62,9 @@ public class TrainingService {
     //Check if training null or not if it is null throw IllegalArgumentException and log a warning
     private void validateTraining(Training training) {
         if (training == null) {
-            log.warning("Training object is null");
             throw new IllegalArgumentException("Training object cannot be null");
         }
+        commonValidator.validateNotBlank(training.getTrainingName(), "Training name");
     }
 
 
