@@ -2,7 +2,7 @@ package com.alirizakaygusuz.gymcrm.service;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
-import com.alirizakaygusuz.gymcrm.service.util.CredentialsGenerator;
+import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
