@@ -22,7 +22,7 @@ public class TraineeDao {
 
 
     // Create a new trainee
-    public Trainee save(Trainee trainee) {
+    public Trainee createTrainee(Trainee trainee) {
         long id = traineeIdSeq++;
         trainee.setId(id);
         traineeStorage.put(id, trainee);
@@ -31,35 +31,26 @@ public class TraineeDao {
 
 
     // Retrieve a trainee by ID should return Optional <Trainee> instead of null
-    public Optional<Trainee> findById(Long id) {
+    public Optional<Trainee> findTraineeById(Long id) {
         return Optional.ofNullable(traineeStorage.get(id));
     }
 
-    // Retrieve a trainee by username should return Optional <Trainee> instead of null and check for null username
-    public Optional<Trainee> findByUsername(String username) {
-        if(username == null) {
-            return Optional.empty();
-        }
-        return traineeStorage.values().stream()
-                .filter(trainee -> username.equals(trainee.getUsername()))
-                .findFirst();
-    }
 
 
     //Retrieve all trainees
-    public Map<Long, Trainee> getAll() {
+    public Map<Long, Trainee> getAllTrainees() {
         return Map.copyOf(traineeStorage);
     }
 
     // Update an existing trainee
-    public Trainee update(Long id, Trainee trainee) {
+    public Trainee updateTrainee(Long id, Trainee trainee) {
         trainee.setId(id);
         traineeStorage.put(id, trainee);
         return trainee;
     }
 
     // Delete a trainee by ID
-    public void delete(Long id) {
+    public void deleteTrainee(Long id) {
         traineeStorage.remove(id);
     }
 
@@ -71,5 +62,6 @@ public class TraineeDao {
         return traineeStorage.values().stream()
                 .anyMatch(trainee ->  username.equals(trainee.getUsername()));
     }
+
 
 }
