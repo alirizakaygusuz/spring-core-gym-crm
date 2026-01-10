@@ -4,5 +4,12 @@ public enum TrainingType {
     CARDIO,
     STRENGTH,
     FLEXIBILITY,
-    BALANCE;
+    BALANCE,
+    YOGA,
+    PILATES,
+    CROSSFIT,
+    FUNCTIONAL_TRAINING,
+    HIIT,
+    MOBILITY,
+    ENDURANCE
 }

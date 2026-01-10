@@ -1,0 +1,110 @@
+[
+  {
+    "id": 1,
+    "traineeId": 1,
+    "trainerId": 1,
+    "trainingName": "Yoga Flow Basics",
+    "trainingType": "YOGA",
+    "trainingDate": "2026-01-05",
+    "trainingDuration": 60
+  },
+  {
+    "id": 2,
+    "traineeId": 2,
+    "trainerId": 2,
+    "trainingName": "Strength Fundamentals",
+    "trainingType": "STRENGTH",
+    "trainingDate": "2026-01-06",
+    "trainingDuration": 50
+  },
+  {
+    "id": 3,
+    "traineeId": 3,
+    "trainerId": 3,
+    "trainingName": "Cardio Starter Session",
+    "trainingType": "CARDIO",
+    "trainingDate": "2026-01-06",
+    "trainingDuration": 45
+  },
+  {
+    "id": 4,
+    "traineeId": 4,
+    "trainerId": 4,
+    "trainingName": "Pilates Core Intro",
+    "trainingType": "PILATES",
+    "trainingDate": "2026-01-07",
+    "trainingDuration": 40
+  },
+  {
+    "id": 5,
+    "traineeId": 5,
+    "trainerId": 5,
+    "trainingName": "CrossFit Intro",
+    "trainingType": "CROSSFIT",
+    "trainingDate": "2026-01-07",
+    "trainingDuration": 40
+  },
+  {
+    "id": 6,
+    "traineeId": 6,
+    "trainerId": 6,
+    "trainingName": "Pilates Strength Balance",
+    "trainingType": "PILATES",
+    "trainingDate": "2026-01-08",
+    "trainingDuration": 55
+  },
+  {
+    "id": 7,
+    "traineeId": 7,
+    "trainerId": 7,
+    "trainingName": "Functional Training Foundations",
+    "trainingType": "FUNCTIONAL_TRAINING",
+    "trainingDate": "2026-01-08",
+    "trainingDuration": 60
+  },
+  {
+    "id": 8,
+    "traineeId": 8,
+    "trainerId": 8,
+    "trainingName": "HIIT Starter",
+    "trainingType": "HIIT",
+    "trainingDate": "2026-01-09",
+    "trainingDuration": 35
+  },
+  {
+    "id": 9,
+    "traineeId": 9,
+    "trainerId": 9,
+    "trainingName": "Mobility and Recovery",
+    "trainingType": "MOBILITY",
+    "trainingDate": "2026-01-09",
+    "trainingDuration": 30
+  },
+  {
+    "id": 10,
+    "traineeId": 10,
+    "trainerId": 10,
+    "trainingName": "Endurance Run",
+    "trainingType": "ENDURANCE",
+    "trainingDate": "2026-01-10",
+    "trainingDuration": 60
+  },
+  {
+    "id": 11,
+    "traineeId": 1,
+    "trainerId": 2,
+    "trainingName": "Strength Upper Body",
+    "trainingType": "STRENGTH",
+    "trainingDate": "2026-01-11",
+    "trainingDuration": 50
+  },
+  {
+    "id": 12,
+    "traineeId": 2,
+    "trainerId": 3,
+    "trainingName": "Cardio Endurance Basics",
+    "trainingType": "CARDIO",
+    "trainingDate": "2026-01-11",
+    "trainingDuration": 45
+  }
+]

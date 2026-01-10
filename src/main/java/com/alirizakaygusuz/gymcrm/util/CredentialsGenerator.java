@@ -1,4 +1,4 @@
-package com.alirizakaygusuz.gymcrm.service.util;
+package com.alirizakaygusuz.gymcrm.util;
 
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
