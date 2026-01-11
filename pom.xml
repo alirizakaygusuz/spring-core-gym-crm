@@ -16,6 +16,9 @@
         <jackson-core.version>3.0.3</jackson-core.version>
         <jackson-databind.version>3.0.3</jackson-databind.version>
         <jackson-datatype.version>3.0.0-rc2</jackson-datatype.version>
+        <junit-jupiter.version>5.20.0</junit-jupiter.version>
+        <mockito.version>5.20.0</mockito.version>
+        <assertj.version>3.27.6</assertj.version>
     </properties>
 
 
@@ -28,6 +31,7 @@
             <version>${spring-context.version}</version>
         </dependency>
 
+        <!-- ==============JSON Processing with Jackson=========== -->
         <!-- Jackson Core -->
         <!-- https://mvnrepository.com/artifact/tools.jackson.core/jackson-core -->
         <dependency>
@@ -48,6 +52,36 @@
             <groupId>tools.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
             <version>${jackson-datatype.version}</version>
+        </dependency>
+
+
+
+        <!-- ===========Testing Dependencies ============-->
+        <!-- JUnit Jupiter -->
+        <!-- Source: https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Mockito -->
+        <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- AssertJ -->
+        <!-- https://mvnrepository.com/artifact/org.assertj/assertj-core -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
