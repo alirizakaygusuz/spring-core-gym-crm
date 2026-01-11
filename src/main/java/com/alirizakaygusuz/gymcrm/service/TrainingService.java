@@ -6,6 +6,7 @@ import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Service
@@ -57,6 +58,13 @@ public class TrainingService {
             log.warning("Training not found with id: " + id);
             return new RuntimeException("Training not found with id: " + id);
         });
+    }
+
+    //Get all trainings
+    public Map<Long, Training> getAllTrainings() {
+        //Create a log when retrieving all training profiles
+        log.info("Retrieving all training profiles");
+        return trainingDao.getAll();
     }
 
     //Check if training null or not if it is null throw IllegalArgumentException and log a warning

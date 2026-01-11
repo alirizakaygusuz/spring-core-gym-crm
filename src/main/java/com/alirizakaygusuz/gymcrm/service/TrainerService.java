@@ -7,6 +7,7 @@ import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Service
@@ -79,6 +80,12 @@ public class TrainerService {
             log.warning("Trainer not found with username: " + username);
             return new RuntimeException("Trainer not found with username: " + username);
         });
+    }
+
+    public Map<Long , Trainer> getAllTrainers() {
+        //Create a log when retrieving all trainers
+        log.info("Retrieving all trainers");
+        return trainerDao.getAll();
     }
 
     //Update trainer profile and method name is updateProfile
