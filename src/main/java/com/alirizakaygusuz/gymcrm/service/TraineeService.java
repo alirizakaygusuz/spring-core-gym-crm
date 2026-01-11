@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
@@ -105,12 +106,18 @@ public class TraineeService {
         //Create a log when updating a trainee profile
         log.info("Updating trainee profile with id: " + id);
 
-        traineeDao.findById(id).orElseThrow(() -> {
+       Trainee currentTrainee= traineeDao.findById(id).orElseThrow(() -> {
             log.warning("Trainee not found with id: " + id);
             return new RuntimeException("Trainee not found with id: " + id);
         });
 
-        Trainee updatedTrainee = traineeDao.update(id, trainee);
+        currentTrainee.setFirstName(trainee.getFirstName());
+        currentTrainee.setLastName(trainee.getLastName());
+        currentTrainee.setActive(trainee.isActive());
+        currentTrainee.setDateOfBirth(trainee.getDateOfBirth());
+        currentTrainee.setAddress(trainee.getAddress());
+
+        Trainee updatedTrainee = traineeDao.update(id, currentTrainee);
         //Create a log after the trainee profile is updated
         log.info("Trainee profile updated with id: " + id );
 

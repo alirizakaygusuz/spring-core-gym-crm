@@ -96,12 +96,18 @@ public class TrainerService {
         //Create a log when updating a trainer profile
         log.info("Updating trainer profile with id: " + id);
 
-        trainerDao.findById(id).orElseThrow(() -> {
+        Trainer currentTrainer = trainerDao.findById(id).orElseThrow(() -> {
             log.warning("Trainer not found by id: " + id);
             return new RuntimeException("Trainer not found by id:" + id);
         });
 
-        Trainer updatedTrainer = trainerDao.update(id, trainer);
+        currentTrainer.setFirstName(trainer.getFirstName());
+        currentTrainer.setLastName(trainer.getLastName());
+        currentTrainer.setActive(trainer.isActive());
+        currentTrainer.setSpecialization(trainer.getSpecialization());
+
+
+        Trainer updatedTrainer = trainerDao.update(id, currentTrainer);
         log.info("Trainer profile updated with id: " + updatedTrainer.getId());
         return updatedTrainer;
     }
