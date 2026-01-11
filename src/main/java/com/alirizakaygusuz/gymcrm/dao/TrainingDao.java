@@ -1,5 +1,6 @@
 package com.alirizakaygusuz.gymcrm.dao;
 
+import com.alirizakaygusuz.gymcrm.dao.util.IdSequence;
 import com.alirizakaygusuz.gymcrm.model.Training;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -12,8 +13,8 @@ import java.util.Optional;
 public class TrainingDao {
 
     private  Map<Long, Training> trainingStorage;
-    private long trainingIdSeq = 1L;
 
+    private IdSequence idSequence =  new IdSequence();;
 
     //Set training storage via setter injection
     @Autowired
@@ -21,15 +22,15 @@ public class TrainingDao {
         this.trainingStorage = trainingStorage;
     }
 
-
     // Create a new training
     public Training save(Training training) {
-        long id = trainingIdSeq++;
+        idSequence.syncFrom(trainingStorage);
+        long id = idSequence.next();
         training.setId(id);
         trainingStorage.put(id, training);
+
         return training;
     }
-
 
     //Retrieve a training by ID should return Optional <Training> instead of null
     public Optional<Training> findById(Long id) {

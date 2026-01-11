@@ -1,5 +1,8 @@
 package com.alirizakaygusuz.gymcrm.seed;
 
+import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
+import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
+import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
 import com.alirizakaygusuz.gymcrm.seed.dto.TraineeSeedDto;
 import com.alirizakaygusuz.gymcrm.seed.dto.TrainerSeedDto;
 import com.alirizakaygusuz.gymcrm.seed.dto.TrainingSeedDto;
@@ -90,6 +93,8 @@ public class SeedInitializer implements BeanPostProcessor {
         this.trainingSeedMapper = trainingSeedMapper;
     }
 
+
+
     private Map<Long, Trainee> traineeStorage() {
         return traineeStorageProvider.getObject();
     }
@@ -136,6 +141,8 @@ public class SeedInitializer implements BeanPostProcessor {
         initializeTrainees();
         initializeTrainers();
         initializeTrainings();
+
+
 
         //Log initialization end
         log.info("================Seed initialization completed=================");
@@ -199,7 +206,7 @@ public class SeedInitializer implements BeanPostProcessor {
         int skippedCount = 0;
         int addedCount = 0;
         for (TrainingSeedDto t : trainingsSeedDto) {
-            if (t == null || !isValidateTrainingReferences(t.traineeId(), t.trainerId()) ) {
+            if (t == null || !isValidateTrainingReferences(t.traineeId(), t.trainerId())) {
                 skippedCount++;
                 continue;
             }
