@@ -7,6 +7,8 @@ import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Service
@@ -86,6 +88,13 @@ public class TraineeService {
         });
     }
 
+    //Retrieve all trainees
+    public Map<Long,Trainee> getAllProfiles() {
+        //Create a log when retrieving all trainees
+        log.info("Retrieving all trainee profiles");
+
+        return traineeDao.getAll();
+    }
 
     //Update trainee profile and method name is updateProfile
     public Trainee updateProfile(Long id, Trainee trainee) {

@@ -8,6 +8,8 @@ import com.alirizakaygusuz.gymcrm.service.TrainerService;
 import com.alirizakaygusuz.gymcrm.service.TrainingService;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Component
@@ -55,6 +57,10 @@ public class GymCrmFacade {
         return traineeService.selectProfile(username);
     }
 
+    //Get All Trainee Profiles with Map
+    public Map<Long,Trainee> getAllTraineeProfiles() {
+        return traineeService.getAllProfiles();
+    }
 
     //TRAINER METHODS
     //Create Trainer Profile
@@ -78,6 +84,11 @@ public class GymCrmFacade {
     }
 
 
+    //Get All Trainer Profiles
+    public Map<Long,Trainer> getAllTrainerProfiles() {
+        return trainerService.getAllTrainers();
+    }
+
     //TRAINING METHODS
     //CREATE Training Profile
     public Training createTrainingProfile(Training training) {
@@ -100,5 +111,12 @@ public class GymCrmFacade {
     public Training selectTrainingProfile(Long trainingId) {
         return trainingService.selectProfile(trainingId);
     }
+
+    //Get All Training Profiles
+    public Map<Long,Training> getAllTrainingProfiles() {
+        return trainingService.getAllTrainings();
+    }
+
+
 
 }
