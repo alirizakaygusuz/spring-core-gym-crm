@@ -1,5 +1,6 @@
 package com.alirizakaygusuz.gymcrm.dao;
 
+import com.alirizakaygusuz.gymcrm.dao.util.IdSequence;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -12,7 +13,7 @@ import java.util.Optional;
 public class TrainerDao {
 
     private Map<Long, Trainer> trainerStorage;
-    private long trainerIdSeq = 1L;
+    private IdSequence idSequence =  new IdSequence();;
 
 
     //Set trainer storage via setter injection
@@ -25,7 +26,9 @@ public class TrainerDao {
 
     // Create a new trainer
     public Trainer save(Trainer trainer) {
-        long id = trainerIdSeq++;
+        idSequence.syncFrom(trainerStorage);
+        long id = idSequence.next();
+
         trainer.setId(id);
         trainerStorage.put(id, trainer);
         return trainer;
