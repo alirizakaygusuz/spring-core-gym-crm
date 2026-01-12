@@ -3,7 +3,6 @@ package service;
 
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
-import com.alirizakaygusuz.gymcrm.model.Trainer;
 import com.alirizakaygusuz.gymcrm.service.TraineeService;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
 import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
@@ -16,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -328,8 +326,14 @@ class TraineeServiceTest {
         updatedInfo.setLastName("Smith");
         updatedInfo.setActive(false);
 
+        Trainee expectedUpdatedTrainee = new Trainee();
+        expectedUpdatedTrainee.setId(validId);
+        expectedUpdatedTrainee.setFirstName("Jane");
+        expectedUpdatedTrainee.setLastName("Smith");
+        expectedUpdatedTrainee.setActive(false);
+
         when(traineeDao.findById(validId)).thenReturn(Optional.of(existingTrainee));
-        when(traineeDao.update(eq(validId), existingTrainee));
+        when(traineeDao.update(validId, existingTrainee)).thenReturn(expectedUpdatedTrainee);
 
         Trainee updatedTrainee = traineeService.updateProfile(validId, updatedInfo);
 

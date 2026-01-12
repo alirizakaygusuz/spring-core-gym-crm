@@ -64,7 +64,7 @@ class TrainerServiceTest {
         savedTrainer.setPassword("randomPassword123");
 
 
-        when(trainerDao.save(savedTrainer)).thenReturn(savedTrainer);
+        when(trainerDao.save(trainer)).thenReturn(savedTrainer);
         Trainer createdTrainer = trainerService.createProfile(trainer);
 
 
@@ -314,8 +314,16 @@ class TrainerServiceTest {
         updatedInfo.setActive(false);
         updatedInfo.setSpecialization(TrainingType.CARDIO);
 
+        Trainer expectedUpdatedTrainer = new Trainer();
+        expectedUpdatedTrainer.setId(trainerId);
+        expectedUpdatedTrainer.setFirstName("NewFirstName");
+        expectedUpdatedTrainer.setLastName("NewLastName");
+        expectedUpdatedTrainer.setActive(false);
+        expectedUpdatedTrainer.setSpecialization(TrainingType.CARDIO);
+
+
         when(trainerDao.findById(trainerId)).thenReturn(Optional.of(existingTrainer));
-        when(trainerDao.update(eq(trainerId), existingTrainer)).thenAnswer(invocation -> invocation.getArgument(1));
+        when(trainerDao.update(trainerId, existingTrainer)).thenReturn(expectedUpdatedTrainer);
 
         Trainer updatedTrainer = trainerService.updateProfile(trainerId, updatedInfo);
 
