@@ -3,6 +3,7 @@ package service;
 
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
+import com.alirizakaygusuz.gymcrm.model.Trainer;
 import com.alirizakaygusuz.gymcrm.service.TraineeService;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
 import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
@@ -15,6 +16,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,7 +39,6 @@ class TraineeServiceTest {
     @InjectMocks
     TraineeService traineeService;
 
-    private Trainee trainee;
 
     @BeforeEach
     void setUp() {
@@ -47,7 +49,7 @@ class TraineeServiceTest {
     @DisplayName("createProfile should return created Trainee when Trainee is valid")
     @Test
     void createProfile_shouldReturnCreatedTraineeWhenTraineeIsValid() {
-        trainee = new Trainee();
+        Trainee trainee = new Trainee();
         trainee.setId(1L);
         trainee.setFirstName("John");
         trainee.setLastName("Smith");
@@ -62,8 +64,6 @@ class TraineeServiceTest {
                 .thenReturn("randomPassword123");
 
 
-        trainee.setUsername("john.smith");
-        trainee.setPassword("randomPassword123");
 
         when(traineeDao.save(trainee)).thenReturn(trainee);
 
@@ -107,6 +107,7 @@ class TraineeServiceTest {
         verify(userValidator).validateUser(trainee);
 
         verifyNoInteractions(traineeDao, credentialsGenerator);
+
     }
 
 
@@ -132,7 +133,7 @@ class TraineeServiceTest {
     @Test
     void selectProfile_shouldReturnSelectedTraineeWhenIdIsValid(){
         Long validId = 1L;
-        trainee = new Trainee();
+        Trainee trainee = new Trainee();
         trainee.setId(validId);
         trainee.setFirstName("John");
         trainee.setLastName("Doe");
@@ -175,23 +176,20 @@ class TraineeServiceTest {
     @DisplayName("selectProfile should throw RuntimeException when Trainee not found")
     @Test
     void selectProfile_shouldThrowExceptionWhenTraineeNotFound(){
-        Long validId = 2L;
-        trainee = new Trainee();
-        trainee.setId(1L);
-        trainee.setFirstName("John");
-        trainee.setLastName("Doe");
+        Long traineeId = 2L;
 
-        when(traineeDao.findById(validId)).thenReturn(Optional.empty());
+
+        when(traineeDao.findById(traineeId)).thenReturn(Optional.empty());
 
         RuntimeException ex = assertThrows(
                 RuntimeException.class,
-                () -> traineeService.selectProfile(validId)
+                () -> traineeService.selectProfile(traineeId)
         );
 
-        assertEquals("Trainee not found with id: " + validId, ex.getMessage());
+        assertEquals("Trainee not found with id: " + traineeId, ex.getMessage());
 
-        verify(userValidator).validateId(validId);
-        verify(traineeDao).findById(validId);
+        verify(userValidator).validateId(traineeId);
+        verify(traineeDao).findById(traineeId);
         verifyNoMoreInteractions(traineeDao, userValidator);
     }
 
@@ -201,7 +199,7 @@ class TraineeServiceTest {
     //Test happyPath method selectProfile by username
     void selectProfile_shouldReturnSelectedTraineeWhenUsernameIsValid() {
         String validUsername = "john.doe";
-        trainee = new Trainee();
+       Trainee trainee = new Trainee();
         trainee.setId(1L);
         trainee.setUsername(validUsername);
         trainee.setFirstName("John");
@@ -261,11 +259,35 @@ class TraineeServiceTest {
     }
 
 
-    //Test getAllProfiles method
+    //Test getAllProfiles method should return all Trainee profiles work on map
     @DisplayName("getAllProfiles should return all Trainee profiles")
     @Test
     void getAllProfiles_shouldReturnAllTraineeProfiles() {
-        traineeService.getAllProfiles();
+        Trainee trainee1 = new Trainee();
+        trainee1.setId(1L);
+        trainee1.setFirstName("John");
+        trainee1.setLastName("Doe");
+
+        Trainee trainee2 = new Trainee();
+        trainee2.setId(2L);
+        trainee2.setFirstName("Jane");
+        trainee2.setLastName("Smith");
+
+        Map<Long, Trainee> traineeMap = Map.of(
+                trainee1.getId(), trainee1,
+                trainee2.getId(), trainee2
+        );
+
+        when(traineeDao.getAll()).thenReturn(traineeMap);
+
+        Map<Long, Trainee> allTrainees = traineeService.getAllProfiles();
+
+        assertNotNull(allTrainees);
+        assertEquals(2, allTrainees.size());
+        assertTrue(allTrainees.containsKey(1L));
+        assertTrue(allTrainees.containsKey(2L));
+        assertEquals("John", allTrainees.get(1L).getFirstName());
+        assertEquals("Jane", allTrainees.get(2L).getFirstName());
 
         verify(traineeDao).getAll();
         verifyNoMoreInteractions(traineeDao);
@@ -273,33 +295,42 @@ class TraineeServiceTest {
 
 
     //Test updateProfile happy path
-    @DisplayName("updateProfile should return updated Trainee when Trainee is valid")
+    @DisplayName("updateProfile should return updated Trainee when inputs are valid")
     @Test
-    void updateProfile_shouldReturnUpdatedTraineeWhenTraineeIsValid() {
+    void updateProfile_shouldReturnUpdatedTraineeWhenInputsAreValid() {
         Long validId = 1L;
-        trainee = new Trainee();
-        trainee.setId(validId);
-        trainee.setFirstName("John");
-        trainee.setLastName("Doe");
+        Trainee existingTrainee = new Trainee();
+        existingTrainee.setId(validId);
+        existingTrainee.setFirstName("John");
+        existingTrainee.setLastName("Doe");
+        existingTrainee.setActive(true);
 
-        when(traineeDao.findById(validId)).thenReturn(Optional.of(trainee));
-        when(traineeDao.update(eq(validId), any(Trainee.class))).thenReturn(trainee);
+        Trainee updatedInfo = new Trainee();
+        updatedInfo.setFirstName("Jane");
+        updatedInfo.setLastName("Smith");
+        updatedInfo.setActive(false);
 
-        Trainee updatedTrainee = traineeService.updateProfile(validId, trainee);
+        when(traineeDao.findById(validId)).thenReturn(Optional.of(existingTrainee));
+        when(traineeDao.update(eq(validId), any(Trainee.class))).thenAnswer(invocation -> invocation.getArgument(1));
+
+        Trainee updatedTrainee = traineeService.updateProfile(validId, updatedInfo);
 
         assertNotNull(updatedTrainee);
         assertEquals(validId, updatedTrainee.getId());
-        assertEquals("John", updatedTrainee.getFirstName());
-        assertEquals("Doe", updatedTrainee.getLastName());
+        assertEquals("Jane", updatedTrainee.getFirstName());
+        assertEquals("Smith", updatedTrainee.getLastName());
+        assertFalse(updatedTrainee.isActive());
 
         verify(userValidator).validateId(validId);
-        verify(userValidator).validateUser(trainee);
+        verify(userValidator).validateUser(updatedInfo);
         verify(traineeDao).findById(validId);
         verify(traineeDao).update(eq(validId), argThat(updated ->
-                updated.getFirstName().equals("John") &&
-                updated.getLastName().equals("Doe")
+                updatedTrainee.getFirstName().equals("Jane") &&
+                updatedTrainee.getLastName().equals("Smith") &&
+                !updatedTrainee.isActive()
         ));
         verifyNoMoreInteractions(traineeDao, userValidator);
+
     }
 
 
@@ -308,7 +339,7 @@ class TraineeServiceTest {
     @Test
     void updateProfile_shouldThrowExceptionWhenIdIsInvalid() {
         Long invalidId = -1L;
-        trainee = new Trainee();
+       Trainee trainee = new Trainee();
         trainee.setFirstName("John");
         trainee.setLastName("Doe");
 
@@ -331,7 +362,7 @@ class TraineeServiceTest {
     @Test
     void updateProfile_shouldThrowExceptionWhenTraineeIsInvalid() {
         Long validId = 1L;
-        trainee = new Trainee();
+        Trainee trainee = new Trainee();
         trainee.setFirstName("");
         trainee.setLastName("Doe");
 
@@ -357,7 +388,7 @@ class TraineeServiceTest {
     @Test
     void updateProfile_shouldThrowExceptionWhenTraineeNotFound() {
         Long validId = 2L;
-        trainee = new Trainee();
+       Trainee trainee = new Trainee();
         trainee.setFirstName("John");
         trainee.setLastName("Doe");
 
@@ -383,7 +414,7 @@ class TraineeServiceTest {
     @Test
     void deleteProfileById_shouldDeleteTraineeWhenIdIsValid() {
         Long validId = 1L;
-        trainee = new Trainee();
+        Trainee trainee = new Trainee();
         trainee.setId(validId);
         trainee.setFirstName("John");
         trainee.setLastName("Doe");
@@ -445,7 +476,7 @@ class TraineeServiceTest {
     @Test
     void deleteProfileByUsername_shouldDeleteTraineeWhenUsernameIsValid() {
         String validUsername = "john.doe";
-        trainee = new Trainee();
+        Trainee trainee = new Trainee();
         trainee.setId(1L);
         trainee.setUsername(validUsername);
         trainee.setFirstName("John");
