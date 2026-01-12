@@ -60,7 +60,10 @@ class TrainingServiceTest {
         assertEquals(TrainingType.CROSSFIT, createdTraining.getTrainingType());
 
         verify(commonValidator).validateNotBlank("Yoga Basics", "Training name");
-        verify(trainingDao).save(training);
+        verify(trainingDao).save(argThat(t ->
+                t.getTrainingName().equals("Yoga Basics") &&
+                        t.getTrainingType() == TrainingType.CROSSFIT
+        ));
         verifyNoMoreInteractions(commonValidator, trainingDao);
 
     }
@@ -190,4 +193,6 @@ class TrainingServiceTest {
         verify(trainingDao).getAll();
         verifyNoMoreInteractions(trainingDao, commonValidator);
     }
+
+
 }

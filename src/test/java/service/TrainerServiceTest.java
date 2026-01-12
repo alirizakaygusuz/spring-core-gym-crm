@@ -48,7 +48,6 @@ class TrainerServiceTest {
     @Test
     void createProfile_ShouldCreateTrainerWhenTrainerIsValid() {
         Trainer trainer = new Trainer();
-        trainer.setId(1L);
         trainer.setFirstName("John");
         trainer.setLastName("Doe");
 
@@ -57,12 +56,20 @@ class TrainerServiceTest {
         when(credentialsGenerator.generateRandomPassword())
                 .thenReturn("randomPassword123");
 
+        Trainer savedTrainer = new Trainer();
+        savedTrainer.setId(1L);
+        savedTrainer.setFirstName("John");
+        savedTrainer.setLastName("Doe");
+        savedTrainer.setUsername("johndoe");
+        savedTrainer.setPassword("randomPassword123");
 
-        when(trainerDao.save(trainer)).thenReturn(trainer);
+
+        when(trainerDao.save(savedTrainer)).thenReturn(savedTrainer);
         Trainer createdTrainer = trainerService.createProfile(trainer);
 
 
         assertNotNull(createdTrainer);
+        assertEquals(1L, createdTrainer.getId());
         assertEquals("johndoe", createdTrainer.getUsername());
         assertEquals("randomPassword123", createdTrainer.getPassword());
 
@@ -98,6 +105,7 @@ class TrainerServiceTest {
 
         assertEquals("First name cannot be null or blank", exception.getMessage());
         verify(userValidator).validateUser(trainer);
+        verifyNoMoreInteractions(userValidator);
         verifyNoInteractions(trainerDao, credentialsGenerator);
 
     }
@@ -117,6 +125,7 @@ class TrainerServiceTest {
         assertEquals("User cannot be null", exception.getMessage());
 
         verify(userValidator).validateUser(nullUser);
+        verifyNoMoreInteractions(userValidator);
         verifyNoInteractions(trainerDao, credentialsGenerator);
     }
 
@@ -131,7 +140,7 @@ class TrainerServiceTest {
         trainer.setFirstName("Jane");
         trainer.setLastName("Doe");
 
-        when(trainerDao.findById(trainerId)).thenReturn(java.util.Optional.of(trainer));
+        when(trainerDao.findById(trainerId)).thenReturn(Optional.of(trainer));
 
         Trainer foundTrainer = trainerService.selectProfile(trainerId);
 
@@ -162,7 +171,8 @@ class TrainerServiceTest {
         assertEquals("ID must be a positive number", exception.getMessage());
 
         verify(userValidator).validateId(invalidId);
-        verifyNoInteractions(trainerDao);
+        verifyNoMoreInteractions(userValidator);
+        verifyNoInteractions(trainerDao, credentialsGenerator);
     }
 
 
@@ -198,7 +208,7 @@ class TrainerServiceTest {
         trainer.setLastName("Doe");
         trainer.setUsername(username);
 
-        when(trainerDao.findByUsername(username)).thenReturn(java.util.Optional.of(trainer));
+        when(trainerDao.findByUsername(username)).thenReturn(Optional.of(trainer));
 
         Trainer foundTrainer = trainerService.selectProfile(username);
 
@@ -228,7 +238,8 @@ class TrainerServiceTest {
         assertEquals("Username cannot be null or blank", exception.getMessage());
 
         verify(userValidator).validateUsername(invalidUsername);
-        verifyNoInteractions(trainerDao);
+        verifyNoMoreInteractions(userValidator);
+        verifyNoInteractions(trainerDao, credentialsGenerator);
     }
 
 
@@ -304,7 +315,7 @@ class TrainerServiceTest {
         updatedInfo.setSpecialization(TrainingType.CARDIO);
 
         when(trainerDao.findById(trainerId)).thenReturn(Optional.of(existingTrainer));
-        when(trainerDao.update(eq(trainerId), any(Trainer.class))).thenAnswer(invocation -> invocation.getArgument(1));
+        when(trainerDao.update(eq(trainerId), existingTrainer)).thenAnswer(invocation -> invocation.getArgument(1));
 
         Trainer updatedTrainer = trainerService.updateProfile(trainerId, updatedInfo);
 
@@ -318,13 +329,14 @@ class TrainerServiceTest {
         verify(userValidator).validateId(trainerId);
         verify(userValidator).validateUser(updatedInfo);
         verify(trainerDao).findById(trainerId);
-        verify(trainerDao).update(eq(trainerId), argThat( updated ->
-                updated.getFirstName().equals("NewFirstName") &&
-                        updated.getLastName().equals("NewLastName") &&
-                        !updated.isActive() &&
-                        updated.getSpecialization() == TrainingType.CARDIO
+        verify(trainerDao).update(eq(trainerId), argThat(t ->
+                t.getFirstName().equals("NewFirstName") &&
+                        t.getLastName().equals("NewLastName") &&
+                        !t.isActive() &&
+                        t.getSpecialization() == TrainingType.CARDIO
         ));
         verifyNoMoreInteractions(trainerDao, userValidator);
+        verifyNoInteractions(credentialsGenerator);
     }
 
 
@@ -347,7 +359,8 @@ class TrainerServiceTest {
         assertEquals("ID must be a positive number", exception.getMessage());
 
         verify(userValidator).validateId(invalidId);
-        verifyNoInteractions(trainerDao);
+        verifyNoMoreInteractions(userValidator);
+        verifyNoInteractions(trainerDao, credentialsGenerator);
     }
 
 
@@ -371,6 +384,7 @@ class TrainerServiceTest {
 
         verify(userValidator).validateId(trainerId);
         verify(userValidator).validateUser(invalidTrainer);
+        verifyNoMoreInteractions(userValidator);
         verifyNoInteractions(trainerDao);
     }
 
@@ -397,7 +411,6 @@ class TrainerServiceTest {
         verify(trainerDao).findById(trainerId);
         verifyNoMoreInteractions(trainerDao, userValidator);
     }
-
 
 
 }
