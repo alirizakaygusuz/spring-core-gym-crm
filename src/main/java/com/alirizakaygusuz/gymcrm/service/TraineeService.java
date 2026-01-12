@@ -7,9 +7,7 @@ import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
@@ -90,7 +88,7 @@ public class TraineeService {
     }
 
     //Retrieve all trainees
-    public Map<Long,Trainee> getAllProfiles() {
+    public Map<Long, Trainee> getAllProfiles() {
         //Create a log when retrieving all trainees
         log.info("Retrieving all trainee profiles");
 
@@ -106,7 +104,7 @@ public class TraineeService {
         //Create a log when updating a trainee profile
         log.info("Updating trainee profile with id: " + id);
 
-       Trainee currentTrainee= traineeDao.findById(id).orElseThrow(() -> {
+        Trainee currentTrainee = traineeDao.findById(id).orElseThrow(() -> {
             log.warning("Trainee not found with id: " + id);
             return new RuntimeException("Trainee not found with id: " + id);
         });
@@ -119,7 +117,7 @@ public class TraineeService {
 
         Trainee updatedTrainee = traineeDao.update(id, currentTrainee);
         //Create a log after the trainee profile is updated
-        log.info("Trainee profile updated with id: " + id );
+        log.info("Trainee profile updated with id: " + id);
 
         return updatedTrainee;
     }
@@ -148,7 +146,6 @@ public class TraineeService {
 
         //Create a log when deleting a trainee profile by username
         log.info("Deleting trainee profile with username: " + username);
-
 
 
         Trainee trainee = traineeDao.findByUsername(username).orElseThrow(() -> {
