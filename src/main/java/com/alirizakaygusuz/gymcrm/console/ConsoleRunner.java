@@ -22,6 +22,7 @@ public class ConsoleRunner {
     }
 
     public void run() {
+
         System.out.println("=============Hello Spring Core Gym Crm Task!==============");
 
         ScenarioState state = new ScenarioState();
