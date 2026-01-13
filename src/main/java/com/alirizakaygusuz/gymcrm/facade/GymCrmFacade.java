@@ -8,7 +8,6 @@ import com.alirizakaygusuz.gymcrm.service.TrainerService;
 import com.alirizakaygusuz.gymcrm.service.TrainingService;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
