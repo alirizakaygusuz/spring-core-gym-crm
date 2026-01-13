@@ -26,16 +26,16 @@ import static org.mockito.Mockito.*;
 class TrainerServiceTest {
 
     @Mock
-    TrainerDao trainerDao;
+    private TrainerDao trainerDao;
 
     @Mock
-    CredentialsGenerator credentialsGenerator;
+    private CredentialsGenerator credentialsGenerator;
 
     @Mock
-    UserValidator userValidator;
+    private UserValidator userValidator;
 
     @InjectMocks
-    TrainerService trainerService;
+    private TrainerService trainerService;
 
 
     @BeforeEach

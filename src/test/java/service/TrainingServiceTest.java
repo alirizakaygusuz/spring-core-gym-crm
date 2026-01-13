@@ -24,13 +24,13 @@ import static org.mockito.Mockito.*;
 class TrainingServiceTest {
 
     @Mock
-    TrainingDao trainingDao;
+    private TrainingDao trainingDao;
 
     @Mock
-    CommonValidator commonValidator;
+    private CommonValidator commonValidator;
 
     @InjectMocks
-    TrainingService trainingService;
+    private TrainingService trainingService;
 
     @BeforeEach
     void setUp() {
