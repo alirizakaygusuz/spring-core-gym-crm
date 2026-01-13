@@ -18,13 +18,13 @@ import static org.mockito.Mockito.*;
 class CredentialsGeneratorTest {
 
     @Mock
-    TraineeDao traineeDao;
+    private TraineeDao traineeDao;
 
     @Mock
-    TrainerDao trainerDao;
+    private TrainerDao trainerDao;
 
     @InjectMocks
-    CredentialsGenerator credentialsGenerator;
+    private CredentialsGenerator credentialsGenerator;
 
     @BeforeEach
     void setUp() {

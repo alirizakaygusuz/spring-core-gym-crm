@@ -1,14 +1,9 @@
 package dao.util;
 
 import com.alirizakaygusuz.gymcrm.dao.util.IdSequence;
-import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class IdSequenceTest {
 
