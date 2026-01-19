@@ -4,12 +4,16 @@ import com.alirizakaygusuz.gymcrm.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Validator for User entities.
+ *
+ * <p>This class provides methods to validate User objects and their attributes.</p>
+ */
 @Component
 public class UserValidator {
 
     private CommonValidator commonValidator;
 
-    //Inject CommonValidator via setter injection
     @Autowired
     public void setCommonValidator(CommonValidator commonValidator) {
         this.commonValidator = commonValidator;

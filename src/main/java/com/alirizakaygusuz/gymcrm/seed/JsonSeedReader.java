@@ -10,6 +10,12 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Utility component for reading and deserializing JSON seed files.
+ *
+ * <p>This class uses Jackson's {@link ObjectMapper} to parse JSON content from
+ * specified resource paths into Java objects of the desired type.</p>
+ */
 @Component
 public class JsonSeedReader {
 

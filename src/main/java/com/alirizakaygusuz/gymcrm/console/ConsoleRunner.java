@@ -10,6 +10,15 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
+/**
+ * ConsoleRunner is responsible for executing a series of test scenarios
+ * to demonstrate the functionality of the Gym CRM application.
+ *
+ * <p>It uses the GymCrmFacade to perform operations related to
+ * Trainee, Trainer, and Training profiles, including creation,
+ * selection, updating, and deletion. The results of each operation
+ * are printed to the console for verification.</p>
+ */
 @Component
 public class ConsoleRunner {
 
@@ -32,6 +41,7 @@ public class ConsoleRunner {
         runTrainingFlow(state);
 
         printAllMaps();
+
 
         System.out.println("=== Console Test Finished ===");
     }

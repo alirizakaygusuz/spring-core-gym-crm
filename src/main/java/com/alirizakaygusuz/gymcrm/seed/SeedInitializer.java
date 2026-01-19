@@ -1,14 +1,11 @@
 package com.alirizakaygusuz.gymcrm.seed;
 
-import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
-import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
-import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
-import com.alirizakaygusuz.gymcrm.seed.dto.TraineeSeedDto;
-import com.alirizakaygusuz.gymcrm.seed.dto.TrainerSeedDto;
-import com.alirizakaygusuz.gymcrm.seed.dto.TrainingSeedDto;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
 import com.alirizakaygusuz.gymcrm.model.Training;
+import com.alirizakaygusuz.gymcrm.seed.dto.TraineeSeedDto;
+import com.alirizakaygusuz.gymcrm.seed.dto.TrainerSeedDto;
+import com.alirizakaygusuz.gymcrm.seed.dto.TrainingSeedDto;
 import com.alirizakaygusuz.gymcrm.seed.mapper.TraineeSeedMapper;
 import com.alirizakaygusuz.gymcrm.seed.mapper.TrainerSeedMapper;
 import com.alirizakaygusuz.gymcrm.seed.mapper.TrainingSeedMapper;
@@ -26,6 +23,13 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
+/**
+ * Initializes in-memory storage with seed data at application startup.
+ *
+ * <p>Seed initialization is controlled by {@code storage.init.enabled} and the seed file paths
+ * provided via {@code storage.seed.trainees}, {@code storage.seed.trainers}, and
+ * {@code storage.seed.trainings}.</p>
+ */
 @Component
 public class SeedInitializer implements BeanPostProcessor {
 
@@ -54,7 +58,6 @@ public class SeedInitializer implements BeanPostProcessor {
     private ObjectProvider<Map<Long, Trainer>> trainerStorageProvider;
     private ObjectProvider<Map<Long, Training>> trainingStorageProvider;
 
-    //Inject storages via setter injection
     @Autowired
     public void setTraineeStorageProvider(@Qualifier("traineeStorage") ObjectProvider<Map<Long, Trainee>> traineeStorageProvider) {
         this.traineeStorageProvider = traineeStorageProvider;
@@ -71,13 +74,11 @@ public class SeedInitializer implements BeanPostProcessor {
     }
 
 
-    //Inject JsonSeedReader via setter injection
     @Autowired
     public void setJsonSeedReader(JsonSeedReader reader) {
         this.reader = reader;
     }
 
-    //Inject mappers via setter injection
     @Autowired
     public void setTraineeSeedMapper(TraineeSeedMapper traineeSeedMapper) {
         this.traineeSeedMapper = traineeSeedMapper;
@@ -99,12 +100,10 @@ public class SeedInitializer implements BeanPostProcessor {
         return traineeStorageProvider.getObject();
     }
 
-    //Trainer storage getter
     private Map<Long, Trainer> trainerStorage() {
         return trainerStorageProvider.getObject();
     }
 
-    //Training storage getter
     private Map<Long, Training> trainingStorage() {
         return trainingStorageProvider.getObject();
     }
@@ -135,22 +134,17 @@ public class SeedInitializer implements BeanPostProcessor {
 
 
     private void initSeeders() {
-        //Log initialization start
         log.info("================Starting seed initialization=================");
 
         initializeTrainees();
         initializeTrainers();
         initializeTrainings();
 
-
-
-        //Log initialization end
         log.info("================Seed initialization completed=================");
     }
 
 
     private void initializeTrainees() {
-        //Create Entry Log
         log.info("---------------Starting trainee initialization-------------");
 
         if (!isPathValid(traineesPath, "Trainees"))
@@ -173,7 +167,6 @@ public class SeedInitializer implements BeanPostProcessor {
     }
 
     private void initializeTrainers() {
-        //Create Entry Log
         log.info("---------------Starting trainer initialization-------------");
 
         if (!isPathValid(trainersPath, "Trainers"))
@@ -194,7 +187,6 @@ public class SeedInitializer implements BeanPostProcessor {
     }
 
     private void initializeTrainings() {
-        //Create Entry Log
         log.info("---------------Starting training initialization-------------");
 
         if (!isPathValid(trainingsPath, "Trainings"))
@@ -218,7 +210,6 @@ public class SeedInitializer implements BeanPostProcessor {
         log.info("Initialized trainings from seed file: " + trainingsPath + ". Added: " + addedCount + ", Skipped: " + skippedCount);
     }
 
-    //Validate paths for trainees , trainers , trainings
     private boolean isPathValid(String path, String type) {
         if (path == null || path.isBlank()) {
             log.warning(type + " seed path is not provided.");
@@ -228,9 +219,7 @@ public class SeedInitializer implements BeanPostProcessor {
     }
 
 
-    //check traineeId and trainerId exist in their storages before adding training
     private boolean isValidateTrainingReferences(Long traineeId, Long trainerId) {
-        //Check if tranieeId and trainerId are null
         if (traineeId == null || trainerId == null) {
             log.warning("Trainee ID or Trainer ID is null.");
             return false;

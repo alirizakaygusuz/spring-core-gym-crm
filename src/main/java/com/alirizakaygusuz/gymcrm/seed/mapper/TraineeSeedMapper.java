@@ -14,8 +14,6 @@ public class TraineeSeedMapper implements SeedBaseMapper<Trainee , TraineeSeedDt
 
     private UserSeedMapperApplier userSeedMapperApplier;
 
-
-    //Inject via setter userSeedMapperSupport
     @Autowired
     public void setUserSeedMapperSupport(UserSeedMapperApplier userSeedMapperApplier) {
         this.userSeedMapperApplier = userSeedMapperApplier;

@@ -19,7 +19,6 @@ public class Trainer extends  User {
     }
 
 
-    // Getters and Setters
     public TrainingType getSpecialization() {
         return specialization;
     }

@@ -10,6 +10,14 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.logging.Logger;
 
+/**
+ * Service responsible for managing {@link Trainer} profiles.
+ *
+ * <p>This class contains application-level operations for creating, retrieving,
+ * updating, and deleting trainers. It coordinates validation, credential generation,
+ * and persistence by delegating to {@link UserValidator}, {@link CredentialsGenerator},
+ * and {@link TrainerDao}.</p>
+ */
 @Service
 public class TrainerService {
 
@@ -20,29 +28,34 @@ public class TrainerService {
     private static final Logger log =
             Logger.getLogger(TrainerService.class.getName());
 
-    //Inject DAOs  via constructor injection
     public TrainerService(TrainerDao trainerDao) {
         this.trainerDao = trainerDao;
     }
 
-    //Inject CredentialsGenerator via setter injection
     @Autowired
     public void setCredentialsGenerator(CredentialsGenerator credentialsGenerator) {
         this.credentialsGenerator = credentialsGenerator;
     }
 
-    //Inject UserValidator via setter injection
     @Autowired
     public void setUserValidator(UserValidator userValidator) {
         this.userValidator = userValidator;
     }
 
-    //Create a new trainer profile with generated credentials and method name is createProfile
+
+    /**
+     * Creates a new trainer profile.
+     *
+     * <p>This method validates the input, generates unique credentials for the trainer,
+     * and persists the profile using {@link TrainerDao}.</p>
+     *
+     * @param trainer trainer data to be created
+     * @return persisted trainer profile with generated credentials
+     */
     public Trainer createProfile(Trainer trainer) {
 
         userValidator.validateUser(trainer);
 
-        //Create a log entry when a new trainer profile is being created
         log.info("Creating new trainer profile for: " + trainer.getFirstName() + " " + trainer.getLastName());
 
         String username = credentialsGenerator.generateUniqueUsername(trainer.getFirstName(), trainer.getLastName());
@@ -50,17 +63,14 @@ public class TrainerService {
         trainer.setUsername(username);
         trainer.setPassword(password);
         Trainer savedTrainer = trainerDao.save(trainer);
-        //Create a log entry after the trainer profile is created
         log.info("Trainer profile created with id: " + savedTrainer.getId() + ", username: " + savedTrainer.getUsername());
 
         return savedTrainer;
     }
 
-    //Select trainer profile by id and method name is selectProfile
     public Trainer selectProfile(Long id) {
         userValidator.validateId(id);
 
-        //Create a log when selecting a trainer profile
         log.info("Selecting trainer profile with id: " + id);
 
         return trainerDao.findById(id).orElseThrow(() -> {
@@ -69,11 +79,9 @@ public class TrainerService {
         });
     }
 
-    //Select trainer profile by username and method name is selectProfile
     public Trainer selectProfile(String username) {
         userValidator.validateUsername(username);
 
-        //Create a log when selecting a trainer profile by username
         log.info( "Selecting trainer profile with username: " + username);
 
         return trainerDao.findByUsername(username).orElseThrow(() -> {
@@ -83,17 +91,14 @@ public class TrainerService {
     }
 
     public Map<Long , Trainer> getAllTrainers() {
-        //Create a log when retrieving all trainers
         log.info("Retrieving all trainers");
         return trainerDao.getAll();
     }
 
-    //Update trainer profile and method name is updateProfile
     public Trainer updateProfile(Long id, Trainer trainer) {
         userValidator.validateId(id);
         userValidator.validateUser(trainer);
 
-        //Create a log when updating a trainer profile
         log.info("Updating trainer profile with id: " + id);
 
         Trainer currentTrainer = trainerDao.findById(id).orElseThrow(() -> {

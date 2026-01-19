@@ -2,6 +2,12 @@ package com.alirizakaygusuz.gymcrm.service.validator;
 
 import org.springframework.stereotype.Component;
 
+/**
+ * Common validation utilities for service layer.
+ *
+ * <p>This class provides methods to validate common input parameters
+ * such as IDs and string values.</p>
+ */
 @Component
 public class CommonValidator {
 

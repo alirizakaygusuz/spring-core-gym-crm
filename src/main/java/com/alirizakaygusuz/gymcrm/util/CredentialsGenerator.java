@@ -5,6 +5,13 @@ import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Generates unique usernames and random passwords for users.
+ *
+ * <p>Usernames are generated in the form {@code firstName.lastName} and
+ * suffixed with an incrementing number when a collision is detected.</p>
+ */
+
 @Component
 public class CredentialsGenerator {
 
@@ -17,20 +24,27 @@ public class CredentialsGenerator {
     private TraineeDao traineeDao;
     private TrainerDao trainerDao;
 
-    //Inject TraineeDao via setter injection
     @Autowired
     public void setTraineeDao(TraineeDao traineeDao) {
         this.traineeDao = traineeDao;
     }
 
-    //Inject TrainerDao via setter injection
     @Autowired
     public void setTrainerDao(TrainerDao trainerDao) {
         this.trainerDao = trainerDao;
     }
 
 
-    //Generate a Unique Username
+    /**
+     * Generates a unique username based on the given first and last name.
+     *
+     * <p>The base username is {@code firstName.lastName}. If the username already exists,
+     * an incrementing numeric suffix is appended until a unique value is found.</p>
+     *
+     * @param firstName user's first name
+     * @param lastName user's last name
+     * @return unique username
+     */
     public String generateUniqueUsername(String firstName, String lastName) {
         String base = firstName + "." + lastName;
         String username = base;
@@ -42,7 +56,11 @@ public class CredentialsGenerator {
         return username;
     }
 
-    // Generates a random password with a fixed length of 10 characters
+    /**
+     * Generates a random password of fixed length using alphanumeric characters.
+     *
+     * @return randomly generated password
+     */
     public String generateRandomPassword() {
         StringBuilder password = new StringBuilder(PASSWORD_LENGTH);
         for (int i = 0; i < PASSWORD_LENGTH; i++) {
