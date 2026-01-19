@@ -6,10 +6,10 @@ import com.alirizakaygusuz.gymcrm.model.Training;
 import com.alirizakaygusuz.gymcrm.service.TraineeService;
 import com.alirizakaygusuz.gymcrm.service.TrainerService;
 import com.alirizakaygusuz.gymcrm.service.TrainingService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Facade that exposes a simplified API for Gym CRM use-cases.
@@ -21,14 +21,13 @@ import java.util.logging.Logger;
  * orchestrates cross-domain interactions when required.</p>
  */
 @Component
+@Slf4j
 public class GymCrmFacade {
 
     private final TraineeService traineeService;
     private final TrainerService trainerService;
     private final TrainingService trainingService;
 
-    private static final Logger log =
-            Logger.getLogger(GymCrmFacade.class.getName());
 
     public GymCrmFacade(TraineeService traineeService, TrainerService trainerService, TrainingService trainingService) {
         this.traineeService = traineeService;
@@ -58,7 +57,7 @@ public class GymCrmFacade {
         return traineeService.selectProfile(username);
     }
 
-    public Map<Long,Trainee> getAllTraineeProfiles() {
+    public Map<Long, Trainee> getAllTraineeProfiles() {
         return traineeService.getAllProfiles();
     }
 
@@ -80,7 +79,7 @@ public class GymCrmFacade {
     }
 
 
-    public Map<Long,Trainer> getAllTrainerProfiles() {
+    public Map<Long, Trainer> getAllTrainerProfiles() {
         return trainerService.getAllTrainers();
     }
 
@@ -100,12 +99,11 @@ public class GymCrmFacade {
      */
     public Training createTrainingProfile(Training training) {
         if (training == null) {
-            log.warning("Training object is null in createTrainingProfile method");
+            log.warn("Training object is null in createTrainingProfile method");
             throw new IllegalArgumentException("Training object cannot be null");
         }
 
-        log.info("Selecting trainee and trainer profiles for training creation. Trainee ID: " + training.getTraineeId() +
-                ", Trainer ID: " + training.getTrainerId());
+        log.info("Selecting trainee and trainer profiles for training creatin: traineeId={}, trainerId={}  ", training.getTraineeId(), training.getTrainerId());
         traineeService.selectProfile(training.getTraineeId());
         trainerService.selectProfile(training.getTrainerId());
 
@@ -116,10 +114,9 @@ public class GymCrmFacade {
         return trainingService.selectProfile(trainingId);
     }
 
-    public Map<Long,Training> getAllTrainingProfiles() {
+    public Map<Long, Training> getAllTrainingProfiles() {
         return trainingService.getAllTrainings();
     }
-
 
 
 }

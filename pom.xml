@@ -20,6 +20,7 @@
         <mockito.version>5.20.0</mockito.version>
         <assertj.version>3.27.6</assertj.version>
         <lombok.version>1.18.30</lombok.version>
+        <slf4j.version>2.0.17</slf4j.version>
     </properties>
 
 
@@ -93,6 +94,17 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+
+        <!-- ============SLF4J Dependency ============= -->
+        <!-- SLF4J API -->
+        <!-- Source: https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

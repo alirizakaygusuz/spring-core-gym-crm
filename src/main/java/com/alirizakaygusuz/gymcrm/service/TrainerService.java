@@ -2,13 +2,13 @@ package com.alirizakaygusuz.gymcrm.service;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
-import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
+import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Service responsible for managing {@link Trainer} profiles.
@@ -19,14 +19,13 @@ import java.util.logging.Logger;
  * and {@link TrainerDao}.</p>
  */
 @Service
+@Slf4j
 public class TrainerService {
 
     private final TrainerDao trainerDao;
     private CredentialsGenerator credentialsGenerator;
     private UserValidator userValidator;
 
-    private static final Logger log =
-            Logger.getLogger(TrainerService.class.getName());
 
     public TrainerService(TrainerDao trainerDao) {
         this.trainerDao = trainerDao;
@@ -56,14 +55,14 @@ public class TrainerService {
 
         userValidator.validateUser(trainer);
 
-        log.info("Creating new trainer profile for: " + trainer.getFirstName() + " " + trainer.getLastName());
+        log.info("Creating new trainer profile for {} {}", trainer.getFirstName(), trainer.getLastName());
 
         String username = credentialsGenerator.generateUniqueUsername(trainer.getFirstName(), trainer.getLastName());
         String password = credentialsGenerator.generateRandomPassword();
         trainer.setUsername(username);
         trainer.setPassword(password);
         Trainer savedTrainer = trainerDao.save(trainer);
-        log.info("Trainer profile created with id: " + savedTrainer.getId() + ", username: " + savedTrainer.getUsername());
+        log.info("Trainer profile created with id {}, username {}", savedTrainer.getId(), savedTrainer.getUsername());
 
         return savedTrainer;
     }
@@ -71,10 +70,10 @@ public class TrainerService {
     public Trainer selectProfile(Long id) {
         userValidator.validateId(id);
 
-        log.info("Selecting trainer profile with id: " + id);
+        log.info("Selecting trainer profile with id {}", id);
 
         return trainerDao.findById(id).orElseThrow(() -> {
-            log.warning("Trainer not found with id: " + id);
+            log.warn("Trainer not found with id {}", id);
             return new RuntimeException("Trainer not found with id: " + id);
         });
     }
@@ -82,15 +81,15 @@ public class TrainerService {
     public Trainer selectProfile(String username) {
         userValidator.validateUsername(username);
 
-        log.info( "Selecting trainer profile with username: " + username);
+        log.info("Selecting trainer profile with username {}", username);
 
         return trainerDao.findByUsername(username).orElseThrow(() -> {
-            log.warning("Trainer not found with username: " + username);
+            log.warn("Trainer not found with username {}", username);
             return new RuntimeException("Trainer not found with username: " + username);
         });
     }
 
-    public Map<Long , Trainer> getAllTrainers() {
+    public Map<Long, Trainer> getAllTrainers() {
         log.info("Retrieving all trainers");
         return trainerDao.getAll();
     }
@@ -99,10 +98,10 @@ public class TrainerService {
         userValidator.validateId(id);
         userValidator.validateUser(trainer);
 
-        log.info("Updating trainer profile with id: " + id);
+        log.info("Updating trainer profile with id {}", id);
 
         Trainer currentTrainer = trainerDao.findById(id).orElseThrow(() -> {
-            log.warning("Trainer not found by id: " + id);
+            log.warn("Trainer not found with id {}", id);
             return new RuntimeException("Trainer not found by id:" + id);
         });
 
@@ -113,7 +112,7 @@ public class TrainerService {
 
 
         Trainer updatedTrainer = trainerDao.update(id, currentTrainer);
-        log.info("Trainer profile updated with id: " + updatedTrainer.getId());
+        log.info("Trainer profile updated with id {}", updatedTrainer.getId());
         return updatedTrainer;
     }
 

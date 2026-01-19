@@ -4,11 +4,11 @@ import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Service responsible for managing {@link Trainee} profiles.
@@ -18,15 +18,14 @@ import java.util.logging.Logger;
  * and persistence by delegating to {@link UserValidator}, {@link CredentialsGenerator},
  * and {@link TraineeDao}.</p>
  */
+
 @Service
+@Slf4j
 public class TraineeService {
 
     private final TraineeDao traineeDao;
     private CredentialsGenerator credentialsGenerator;
     private UserValidator userValidator;
-
-    private static final Logger log =
-            Logger.getLogger(TraineeService.class.getName());
 
 
     public TraineeService(TraineeDao traineeDao) {
@@ -57,7 +56,10 @@ public class TraineeService {
 
         userValidator.validateUser(trainee);
 
-        log.info("Creating new trainee profile for: " + trainee.getFirstName() + " " + trainee.getLastName());
+        log.info("Creating new trainee profile for {} {}",
+                trainee.getFirstName(),
+                trainee.getLastName());
+
 
         String username = credentialsGenerator.generateUniqueUsername(trainee.getFirstName(), trainee.getLastName());
         String password = credentialsGenerator.generateRandomPassword();
@@ -66,7 +68,9 @@ public class TraineeService {
 
         Trainee savedTrainee = traineeDao.save(trainee);
 
-        log.info("Trainee profile created with id: " + savedTrainee.getId() + ", username: " + savedTrainee.getUsername());
+        log.info("Trainee profile created with id {}, username {}",
+                savedTrainee.getId(),
+                savedTrainee.getUsername());
 
         return savedTrainee;
     }
@@ -75,10 +79,10 @@ public class TraineeService {
     public Trainee selectProfile(Long id) {
         userValidator.validateId(id);
 
-        log.info("Selecting trainee profile with id: " + id);
+        log.info("Selecting trainee profile with id {}", id);
 
         return traineeDao.findById(id).orElseThrow(() -> {
-            log.warning("Trainee not found with id: " + id);
+            log.warn("Trainee not found with id {}", id);
             return new RuntimeException("Trainee not found with id: " + id);
         });
     }
@@ -86,10 +90,10 @@ public class TraineeService {
     public Trainee selectProfile(String username) {
         userValidator.validateUsername(username);
 
-        log.info("Selecting trainee profile with username: " + username);
+        log.info("Selecting trainee profile with username {}", username);
 
         return traineeDao.findByUsername(username).orElseThrow(() -> {
-            log.warning("Trainee not found with username: " + username);
+            log.warn("Trainee not found with username {}", username);
             return new RuntimeException("Trainee not found with username: " + username);
         });
     }
@@ -105,10 +109,10 @@ public class TraineeService {
         userValidator.validateId(id);
         userValidator.validateUser(trainee);
 
-        log.info("Updating trainee profile with id: " + id);
+        log.info("Updating trainee profile with id {}", id);
 
         Trainee currentTrainee = traineeDao.findById(id).orElseThrow(() -> {
-            log.warning("Trainee not found with id: " + id);
+            log.warn("Trainee not found with id {}", id);
             return new RuntimeException("Trainee not found with id: " + id);
         });
 
@@ -119,7 +123,7 @@ public class TraineeService {
         currentTrainee.setAddress(trainee.getAddress());
 
         Trainee updatedTrainee = traineeDao.update(id, currentTrainee);
-        log.info("Trainee profile updated with id: " + id);
+        log.info("Trainee profile updated with id {}", id);
 
         return updatedTrainee;
     }
@@ -127,32 +131,32 @@ public class TraineeService {
     public void deleteProfile(Long id) {
         userValidator.validateId(id);
 
-        log.info("Deleting trainee profile with id: " + id);
+        log.info("Deleting trainee profile with id {}", id);
 
         traineeDao.findById(id).orElseThrow(() -> {
-            log.warning("Trainee not found with id: " + id);
+            log.warn("Trainee not found with id {}", id);
 
             return new RuntimeException("Trainee not found with id: " + id);
         });
 
         traineeDao.delete(id);
 
-        log.info(() -> "Deleted trainee profile with id: " + id);
+        log.info("Deleted trainee profile with id {}", id);
     }
 
     public void deleteProfile(String username) {
         userValidator.validateUsername(username);
 
-        log.info("Deleting trainee profile with username: " + username);
+        log.info("Deleting trainee profile with username {}", username);
 
 
         Trainee trainee = traineeDao.findByUsername(username).orElseThrow(() -> {
-            log.warning("Trainee not found with username: " + username);
+            log.warn("Trainee not found with username {}", username);
             return new RuntimeException("Trainee not found with username: " + username);
         });
 
         traineeDao.delete(trainee.getId());
-        log.info(() -> "Deleted trainee profile with username: " + username);
+        log.info("Deleted trainee profile with username {}", username);
 
     }
 

@@ -9,6 +9,7 @@ import com.alirizakaygusuz.gymcrm.seed.dto.TrainingSeedDto;
 import com.alirizakaygusuz.gymcrm.seed.mapper.TraineeSeedMapper;
 import com.alirizakaygusuz.gymcrm.seed.mapper.TrainerSeedMapper;
 import com.alirizakaygusuz.gymcrm.seed.mapper.TrainingSeedMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,6 @@ import tools.jackson.core.type.TypeReference;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
 
 /**
  * Initializes in-memory storage with seed data at application startup.
@@ -31,9 +31,9 @@ import java.util.logging.Logger;
  * {@code storage.seed.trainings}.</p>
  */
 @Component
+@Slf4j
 public class SeedInitializer implements BeanPostProcessor {
 
-    private static final Logger log = Logger.getLogger(SeedInitializer.class.getName());
     private final AtomicBoolean seeded = new AtomicBoolean(false);
 
     private JsonSeedReader reader;
@@ -95,7 +95,6 @@ public class SeedInitializer implements BeanPostProcessor {
     }
 
 
-
     private Map<Long, Trainee> traineeStorage() {
         return traineeStorageProvider.getObject();
     }
@@ -121,7 +120,7 @@ public class SeedInitializer implements BeanPostProcessor {
         }
 
         if (!initEnabled) {
-            log.warning("Seed initialization is disabled.");
+            log.warn("Seed initialization is disabled.");
             seeded.set(true);
             return bean;
         }
@@ -163,7 +162,7 @@ public class SeedInitializer implements BeanPostProcessor {
 
         }
 
-        log.info("Initialized trainees from seed file: " + traineesPath);
+        log.info("Initialized trainees from seed file {}", traineesPath);
     }
 
     private void initializeTrainers() {
@@ -183,7 +182,7 @@ public class SeedInitializer implements BeanPostProcessor {
             trainerStorage().put(trainer.getId(), trainer);
 
         }
-        log.info("Initialized trainers from seed file: " + trainersPath);
+        log.info("Initialized trainers from seed file {}", trainersPath);
     }
 
     private void initializeTrainings() {
@@ -207,12 +206,13 @@ public class SeedInitializer implements BeanPostProcessor {
             addedCount++;
         }
 
-        log.info("Initialized trainings from seed file: " + trainingsPath + ". Added: " + addedCount + ", Skipped: " + skippedCount);
+        log.info("Initialized trainings from seed file {} (added={}, skipped={})",
+                trainingsPath, addedCount, skippedCount);
     }
 
     private boolean isPathValid(String path, String type) {
         if (path == null || path.isBlank()) {
-            log.warning(type + " seed path is not provided.");
+            log.warn("{} seed path is not provided.", type);
             return false;
         }
         return true;
@@ -221,15 +221,15 @@ public class SeedInitializer implements BeanPostProcessor {
 
     private boolean isValidateTrainingReferences(Long traineeId, Long trainerId) {
         if (traineeId == null || trainerId == null) {
-            log.warning("Trainee ID or Trainer ID is null.");
+            log.warn("Trainee ID or Trainer ID is null.");
             return false;
         }
         if (!traineeStorage().containsKey(traineeId)) {
-            log.warning("Trainee ID " + traineeId + " does not exist.");
+            log.warn("Trainee ID={} does not exist.", traineeId);
             return false;
         }
         if (!trainerStorage().containsKey(trainerId)) {
-            log.warning("Trainer ID " + trainerId + " does not exist.");
+            log.warn("Trainer ID={} does not exist.", trainerId);
             return false;
         }
 

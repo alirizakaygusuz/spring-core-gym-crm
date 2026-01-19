@@ -1,16 +1,12 @@
 package com.alirizakaygusuz.gymcrm.seed.mapper;
 
-import com.alirizakaygusuz.gymcrm.seed.dto.TrainerSeedDto;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
+import com.alirizakaygusuz.gymcrm.seed.dto.TrainerSeedDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.logging.Logger;
-
 @Component
-public class TrainerSeedMapper implements SeedBaseMapper<Trainer , TrainerSeedDto> {
-
-    private static final Logger log = Logger.getLogger(TrainerSeedMapper.class.getName());
+public class TrainerSeedMapper implements SeedBaseMapper<Trainer, TrainerSeedDto> {
 
     private UserSeedMapperApplier userSeedMapperApplier;
 
