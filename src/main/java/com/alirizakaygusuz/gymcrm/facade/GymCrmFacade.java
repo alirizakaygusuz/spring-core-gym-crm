@@ -1,5 +1,6 @@
 package com.alirizakaygusuz.gymcrm.facade;
 
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
 import com.alirizakaygusuz.gymcrm.model.Training;
@@ -95,12 +96,12 @@ public class GymCrmFacade {
      *
      * @param training training data to be created
      * @return created training instance
-     * @throws IllegalArgumentException if {@code training} is null
+     * @throws ValidationException if {@code training} is null
      */
     public Training createTrainingProfile(Training training) {
         if (training == null) {
             log.warn("Training object is null in createTrainingProfile method");
-            throw new IllegalArgumentException("Training object cannot be null");
+            throw new ValidationException("Training object cannot be null");
         }
 
         log.info("Selecting trainee and trainer profiles for training creatin: traineeId={}, trainerId={}  ", training.getTraineeId(), training.getTrainerId());

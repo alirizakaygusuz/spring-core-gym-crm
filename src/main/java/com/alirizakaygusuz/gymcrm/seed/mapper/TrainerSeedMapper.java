@@ -20,7 +20,6 @@ public class TrainerSeedMapper implements SeedBaseMapper<Trainer, TrainerSeedDto
         Trainer t = new Trainer();
         userSeedMapperApplier.apply(t, dto.id(), dto.firstName(), dto.lastName(), dto.isActive());
         t.setSpecialization(dto.specialization());
-        log.info(t.toString());
         return t;
     }
 }

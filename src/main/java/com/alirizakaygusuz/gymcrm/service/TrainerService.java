@@ -1,6 +1,7 @@
 package com.alirizakaygusuz.gymcrm.service;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
+import com.alirizakaygusuz.gymcrm.exception.TrainerNotFoundException;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
 import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
@@ -74,7 +75,7 @@ public class TrainerService {
 
         return trainerDao.findById(id).orElseThrow(() -> {
             log.warn("Trainer not found with id {}", id);
-            return new RuntimeException("Trainer not found with id: " + id);
+            return new TrainerNotFoundException(id);
         });
     }
 
@@ -85,7 +86,7 @@ public class TrainerService {
 
         return trainerDao.findByUsername(username).orElseThrow(() -> {
             log.warn("Trainer not found with username {}", username);
-            return new RuntimeException("Trainer not found with username: " + username);
+            return new TrainerNotFoundException(username);
         });
     }
 
@@ -102,7 +103,7 @@ public class TrainerService {
 
         Trainer currentTrainer = trainerDao.findById(id).orElseThrow(() -> {
             log.warn("Trainer not found with id {}", id);
-            return new RuntimeException("Trainer not found by id:" + id);
+            return new TrainerNotFoundException(id);
         });
 
         currentTrainer.setFirstName(trainer.getFirstName());

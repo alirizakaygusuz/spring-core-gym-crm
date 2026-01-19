@@ -1,5 +1,6 @@
 package com.alirizakaygusuz.gymcrm.service.validator;
 
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,14 +13,14 @@ import org.springframework.stereotype.Component;
 public class CommonValidator {
 
     public void validateId(Long id) {
-        if(id == null || id <= 0) {
-            throw new IllegalArgumentException("ID must be a positive number");
+        if (id == null || id <= 0) {
+            throw new ValidationException("ID must be a positive number");
         }
     }
 
     public void validateNotBlank(String value, String fieldName) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(fieldName + " cannot be null or blank");
+            throw new ValidationException(fieldName + " cannot be null or blank");
         }
     }
 

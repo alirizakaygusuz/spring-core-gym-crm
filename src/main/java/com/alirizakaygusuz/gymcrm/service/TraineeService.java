@@ -1,6 +1,7 @@
 package com.alirizakaygusuz.gymcrm.service;
 
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
+import com.alirizakaygusuz.gymcrm.exception.TraineeNotFoundException;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
@@ -83,7 +84,7 @@ public class TraineeService {
 
         return traineeDao.findById(id).orElseThrow(() -> {
             log.warn("Trainee not found with id {}", id);
-            return new RuntimeException("Trainee not found with id: " + id);
+            return new TraineeNotFoundException(id);
         });
     }
 
@@ -94,7 +95,7 @@ public class TraineeService {
 
         return traineeDao.findByUsername(username).orElseThrow(() -> {
             log.warn("Trainee not found with username {}", username);
-            return new RuntimeException("Trainee not found with username: " + username);
+            return new TraineeNotFoundException(username);
         });
     }
 
@@ -113,7 +114,7 @@ public class TraineeService {
 
         Trainee currentTrainee = traineeDao.findById(id).orElseThrow(() -> {
             log.warn("Trainee not found with id {}", id);
-            return new RuntimeException("Trainee not found with id: " + id);
+            return new TraineeNotFoundException(id);
         });
 
         currentTrainee.setFirstName(trainee.getFirstName());
@@ -136,7 +137,7 @@ public class TraineeService {
         traineeDao.findById(id).orElseThrow(() -> {
             log.warn("Trainee not found with id {}", id);
 
-            return new RuntimeException("Trainee not found with id: " + id);
+            return new TraineeNotFoundException(id);
         });
 
         traineeDao.delete(id);
@@ -152,7 +153,7 @@ public class TraineeService {
 
         Trainee trainee = traineeDao.findByUsername(username).orElseThrow(() -> {
             log.warn("Trainee not found with username {}", username);
-            return new RuntimeException("Trainee not found with username: " + username);
+            return new TraineeNotFoundException(username);
         });
 
         traineeDao.delete(trainee.getId());

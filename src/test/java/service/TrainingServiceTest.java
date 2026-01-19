@@ -1,6 +1,8 @@
 package service;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
+import com.alirizakaygusuz.gymcrm.exception.TrainingNotFoundException;
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.Training;
 import com.alirizakaygusuz.gymcrm.model.TrainingType;
 import com.alirizakaygusuz.gymcrm.service.TrainingService;
@@ -74,7 +76,7 @@ class TrainingServiceTest {
     void createProfile_ShouldThrowExceptionWhenTrainingIsNUll() {
         Training nullTraining = null;
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+        ValidationException ex = assertThrows(ValidationException.class, () -> {
             trainingService.createProfile(nullTraining);
         });
 
@@ -90,10 +92,10 @@ class TrainingServiceTest {
         Training training = new Training();
         training.setTrainingName("   ");
 
-        doThrow(new IllegalArgumentException("Training name cannot be null or blank"))
+        doThrow(new ValidationException("Training name cannot be null or blank"))
                 .when(commonValidator).validateNotBlank(training.getTrainingName(), "Training name");
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+        ValidationException ex = assertThrows(ValidationException.class, () -> {
             trainingService.createProfile(training);
         });
 
@@ -132,10 +134,10 @@ class TrainingServiceTest {
     void selectProfile_ShouldThrowExceptionWhenIdIsInvalid() {
         Long invalidId = -1L;
 
-        doThrow(new IllegalArgumentException("ID must be a positive number"))
+        doThrow(new ValidationException("ID must be a positive number"))
                 .when(commonValidator).validateId(invalidId);
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+        ValidationException ex = assertThrows(ValidationException.class, () -> {
             trainingService.selectProfile(invalidId);
         });
 
@@ -153,7 +155,7 @@ class TrainingServiceTest {
 
         when(trainingDao.findById(trainingId)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+        TrainingNotFoundException ex = assertThrows(TrainingNotFoundException.class, () -> {
             trainingService.selectProfile(trainingId);
         });
 

@@ -1,5 +1,6 @@
 package service.validator;
 
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +26,7 @@ class CommonValidatorTest {
     @DisplayName("validateId should throw IllegalArgumentException when id is invalid")
     @Test
     void validateId_shouldThrowExceptionWhenIdIsInvalid(){
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(ValidationException.class, () -> {
             commonValidator.validateId(null);
         });
     }
@@ -40,7 +41,7 @@ class CommonValidatorTest {
     @DisplayName("validateNotBlank should throw IllegalArgumentException when value is invalid")
     @Test
     void validateNotBlank_shouldThrowExceptionWhenValueIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(ValidationException.class, () -> {
             commonValidator.validateNotBlank(null, "TestField");
         });
     }

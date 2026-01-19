@@ -2,6 +2,8 @@ package service;
 
 
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
+import com.alirizakaygusuz.gymcrm.exception.TraineeNotFoundException;
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.service.TraineeService;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
@@ -99,18 +101,18 @@ class TraineeServiceTest {
     }
 
 
-    @DisplayName("createProfile should throw IllegalArgumentException when Trainee is invalid")
+    @DisplayName("createProfile should throw ValidationException when Trainee is invalid")
     @Test
     void createProfile_shouldThrowExceptionWhenTraineeIsInvalid() {
         Trainee trainee = new Trainee();
         trainee.setFirstName("");
         trainee.setLastName("Smith");
 
-        doThrow(new IllegalArgumentException("First name cannot be null or blank"))
+        doThrow(new ValidationException("First name cannot be null or blank"))
                 .when(userValidator).validateUser(trainee);
 
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
+        ValidationException ex = assertThrows(
+                ValidationException.class,
                 () -> traineeService.createProfile(trainee)
         );
 
@@ -124,16 +126,16 @@ class TraineeServiceTest {
     }
 
 
-    @DisplayName("createProfile should throw IllegalArgumentException when Trainee is null")
+    @DisplayName("createProfile should throw ValidationException when Trainee is null")
     @Test
     void createProfile_shouldThrow_whenTraineeIsNull() {
         Trainee nullUser = null;
 
-        doThrow(new IllegalArgumentException("User cannot be null"))
+        doThrow(new ValidationException("User cannot be null"))
                 .when(userValidator).validateUser(nullUser);
 
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
+        ValidationException ex = assertThrows(
+                ValidationException.class,
                 () -> traineeService.createProfile(nullUser)
         );
 
@@ -168,16 +170,16 @@ class TraineeServiceTest {
     }
 
 
-    @DisplayName("selectProfile should throw IllegalArgumentException when id is invalid")
+    @DisplayName("selectProfile should throw ValidationException when id is invalid")
     @Test
     void selectProfile_shouldThrowExceptionWhenIdIsInvalid() {
         Long invalidId = -1L;
 
-        doThrow(new IllegalArgumentException("ID must be a positive number"))
+        doThrow(new ValidationException("ID must be a positive number"))
                 .when(userValidator).validateId(invalidId);
 
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
+        ValidationException ex = assertThrows(
+                ValidationException.class,
                 () -> traineeService.selectProfile(invalidId)
         );
 
@@ -187,7 +189,7 @@ class TraineeServiceTest {
         verifyNoInteractions(traineeDao);
     }
 
-    @DisplayName("selectProfile should throw RuntimeException when Trainee not found")
+    @DisplayName("selectProfile should throw TraineeNotFoundException when Trainee not found")
     @Test
     void selectProfile_shouldThrowExceptionWhenTraineeNotFound() {
         Long traineeId = 2L;
@@ -195,8 +197,8 @@ class TraineeServiceTest {
 
         when(traineeDao.findById(traineeId)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
+        TraineeNotFoundException ex = assertThrows(
+                TraineeNotFoundException.class,
                 () -> traineeService.selectProfile(traineeId)
         );
 
@@ -210,7 +212,6 @@ class TraineeServiceTest {
 
     @DisplayName("selectProfile should return selected Trainee when username is valid")
     @Test
-        //Test happyPath method selectProfile by username
     void selectProfile_shouldReturnSelectedTraineeWhenUsernameIsValid() {
         String validUsername = "john.doe";
         Trainee trainee = new Trainee();
@@ -234,15 +235,14 @@ class TraineeServiceTest {
     }
 
 
-    //Test invalid username for selectProfile by username
-    @DisplayName("selectProfile should throw IllegalArgumentException when username is invalid")
+    @DisplayName("selectProfile should throw ValidationException when username is invalid")
     @Test
     void selectProfile_shouldThrowExceptionWhenUsernameIsInvalid() {
         String invalidUsername = "   ";
-        doThrow(new IllegalArgumentException("Username cannot be null or blank"))
+        doThrow(new ValidationException("Username cannot be null or blank"))
                 .when(userValidator).validateUsername(invalidUsername);
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
+        ValidationException ex = assertThrows(
+                ValidationException.class,
                 () -> traineeService.selectProfile(invalidUsername)
         );
 
@@ -253,16 +253,15 @@ class TraineeServiceTest {
     }
 
 
-    //Test trainee not found for selectProfile by username
-    @DisplayName("selectProfile should throw RuntimeException when Trainee not found by username")
+    @DisplayName("selectProfile should throw TraineeNotFoundException when Trainee not found by username")
     @Test
     void selectProfile_shouldThrowExceptionWhenTraineeNotFoundByUsername() {
         String validUsername = "jane.doe";
 
         when(traineeDao.findByUsername(validUsername)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
+        TraineeNotFoundException ex = assertThrows(
+                TraineeNotFoundException.class,
                 () -> traineeService.selectProfile(validUsername)
         );
 
@@ -274,7 +273,6 @@ class TraineeServiceTest {
     }
 
 
-    //Test getAllProfiles method should return all Trainee profiles work on map
     @DisplayName("getAllProfiles should return all Trainee profiles")
     @Test
     void getAllProfiles_shouldReturnAllTraineeProfiles() {
@@ -310,7 +308,6 @@ class TraineeServiceTest {
     }
 
 
-    //Test updateProfile happy path
     @DisplayName("updateProfile should return updated Trainee when inputs are valid")
     @Test
     void updateProfile_shouldReturnUpdatedTraineeWhenInputsAreValid() {
@@ -356,8 +353,7 @@ class TraineeServiceTest {
     }
 
 
-    //Test updateProfile when id is invalid
-    @DisplayName("updateProfile should throw IllegalArgumentException when id is invalid")
+    @DisplayName("updateProfile should throw ValidationException when id is invalid")
     @Test
     void updateProfile_shouldThrowExceptionWhenIdIsInvalid() {
         Long invalidId = -1L;
@@ -365,11 +361,11 @@ class TraineeServiceTest {
         trainee.setFirstName("John");
         trainee.setLastName("Doe");
 
-        doThrow(new IllegalArgumentException("ID must be a positive number"))
+        doThrow(new ValidationException("ID must be a positive number"))
                 .when(userValidator).validateId(invalidId);
 
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
+        ValidationException ex = assertThrows(
+                ValidationException.class,
                 () -> traineeService.updateProfile(invalidId, trainee)
         );
 
@@ -379,8 +375,7 @@ class TraineeServiceTest {
         verifyNoInteractions(traineeDao);
     }
 
-    //Test updateProfile when Trainee is invalid
-    @DisplayName("updateProfile should throw IllegalArgumentException when Trainee is invalid")
+    @DisplayName("updateProfile should throw ValidationException when Trainee is invalid")
     @Test
     void updateProfile_shouldThrowExceptionWhenTraineeIsInvalid() {
         Long validId = 1L;
@@ -388,11 +383,11 @@ class TraineeServiceTest {
         trainee.setFirstName("");
         trainee.setLastName("Doe");
 
-        doThrow(new IllegalArgumentException("First name cannot be null or blank"))
+        doThrow(new ValidationException("First name cannot be null or blank"))
                 .when(userValidator).validateUser(trainee);
 
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
+        ValidationException ex = assertThrows(
+                ValidationException.class,
                 () -> traineeService.updateProfile(validId, trainee)
         );
 
@@ -404,8 +399,7 @@ class TraineeServiceTest {
     }
 
 
-    //Test updateProfile when Trainee not found
-    @DisplayName("updateProfile should throw RuntimeException when Trainee not found")
+    @DisplayName("updateProfile should throw TraineeNotFoundException when Trainee not found")
     @Test
     void updateProfile_shouldThrowExceptionWhenTraineeNotFound() {
         Long validId = 2L;
@@ -415,8 +409,8 @@ class TraineeServiceTest {
 
         when(traineeDao.findById(validId)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
+        TraineeNotFoundException ex = assertThrows(
+                TraineeNotFoundException.class,
                 () -> traineeService.updateProfile(validId, trainee)
         );
 
@@ -429,7 +423,6 @@ class TraineeServiceTest {
     }
 
 
-    //Test deleteProfile by id happy path
     @DisplayName("deleteProfile by id should delete Trainee when id is valid")
     @Test
     void deleteProfileById_shouldDeleteTraineeWhenIdIsValid() {
@@ -449,17 +442,16 @@ class TraineeServiceTest {
         verifyNoMoreInteractions(traineeDao, userValidator);
     }
 
-    //Test deleteProfile by id when id is invalid
-    @DisplayName("deleteProfile by id should throw IllegalArgumentException when id is invalid")
+    @DisplayName("deleteProfile by id should throw ValidationException when id is invalid")
     @Test
     void deleteProfileById_shouldThrowExceptionWhenIdIsInvalid() {
         Long invalidId = -1L;
 
-        doThrow(new IllegalArgumentException("ID must be a positive number"))
+        doThrow(new ValidationException("ID must be a positive number"))
                 .when(userValidator).validateId(invalidId);
 
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
+        ValidationException ex = assertThrows(
+                ValidationException.class,
                 () -> traineeService.deleteProfile(invalidId)
         );
 
@@ -471,16 +463,15 @@ class TraineeServiceTest {
     }
 
 
-    //Test deleteProfile by id when Trainee not found
-    @DisplayName("deleteProfile by id should throw RuntimeException when Trainee not found")
+    @DisplayName("deleteProfile by id should throw TraineeNotFoundException when Trainee not found")
     @Test
     void deleteProfileById_shouldThrowExceptionWhenTraineeNotFound() {
         Long validId = 2L;
 
         when(traineeDao.findById(validId)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
+        TraineeNotFoundException ex = assertThrows(
+                TraineeNotFoundException.class,
                 () -> traineeService.deleteProfile(validId)
         );
 
@@ -492,7 +483,6 @@ class TraineeServiceTest {
 
     }
 
-    //Test deleteProfile by username happy path
     @DisplayName("deleteProfile by username should delete Trainee when username is valid")
     @Test
     void deleteProfileByUsername_shouldDeleteTraineeWhenUsernameIsValid() {
@@ -513,17 +503,16 @@ class TraineeServiceTest {
         verifyNoMoreInteractions(traineeDao, userValidator);
     }
 
-    //Test deleteProfile by username when username is invalid
-    @DisplayName("deleteProfile by username should throw IllegalArgumentException when username is invalid")
+    @DisplayName("deleteProfile by username should throw ValidationException when username is invalid")
     @Test
     void deleteProfileByUsername_shouldThrowExceptionWhenUsernameIsInvalid() {
         String invalidUsername = "   ";
 
-        doThrow(new IllegalArgumentException("Username cannot be null or blank"))
+        doThrow(new ValidationException("Username cannot be null or blank"))
                 .when(userValidator).validateUsername(invalidUsername);
 
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
+        ValidationException ex = assertThrows(
+                ValidationException.class,
                 () -> traineeService.deleteProfile(invalidUsername)
         );
 
@@ -534,16 +523,15 @@ class TraineeServiceTest {
         verifyNoInteractions(traineeDao);
     }
 
-    //Test deleteProfile by username when Trainee not found
-    @DisplayName("deleteProfile by username should throw RuntimeException when Trainee not found")
+    @DisplayName("deleteProfile by username should throw TraineeNotFoundException when Trainee not found")
     @Test
     void deleteProfileByUsername_shouldThrowExceptionWhenTraineeNotFound() {
         String validUsername = "jane.doe";
 
         when(traineeDao.findByUsername(validUsername)).thenReturn(Optional.empty());
 
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
+        TraineeNotFoundException ex = assertThrows(
+                TraineeNotFoundException.class,
                 () -> traineeService.deleteProfile(validUsername)
         );
 

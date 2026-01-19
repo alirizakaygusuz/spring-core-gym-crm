@@ -1,5 +1,6 @@
 package com.alirizakaygusuz.gymcrm.service.validator;
 
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,7 +35,7 @@ public class UserValidator {
 
     public void validateUser(User user){
         if(user == null) {
-            throw new IllegalArgumentException("User cannot be null");
+            throw new ValidationException("User cannot be null");
         }
         validateRequiredUserNames(user.getFirstName(), user.getLastName());
     }

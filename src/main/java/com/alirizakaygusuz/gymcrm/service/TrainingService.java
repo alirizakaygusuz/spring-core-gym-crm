@@ -1,6 +1,8 @@
 package com.alirizakaygusuz.gymcrm.service;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
+import com.alirizakaygusuz.gymcrm.exception.TrainingNotFoundException;
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.Training;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +54,7 @@ public class TrainingService {
 
         return trainingDao.findById(id).orElseThrow(() -> {
             log.warn("Training not found with id {}" , id);
-            return new RuntimeException("Training not found with id: " + id);
+            return new TrainingNotFoundException(id);
         });
     }
 
@@ -63,7 +65,7 @@ public class TrainingService {
 
     private void validateTraining(Training training) {
         if (training == null) {
-            throw new IllegalArgumentException("Training object cannot be null");
+            throw new ValidationException("Training object cannot be null");
         }
         commonValidator.validateNotBlank(training.getTrainingName(), "Training name");
     }

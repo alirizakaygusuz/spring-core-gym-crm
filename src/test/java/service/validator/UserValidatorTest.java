@@ -1,13 +1,12 @@
 package service.validator;
 
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,7 +32,7 @@ class UserValidatorTest {
     @Test
     void validateId_shouldThrowExceptionWhenIdIsInvalid() {
         Long invalidId = -1L;
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(ValidationException.class, () -> {
             userValidator.validateId(invalidId);
         });
 
@@ -52,7 +51,7 @@ class UserValidatorTest {
     @Test
     void validateUsername_shouldThrowExceptionWhenUsernameIsBlank() {
         String blankUsername = "   ";
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(ValidationException.class, () -> {
             userValidator.validateUsername(blankUsername);
         });
     }
@@ -73,7 +72,7 @@ class UserValidatorTest {
     @Test
     void validateUser_shouldThrowExceptionWhenUserIsNull() {
         Trainee nullUser = null;
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(ValidationException.class, () -> {
             userValidator.validateUser(nullUser);
         });
     }
@@ -86,7 +85,7 @@ class UserValidatorTest {
         userWithBlankFirstName.setFirstName("   ");
         userWithBlankFirstName.setLastName("Doe");
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(ValidationException.class, () -> {
             userValidator.validateUser(userWithBlankFirstName);
         });
     }
@@ -98,7 +97,7 @@ class UserValidatorTest {
         userWithBlankLastName.setFirstName("John");
         userWithBlankLastName.setLastName(null);
 
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(ValidationException.class, () -> {
             userValidator.validateUser(userWithBlankLastName);
         });
     }
