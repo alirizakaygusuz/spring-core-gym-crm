@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.type.TypeReference;
 
@@ -24,10 +25,11 @@ import java.util.Map;
 /**
  * Initializes in-memory storage with seed data at application startup.
  *
- * <p>Seed initialization is controlled by {@code storage.init.enabled} and the seed file paths
- * provided via {@code storage.seed.trainees}, {@code storage.seed.trainers}, and
- * {@code storage.seed.trainings}.</p>
+ * <p>Seed initialization is controlled by the active Spring profile (e.g. {@code dev})
+ * via {@code @Profile}, and by seed file paths configured through
+ * {@code storage.seed.trainees}, {@code storage.seed.trainers}, and {@code storage.seed.trainings}.</p>
  */
+@Profile("dev")
 @Component
 @Slf4j
 public class SeedInitializer {
@@ -37,16 +39,13 @@ public class SeedInitializer {
     private TrainerSeedMapper trainerSeedMapper;
     private TrainingSeedMapper trainingSeedMapper;
 
-    @Value("${storage.init.enabled:false}")
-    private boolean initEnabled;
-
-    @Value("${storage.seed.trainees:}")
+    @Value("${storage.seed.trainees}")
     private String traineesPath;
 
-    @Value("${storage.seed.trainers:}")
+    @Value("${storage.seed.trainers}")
     private String trainersPath;
 
-    @Value("${storage.seed.trainings:}")
+    @Value("${storage.seed.trainings}")
     private String trainingsPath;
 
     private Map<Long, Trainee> traineeStorage;
@@ -90,11 +89,6 @@ public class SeedInitializer {
 
     @PostConstruct
     public void init() {
-        if (!initEnabled) {
-            log.warn("Seed initialization is disabled.");
-            return;
-        }
-
         log.info("================Starting seed initialization=================");
 
         initializeTrainees();
