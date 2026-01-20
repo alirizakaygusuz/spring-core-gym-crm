@@ -9,19 +9,17 @@ import com.alirizakaygusuz.gymcrm.seed.dto.TrainingSeedDto;
 import com.alirizakaygusuz.gymcrm.seed.mapper.TraineeSeedMapper;
 import com.alirizakaygusuz.gymcrm.seed.mapper.TrainerSeedMapper;
 import com.alirizakaygusuz.gymcrm.seed.mapper.TrainingSeedMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.type.TypeReference;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+
 
 /**
  * Initializes in-memory storage with seed data at application startup.
@@ -32,15 +30,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Component
 @Slf4j
-public class SeedInitializer implements BeanPostProcessor {
-
-    private final AtomicBoolean seeded = new AtomicBoolean(false);
+public class SeedInitializer {
 
     private JsonSeedReader reader;
     private TraineeSeedMapper traineeSeedMapper;
     private TrainerSeedMapper trainerSeedMapper;
     private TrainingSeedMapper trainingSeedMapper;
-
 
     @Value("${storage.init.enabled:false}")
     private boolean initEnabled;
@@ -54,25 +49,24 @@ public class SeedInitializer implements BeanPostProcessor {
     @Value("${storage.seed.trainings:}")
     private String trainingsPath;
 
-    private ObjectProvider<Map<Long, Trainee>> traineeStorageProvider;
-    private ObjectProvider<Map<Long, Trainer>> trainerStorageProvider;
-    private ObjectProvider<Map<Long, Training>> trainingStorageProvider;
+    private Map<Long, Trainee> traineeStorage;
+    private Map<Long, Trainer> trainerStorage;
+    private Map<Long, Training> trainingStorage;
 
     @Autowired
-    public void setTraineeStorageProvider(@Qualifier("traineeStorage") ObjectProvider<Map<Long, Trainee>> traineeStorageProvider) {
-        this.traineeStorageProvider = traineeStorageProvider;
+    public void setTraineeStorage(@Qualifier("traineeStorage") Map<Long, Trainee> traineeStorage) {
+        this.traineeStorage = traineeStorage;
     }
 
     @Autowired
-    public void setTrainerStorageProvider(@Qualifier("trainerStorage") ObjectProvider<Map<Long, Trainer>> trainerStorageProvider) {
-        this.trainerStorageProvider = trainerStorageProvider;
+    public void setTrainerStorage(@Qualifier("trainerStorage") Map<Long, Trainer> trainerStorage) {
+        this.trainerStorage = trainerStorage;
     }
 
     @Autowired
-    public void setTrainingStorageProvider(@Qualifier("trainingStorage") ObjectProvider<Map<Long, Training>> trainingStorageProvider) {
-        this.trainingStorageProvider = trainingStorageProvider;
+    public void setTrainingStorage(@Qualifier("trainingStorage") Map<Long, Training> trainingStorage) {
+        this.trainingStorage = trainingStorage;
     }
-
 
     @Autowired
     public void setJsonSeedReader(JsonSeedReader reader) {
@@ -94,45 +88,13 @@ public class SeedInitializer implements BeanPostProcessor {
         this.trainingSeedMapper = trainingSeedMapper;
     }
 
-
-    private Map<Long, Trainee> traineeStorage() {
-        return traineeStorageProvider.getObject();
-    }
-
-    private Map<Long, Trainer> trainerStorage() {
-        return trainerStorageProvider.getObject();
-    }
-
-    private Map<Long, Training> trainingStorage() {
-        return trainingStorageProvider.getObject();
-    }
-
-
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        boolean isStorageBean =
-                "traineeStorage".equals(beanName)
-                        || "trainerStorage".equals(beanName)
-                        || "trainingStorage".equals(beanName);
-
-        if (!isStorageBean) {
-            return bean;
-        }
-
+    @PostConstruct
+    public void init() {
         if (!initEnabled) {
             log.warn("Seed initialization is disabled.");
-            seeded.set(true);
-            return bean;
+            return;
         }
 
-        if (!seeded.compareAndSet(false, true)) return bean;
-
-        initSeeders();
-        return bean;
-    }
-
-
-    private void initSeeders() {
         log.info("================Starting seed initialization=================");
 
         initializeTrainees();
@@ -142,24 +104,19 @@ public class SeedInitializer implements BeanPostProcessor {
         log.info("================Seed initialization completed=================");
     }
 
-
     private void initializeTrainees() {
         log.info("---------------Starting trainee initialization-------------");
 
-        if (!isPathValid(traineesPath, "Trainees"))
-            return;
+        if (!isPathValid(traineesPath, "Trainees")) return;
 
         var trainees = reader.read(traineesPath, new TypeReference<List<TraineeSeedDto>>() {
         });
 
         for (TraineeSeedDto t : trainees) {
-            if (t == null) {
-                continue;
-            }
+            if (t == null) continue;
 
             Trainee trainee = traineeSeedMapper.toEntity(t);
-            traineeStorage().put(trainee.getId(), trainee);
-
+            traineeStorage.put(trainee.getId(), trainee);
         }
 
         log.info("Initialized trainees from seed file {}", traineesPath);
@@ -168,41 +125,40 @@ public class SeedInitializer implements BeanPostProcessor {
     private void initializeTrainers() {
         log.info("---------------Starting trainer initialization-------------");
 
-        if (!isPathValid(trainersPath, "Trainers"))
-            return;
+        if (!isPathValid(trainersPath, "Trainers")) return;
 
-
-        var trainersSeedDto = reader.read(trainersPath, new TypeReference<List<TrainerSeedDto>>() {
+        var trainers = reader.read(trainersPath, new TypeReference<List<TrainerSeedDto>>() {
         });
-        for (TrainerSeedDto t : trainersSeedDto) {
-            if (t == null) {
-                continue;
-            }
-            Trainer trainer = trainerSeedMapper.toEntity(t);
-            trainerStorage().put(trainer.getId(), trainer);
 
+        for (TrainerSeedDto t : trainers) {
+            if (t == null) continue;
+
+            Trainer trainer = trainerSeedMapper.toEntity(t);
+            trainerStorage.put(trainer.getId(), trainer);
         }
+
         log.info("Initialized trainers from seed file {}", trainersPath);
     }
 
     private void initializeTrainings() {
         log.info("---------------Starting training initialization-------------");
 
-        if (!isPathValid(trainingsPath, "Trainings"))
-            return;
+        if (!isPathValid(trainingsPath, "Trainings")) return;
 
-        var trainingsSeedDto = reader.read(trainingsPath, new TypeReference<List<TrainingSeedDto>>() {
+        var trainings = reader.read(trainingsPath, new TypeReference<List<TrainingSeedDto>>() {
         });
 
         int skippedCount = 0;
         int addedCount = 0;
-        for (TrainingSeedDto t : trainingsSeedDto) {
+
+        for (TrainingSeedDto t : trainings) {
             if (t == null || !isValidateTrainingReferences(t.traineeId(), t.trainerId())) {
                 skippedCount++;
                 continue;
             }
+
             Training training = trainingSeedMapper.toEntity(t);
-            trainingStorage().put(training.getId(), training);
+            trainingStorage.put(training.getId(), training);
             addedCount++;
         }
 
@@ -218,22 +174,19 @@ public class SeedInitializer implements BeanPostProcessor {
         return true;
     }
 
-
     private boolean isValidateTrainingReferences(Long traineeId, Long trainerId) {
         if (traineeId == null || trainerId == null) {
             log.warn("Trainee ID or Trainer ID is null.");
             return false;
         }
-        if (!traineeStorage().containsKey(traineeId)) {
+        if (!traineeStorage.containsKey(traineeId)) {
             log.warn("Trainee ID={} does not exist.", traineeId);
             return false;
         }
-        if (!trainerStorage().containsKey(trainerId)) {
+        if (!trainerStorage.containsKey(trainerId)) {
             log.warn("Trainer ID={} does not exist.", trainerId);
             return false;
         }
-
         return true;
     }
-
 }
