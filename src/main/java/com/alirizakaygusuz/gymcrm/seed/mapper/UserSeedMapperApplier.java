@@ -15,17 +15,11 @@ public class UserSeedMapperApplier {
         this.credentialsGenerator = credentialsGenerator;
     }
 
-    public void apply(User u, long id, String firstName, String lastName, boolean isActive) {
-
+    public void apply(User u, String firstName, String lastName) {
         String username = credentialsGenerator.generateUniqueUsername(firstName, lastName);
         String password = credentialsGenerator.generateRandomPassword();
 
-        u.setId(id);
-        u.setFirstName(firstName);
-        u.setLastName(lastName);
         u.setUsername(username);
         u.setPassword(password);
-        u.setActive(isActive);
-
     }
 }

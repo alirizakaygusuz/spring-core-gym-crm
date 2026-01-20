@@ -22,6 +22,7 @@
         <lombok.version>1.18.30</lombok.version>
         <slf4j.version>2.0.17</slf4j.version>
         <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
     </properties>
 
 
@@ -95,7 +96,16 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- ============Lombok + MapStruct Binding Dependency ============= -->
+        <!-- Source: https://mvnrepository.com/artifact/org.projectlombok/lombok-mapstruct-binding -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-mapstruct-binding</artifactId>
+            <version>0.2.0</version>
+            <scope>provided</scope>
         </dependency>
 
 
@@ -109,7 +119,13 @@
             <scope>compile</scope>
         </dependency>
 
-
+        <!-- SLF4J Simple Implementation -->
+        <!-- Provides an SLF4J backend to avoid NOP logger and show logs -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
 
         <!-- Jakarta Annotations -->
         <!-- Source: https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api -->
@@ -119,5 +135,60 @@
             <version>${jakarta.annotation.version}</version>
             <scope>compile</scope>
         </dependency>
+
+
+        <!--============ MapStruct Dependency ============= -->
+        <!-- MapStruct -->
+        <!-- Source: https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>${mapstruct.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <annotationProcessorPaths>
+                        <!--  Lombok Annotation Processor  -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+
+                        <!--  Lombok + MapStruct Binding Annotation Processor  -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>0.2.0</version>
+                        </path>
+
+                        <!--  MapStruct Annotation Processor  -->
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

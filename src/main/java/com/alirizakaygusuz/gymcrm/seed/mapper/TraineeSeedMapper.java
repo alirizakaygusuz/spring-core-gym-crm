@@ -1,29 +1,37 @@
 package com.alirizakaygusuz.gymcrm.seed.mapper;
 
+import com.alirizakaygusuz.gymcrm.config.BaseMapperConfig;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.seed.dto.TraineeSeedDto;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 
-@Component
-public class TraineeSeedMapper implements SeedBaseMapper<Trainee, TraineeSeedDto> {
+@Mapper(config = BaseMapperConfig.class)
+public abstract class TraineeSeedMapper implements SeedBaseMapper<Trainee, TraineeSeedDto> {
 
 
-    private UserSeedMapperApplier userSeedMapperApplier;
+    protected UserSeedMapperApplier userSeedMapperApplier;
 
     @Autowired
-    public void setUserSeedMapperSupport(UserSeedMapperApplier userSeedMapperApplier) {
+    public void setUserSeedMapperApplier(UserSeedMapperApplier userSeedMapperApplier) {
         this.userSeedMapperApplier = userSeedMapperApplier;
     }
 
-    @Override
-    public Trainee toEntity(TraineeSeedDto dto) {
-        Trainee t = new Trainee();
-        userSeedMapperApplier.apply(t, dto.id(), dto.firstName(), dto.lastName(), dto.isActive());
-        t.setDateOfBirth(dto.dateOfBirth());
-        t.setAddress(dto.address());
 
-        return t;
+    @Override
+    @Mapping(target = "active", source = "isActive")
+    public abstract Trainee toEntity(TraineeSeedDto dto);
+
+    @AfterMapping
+    protected void applyUserFields(TraineeSeedDto dto, @MappingTarget Trainee trainee) {
+        userSeedMapperApplier.apply(
+                trainee,
+                dto.firstName(),
+                dto.lastName()
+        );
     }
 }

@@ -187,7 +187,7 @@ public class ConsoleRunner {
         training1.setTrainingName("Morning Cardio");
         training1.setTrainingType(TrainingType.CARDIO);
         training1.setTrainingDate(LocalDate.now());
-        training1.setTrainingDurationMinutes(60);
+        training1.setTrainingDuration(60);
 
         Training training2 = new Training();
         training2.setTraineeId(state.createdTrainee2.getId());
@@ -195,7 +195,7 @@ public class ConsoleRunner {
         training2.setTrainingName("Evening Strength");
         training2.setTrainingType(TrainingType.STRENGTH);
         training2.setTrainingDate(LocalDate.now().plusDays(1));
-        training2.setTrainingDurationMinutes(45);
+        training2.setTrainingDuration(45);
 
         Training training3 = new Training();
         training3.setTraineeId(state.createdTrainee2.getId()); // trainee3 deleted, so don’t use it
@@ -203,7 +203,7 @@ public class ConsoleRunner {
         training3.setTrainingName("Afternoon Flexibility");
         training3.setTrainingType(TrainingType.FLEXIBILITY);
         training3.setTrainingDate(LocalDate.now().plusDays(2));
-        training3.setTrainingDurationMinutes(30);
+        training3.setTrainingDuration(30);
 
         // ========Create Training Profiles via GymCrmFacade=======
         state.createdTraining1 = facade.createTrainingProfile(training1);

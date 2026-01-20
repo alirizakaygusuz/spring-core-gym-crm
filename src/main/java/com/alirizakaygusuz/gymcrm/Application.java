@@ -16,6 +16,7 @@ public class Application {
             context.refresh();
 
             context.getBean(ConsoleRunner.class).run();
+
         }
     }
 

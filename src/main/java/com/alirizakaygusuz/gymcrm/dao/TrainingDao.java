@@ -22,9 +22,9 @@ import java.util.Optional;
 @Repository
 public class TrainingDao {
 
-    private  Map<Long, Training> trainingStorage;
+    private Map<Long, Training> trainingStorage;
 
-    private IdSequence idSequence =  new IdSequence();
+    private IdSequence idSequence = new IdSequence();
 
     @Autowired
     public void setTrainingStorage(@Qualifier("trainingStorage") Map<Long, Training> trainingStorage) {
@@ -32,8 +32,11 @@ public class TrainingDao {
     }
 
     public Training save(Training training) {
+        System.out.println("****************************");
         idSequence.syncFrom(trainingStorage);
         long id = idSequence.next();
+        System.out.println(training.getTrainingName());
+        System.out.println("id generated: " + id);
         training.setId(id);
         trainingStorage.put(id, training);
 

@@ -18,7 +18,7 @@ public class Training {
     private String trainingName;
     private TrainingType trainingType;
     private LocalDate trainingDate;
-    private int trainingDurationMinutes;
+    private int trainingDuration;
 
     @Override
     public boolean equals(Object o) {

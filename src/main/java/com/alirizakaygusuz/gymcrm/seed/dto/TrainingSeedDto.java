@@ -4,6 +4,7 @@ import com.alirizakaygusuz.gymcrm.model.TrainingType;
 
 import java.time.LocalDate;
 
+
 public record TrainingSeedDto(
         long id,
         long traineeId,
