@@ -3,6 +3,7 @@ package com.alirizakaygusuz.gymcrm.model;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -19,4 +20,16 @@ public class Training {
     private LocalDate trainingDate;
     private int trainingDurationMinutes;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Training training = (Training) o;
+        return id != null && Objects.equals(id, training.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
