@@ -1,4 +1,4 @@
-package com.alirizakaygusuz.gymcrm.config;
+package com.alirizakaygusuz.gymcrm.config.mapper;
 
 import org.mapstruct.MapperConfig;
 import org.mapstruct.ReportingPolicy;

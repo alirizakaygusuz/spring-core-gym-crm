@@ -24,6 +24,12 @@
         <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <postgresql.version>42.6.2</postgresql.version>
+        <jakarta.persistence.version>3.2.0</jakarta.persistence.version>
+        <hibernate-core.version>7.1.13.Final</hibernate-core.version>
+        <spring-orm.version>7.0.1</spring-orm.version>
+        <spring-tx.version>7.0.1</spring-tx.version>
+        <hikari.version>7.0.1</hikari.version>
+
     </properties>
 
 
@@ -154,6 +160,8 @@
             <scope>provided</scope>
         </dependency>
 
+        <!--============ Database Driver Dependencies ============= -->
+        <!--PostgreSQL JDBC Driver -->
         <!-- Source: https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -161,6 +169,58 @@
             <version>${postgresql.version}</version>
             <scope>compile</scope>
         </dependency>
+
+
+        <!--============ ORM and JPA Dependencies ============= -->
+        <!-- Spring Data JPA -->
+        <!-- Source: https://mvnrepository.com/artifact/org.springframework.data/spring-data-jpa -->
+        <!-- Source: https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>${jakarta.persistence.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Hibernate Core -->
+        <!-- Source: https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate-core.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+
+        <!-- Spring ORM -->
+        <!-- Source: https://mvnrepository.com/artifact/org.springframework/spring-orm -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+            <version>${spring-orm.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+
+        <!-- Spring Transaction Management -->
+        <!-- Source: https://mvnrepository.com/artifact/org.springframework/spring-tx -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>${spring-tx.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+
+        <!-- HikariCP Connection Pool -->
+        <!-- Source: https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>${hikari.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
 
     </dependencies>
 

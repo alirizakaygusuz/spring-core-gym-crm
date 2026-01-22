@@ -1,4 +1,4 @@
-package com.alirizakaygusuz.gymcrm.config;
+package com.alirizakaygusuz.gymcrm.config.jackson;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

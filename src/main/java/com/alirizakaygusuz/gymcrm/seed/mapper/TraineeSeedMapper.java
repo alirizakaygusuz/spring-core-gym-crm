@@ -1,6 +1,6 @@
 package com.alirizakaygusuz.gymcrm.seed.mapper;
 
-import com.alirizakaygusuz.gymcrm.config.BaseMapperConfig;
+import com.alirizakaygusuz.gymcrm.config.mapper.BaseMapperConfig;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.seed.dto.TraineeSeedDto;
 import org.mapstruct.AfterMapping;

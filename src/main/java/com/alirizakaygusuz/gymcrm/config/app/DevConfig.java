@@ -1,4 +1,4 @@
-package com.alirizakaygusuz.gymcrm.config;
+package com.alirizakaygusuz.gymcrm.config.app;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;

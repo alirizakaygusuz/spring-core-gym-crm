@@ -1,7 +1,7 @@
 package com.alirizakaygusuz.gymcrm;
 
-import com.alirizakaygusuz.gymcrm.config.AppConfig;
-import com.alirizakaygusuz.gymcrm.config.DevConfig;
+import com.alirizakaygusuz.gymcrm.config.app.AppConfig;
+import com.alirizakaygusuz.gymcrm.config.app.DevConfig;
 import com.alirizakaygusuz.gymcrm.console.ConsoleRunner;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 

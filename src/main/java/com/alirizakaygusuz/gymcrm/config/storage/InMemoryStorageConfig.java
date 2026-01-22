@@ -1,10 +1,10 @@
-package com.alirizakaygusuz.gymcrm.config;
+
+package com.alirizakaygusuz.gymcrm.config.storage;
 
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
 import com.alirizakaygusuz.gymcrm.model.Training;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
