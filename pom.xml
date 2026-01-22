@@ -29,6 +29,8 @@
         <spring-orm.version>7.0.1</spring-orm.version>
         <spring-tx.version>7.0.1</spring-tx.version>
         <hikari.version>7.0.1</hikari.version>
+        <flyway.version>11.19.0</flyway.version>
+        <flyway-postgresql.version>11.19.0</flyway-postgresql.version>
 
     </properties>
 
@@ -221,6 +223,25 @@
             <scope>compile</scope>
         </dependency>
 
+
+        <!--============ Flyway Database Migration Dependencies ============= -->
+        <!-- Flyway Core -->
+        <!-- Source: https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Flyway PostgreSQL Database Support -->
+        <!-- Source: https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <version>${flyway-postgresql.version}</version>
+            <scope>runtime</scope>
+        </dependency>
 
     </dependencies>
 
