@@ -8,37 +8,37 @@ CREATE TABLE IF NOT EXISTS users (
     is_active    BOOLEAN      NOT NULL
 );
 
--- 2) TRAINING_TYPE
-CREATE TABLE IF NOT EXISTS training_type (
+-- 2) TRAINING TYPES
+CREATE TABLE IF NOT EXISTS training_types (
     id BIGSERIAL PRIMARY KEY,
     training_type_name VARCHAR(100) NOT NULL UNIQUE
 );
 
--- 3) TRAINEE<-> USER(O2O)
-CREATE TABLE IF NOT EXISTS trainee (
+-- 3) TRAINEES <-> USERS (O2O)
+CREATE TABLE IF NOT EXISTS trainees (
     id BIGSERIAL PRIMARY KEY,
     user_id       BIGINT NOT NULL UNIQUE,
     date_of_birth DATE,
     address       VARCHAR(255),
 
-    CONSTRAINT fk_trainee_user
+    CONSTRAINT fk_trainees_user
         FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- 4) TRAINER<-> USER(O2O)
-CREATE TABLE IF NOT EXISTS trainer (
+-- 4) TRAINERS <-> USERS (O2O)
+CREATE TABLE IF NOT EXISTS trainers (
     id BIGSERIAL PRIMARY KEY,
-    user_id          BIGINT NOT NULL UNIQUE,
+    user_id           BIGINT NOT NULL UNIQUE,
     specialization_id BIGINT NOT NULL,
 
-    CONSTRAINT fk_trainer_user
+    CONSTRAINT fk_trainers_user
         FOREIGN KEY (user_id) REFERENCES users(id),
 
-    CONSTRAINT fk_trainer_specialization
-        FOREIGN KEY (specialization_id) REFERENCES training_type(id)
+    CONSTRAINT fk_trainers_specialization
+        FOREIGN KEY (specialization_id) REFERENCES training_types(id)
 );
 
--- 5) TRAINEE <-> TRAINER (M2M)
+-- 5) TRAINEES <-> TRAINERS (M2M)
 CREATE TABLE IF NOT EXISTS trainee_trainer (
     trainee_id BIGINT NOT NULL,
     trainer_id BIGINT NOT NULL,
@@ -46,14 +46,14 @@ CREATE TABLE IF NOT EXISTS trainee_trainer (
     CONSTRAINT pk_trainee_trainer PRIMARY KEY (trainee_id, trainer_id),
 
     CONSTRAINT fk_tt_trainee
-        FOREIGN KEY (trainee_id) REFERENCES trainee(id),
+        FOREIGN KEY (trainee_id) REFERENCES trainees(id),
 
     CONSTRAINT fk_tt_trainer
-        FOREIGN KEY (trainer_id) REFERENCES trainer(id)
+        FOREIGN KEY (trainer_id) REFERENCES trainers(id)
 );
 
--- 6) TRAINING
-CREATE TABLE IF NOT EXISTS training (
+-- 6) TRAININGS
+CREATE TABLE IF NOT EXISTS trainings (
     id BIGSERIAL PRIMARY KEY,
     trainee_id        BIGINT       NOT NULL,
     trainer_id        BIGINT       NOT NULL,
@@ -62,12 +62,12 @@ CREATE TABLE IF NOT EXISTS training (
     training_date     DATE         NOT NULL,
     training_duration INTEGER      NOT NULL CHECK (training_duration > 0),
 
-    CONSTRAINT fk_training_trainee
-        FOREIGN KEY (trainee_id) REFERENCES trainee(id),
+    CONSTRAINT fk_trainings_trainee
+        FOREIGN KEY (trainee_id) REFERENCES trainees(id),
 
-    CONSTRAINT fk_training_trainer
-        FOREIGN KEY (trainer_id) REFERENCES trainer(id),
+    CONSTRAINT fk_trainings_trainer
+        FOREIGN KEY (trainer_id) REFERENCES trainers(id),
 
-    CONSTRAINT fk_training_type
-        FOREIGN KEY (training_type_id) REFERENCES training_type(id)
+    CONSTRAINT fk_trainings_type
+        FOREIGN KEY (training_type_id) REFERENCES training_types(id)
 );
