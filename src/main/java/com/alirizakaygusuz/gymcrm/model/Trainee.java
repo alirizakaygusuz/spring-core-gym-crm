@@ -1,10 +1,7 @@
 package com.alirizakaygusuz.gymcrm.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -16,10 +13,12 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Trainee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @OneToOne(optional = false)
@@ -41,21 +40,6 @@ public class Trainee {
     @Transient
     public boolean isActive() {
         return user != null && Boolean.TRUE.equals(user.isActive());
-    }
-
-    @Override
-    public final boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Trainee trainee = (Trainee) o;
-
-        return id != null && id.equals(trainee.id);
-    }
-
-    @Override
-    public final int hashCode() {
-        return getClass().hashCode();
     }
 
 }

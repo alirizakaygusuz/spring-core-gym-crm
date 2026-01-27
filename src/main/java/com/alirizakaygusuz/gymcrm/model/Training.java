@@ -12,10 +12,12 @@ import java.util.Objects;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Training {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -26,7 +28,7 @@ public class Training {
     @JoinColumn(name = "trainee_id", nullable = false)
     private Trainee trainee;
 
-    @Column(name = "training_name", nullable = false)
+    @Column(name = "training_name", nullable = false, length = 200)
     private String trainingName;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -39,16 +41,4 @@ public class Training {
     @Column(name = "training_duration", nullable = false)
     private int trainingDuration;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Training training = (Training) o;
-        return id != null && Objects.equals(id, training.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }
