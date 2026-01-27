@@ -1,104 +1,109 @@
 package com.alirizakaygusuz.gymcrm.service;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
+import com.alirizakaygusuz.gymcrm.exception.TrainerNotFoundException;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
-import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
+import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.logging.Logger;
 
+/**
+ * Service responsible for managing {@link Trainer} profiles.
+ *
+ * <p>This class contains application-level operations for creating, retrieving,
+ * updating, and deleting trainers. It coordinates validation, credential generation,
+ * and persistence by delegating to {@link UserValidator}, {@link CredentialsGenerator},
+ * and {@link TrainerDao}.</p>
+ */
 @Service
+@Slf4j
 public class TrainerService {
 
     private final TrainerDao trainerDao;
     private CredentialsGenerator credentialsGenerator;
     private UserValidator userValidator;
 
-    private static final Logger log =
-            Logger.getLogger(TrainerService.class.getName());
 
-    //Inject DAOs  via constructor injection
     public TrainerService(TrainerDao trainerDao) {
         this.trainerDao = trainerDao;
     }
 
-    //Inject CredentialsGenerator via setter injection
     @Autowired
     public void setCredentialsGenerator(CredentialsGenerator credentialsGenerator) {
         this.credentialsGenerator = credentialsGenerator;
     }
 
-    //Inject UserValidator via setter injection
     @Autowired
     public void setUserValidator(UserValidator userValidator) {
         this.userValidator = userValidator;
     }
 
-    //Create a new trainer profile with generated credentials and method name is createProfile
+
+    /**
+     * Creates a new trainer profile.
+     *
+     * <p>This method validates the input, generates unique credentials for the trainer,
+     * and persists the profile using {@link TrainerDao}.</p>
+     *
+     * @param trainer trainer data to be created
+     * @return persisted trainer profile with generated credentials
+     */
     public Trainer createProfile(Trainer trainer) {
 
         userValidator.validateUser(trainer);
 
-        //Create a log entry when a new trainer profile is being created
-        log.info("Creating new trainer profile for: " + trainer.getFirstName() + " " + trainer.getLastName());
+        log.info("Creating new trainer profile for {} {}", trainer.getFirstName(), trainer.getLastName());
 
         String username = credentialsGenerator.generateUniqueUsername(trainer.getFirstName(), trainer.getLastName());
         String password = credentialsGenerator.generateRandomPassword();
         trainer.setUsername(username);
         trainer.setPassword(password);
         Trainer savedTrainer = trainerDao.save(trainer);
-        //Create a log entry after the trainer profile is created
-        log.info("Trainer profile created with id: " + savedTrainer.getId() + ", username: " + savedTrainer.getUsername());
+        log.info("Trainer profile created with id {}, username {}", savedTrainer.getId(), savedTrainer.getUsername());
 
         return savedTrainer;
     }
 
-    //Select trainer profile by id and method name is selectProfile
     public Trainer selectProfile(Long id) {
         userValidator.validateId(id);
 
-        //Create a log when selecting a trainer profile
-        log.info("Selecting trainer profile with id: " + id);
+        log.info("Selecting trainer profile with id {}", id);
 
         return trainerDao.findById(id).orElseThrow(() -> {
-            log.warning("Trainer not found with id: " + id);
-            return new RuntimeException("Trainer not found with id: " + id);
+            log.warn("Trainer not found with id {}", id);
+            return new TrainerNotFoundException(id);
         });
     }
 
-    //Select trainer profile by username and method name is selectProfile
     public Trainer selectProfile(String username) {
         userValidator.validateUsername(username);
 
-        //Create a log when selecting a trainer profile by username
-        log.info( "Selecting trainer profile with username: " + username);
+        log.info("Selecting trainer profile with username {}", username);
 
         return trainerDao.findByUsername(username).orElseThrow(() -> {
-            log.warning("Trainer not found with username: " + username);
-            return new RuntimeException("Trainer not found with username: " + username);
+            log.warn("Trainer not found with username {}", username);
+            return new TrainerNotFoundException(username);
         });
     }
 
-    public Map<Long , Trainer> getAllTrainers() {
-        //Create a log when retrieving all trainers
+    public Map<Long, Trainer> getAllTrainers() {
         log.info("Retrieving all trainers");
         return trainerDao.getAll();
     }
 
-    //Update trainer profile and method name is updateProfile
     public Trainer updateProfile(Long id, Trainer trainer) {
         userValidator.validateId(id);
         userValidator.validateUser(trainer);
 
-        //Create a log when updating a trainer profile
-        log.info("Updating trainer profile with id: " + id);
+        log.info("Updating trainer profile with id {}", id);
 
         Trainer currentTrainer = trainerDao.findById(id).orElseThrow(() -> {
-            log.warning("Trainer not found by id: " + id);
-            return new RuntimeException("Trainer not found by id:" + id);
+            log.warn("Trainer not found with id {}", id);
+            return new TrainerNotFoundException(id);
         });
 
         currentTrainer.setFirstName(trainer.getFirstName());
@@ -108,7 +113,7 @@ public class TrainerService {
 
 
         Trainer updatedTrainer = trainerDao.update(id, currentTrainer);
-        log.info("Trainer profile updated with id: " + updatedTrainer.getId());
+        log.info("Trainer profile updated with id {}", updatedTrainer.getId());
         return updatedTrainer;
     }
 

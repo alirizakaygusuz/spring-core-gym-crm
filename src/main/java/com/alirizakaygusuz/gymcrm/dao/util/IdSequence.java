@@ -2,6 +2,12 @@ package com.alirizakaygusuz.gymcrm.dao.util;
 
 import java.util.Map;
 
+/**
+ * Utility class responsible for generating sequential identifier values.
+ *
+ * <p>This class is used to generate unique IDs for in-memory persistence
+ * and can synchronize its state based on existing storage content.</p>
+ */
 public final class IdSequence {
     private long nextId = 1L;
 

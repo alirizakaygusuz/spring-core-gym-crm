@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:17.7
+    container_name: ali-gymcrm-postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - ali-gymcrm_pgdata:/var/lib/postgresql/data
+
+volumes:
+  ali-gymcrm_pgdata:

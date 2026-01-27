@@ -1,6 +1,8 @@
 package service;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
+import com.alirizakaygusuz.gymcrm.exception.TrainerNotFoundException;
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
 import com.alirizakaygusuz.gymcrm.model.TrainingType;
 import com.alirizakaygusuz.gymcrm.service.TrainerService;
@@ -88,7 +90,6 @@ class TrainerServiceTest {
 
     }
 
-    //Test createProfile method when user is invalid and should throw exception
     @DisplayName("createProfile should throw exception when Trainer is invalid")
     @Test
     void createProfile_ShouldThrowExceptionWhenTrainerIsInvalid() {
@@ -96,10 +97,10 @@ class TrainerServiceTest {
         trainer.setFirstName(" ");
         trainer.setLastName("Doe");
 
-        doThrow(new IllegalArgumentException("First name cannot be null or blank"))
+        doThrow(new ValidationException("First name cannot be null or blank"))
                 .when(userValidator).validateUser(trainer);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
             trainerService.createProfile(trainer);
         });
 
@@ -110,16 +111,15 @@ class TrainerServiceTest {
 
     }
 
-    //Test createProfile method when Trainer is null and should throw exception
     @DisplayName("createProfile should throw exception when Trainer is null")
     @Test
     void createProfile_ShouldThrowExceptionWhenTrainerIsNull() {
         Trainer nullUser = null;
 
-        doThrow(new IllegalArgumentException("User cannot be null"))
+        doThrow(new ValidationException("User cannot be null"))
                 .when(userValidator).validateUser(nullUser);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
             trainerService.createProfile(nullUser);
         });
         assertEquals("User cannot be null", exception.getMessage());
@@ -130,7 +130,6 @@ class TrainerServiceTest {
     }
 
 
-    //Test selectProfile by id when id is valid
     @DisplayName("selectProfile should return selected Trainer when id is valid")
     @Test
     void selectProfile_shouldReturnSelectedTrainerWhenIdIsValid() {
@@ -156,15 +155,14 @@ class TrainerServiceTest {
     }
 
 
-    //Test selectProfile by id when id is invalid and should throw exception
     @DisplayName("selectProfile should throw exception when id is invalid")
     @Test
     void selectProfile_ShouldThrowExceptionWhenIdIsInvalid() {
         Long invalidId = -1L;
-        doThrow(new IllegalArgumentException("ID must be a positive number"))
+        doThrow(new ValidationException("ID must be a positive number"))
                 .when(userValidator).validateId(invalidId);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
             trainerService.selectProfile(invalidId);
         });
 
@@ -176,7 +174,6 @@ class TrainerServiceTest {
     }
 
 
-    //Test selectProfile by id when trainer not found and should throw exception
     @DisplayName("selectProfile should throw exception when trainer not found")
     @Test
     void selectProfile_ShouldThrowExceptionWhenTrainerNotFound() {
@@ -185,7 +182,7 @@ class TrainerServiceTest {
 
         when(trainerDao.findById(trainerId)).thenReturn(java.util.Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        TrainerNotFoundException exception = assertThrows(TrainerNotFoundException.class, () -> {
             trainerService.selectProfile(trainerId);
         });
 
@@ -197,7 +194,6 @@ class TrainerServiceTest {
     }
 
 
-    //Test selectProfile by username when username is valid
     @DisplayName("selectProfile should return selected Trainer when username is valid")
     @Test
     void selectProfile_shouldReturnSelectedTrainerWhenUsernameIsValid() {
@@ -223,15 +219,14 @@ class TrainerServiceTest {
     }
 
 
-    //Test selectProfile by username when username is invalid and should throw exception
     @DisplayName("selectProfile should throw exception when username is invalid")
     @Test
     void selectProfile_ShouldThrowExceptionWhenUsernameIsInvalid() {
         String invalidUsername = "   ";
-        doThrow(new IllegalArgumentException("Username cannot be null or blank"))
+        doThrow(new ValidationException("Username cannot be null or blank"))
                 .when(userValidator).validateUsername(invalidUsername);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
             trainerService.selectProfile(invalidUsername);
         });
 
@@ -243,7 +238,6 @@ class TrainerServiceTest {
     }
 
 
-    //Test selectProfile by username when trainer not found and should throw exception
     @DisplayName("selectProfile should throw exception when trainer not found by username")
     @Test
     void selectProfile_ShouldThrowExceptionWhenTrainerNotFoundByUsername() {
@@ -251,7 +245,7 @@ class TrainerServiceTest {
 
         when(trainerDao.findByUsername(username)).thenReturn(java.util.Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        TrainerNotFoundException exception = assertThrows(TrainerNotFoundException.class, () -> {
             trainerService.selectProfile(username);
         });
 
@@ -263,7 +257,6 @@ class TrainerServiceTest {
     }
 
 
-    //Test getAllTrainers should return all trainers
     @DisplayName("getAllTrainers should return all trainers")
     @Test
     void getAllTrainers_ShouldReturnAll() {
@@ -296,7 +289,6 @@ class TrainerServiceTest {
     }
 
 
-    //Test happy path for updateProfile method
     @DisplayName("updateProfile should update Trainer when inputs are valid")
     @Test
     void updateProfile_ShouldUpdateTrainerWhenInputsAreValid() {
@@ -348,7 +340,6 @@ class TrainerServiceTest {
     }
 
 
-    //Test updateProfile method when id is invalid and should throw exception
     @DisplayName("updateProfile should throw exception when id is invalid")
     @Test
     void updateProfile_ShouldThrowExceptionWhenIdIsInvalid() {
@@ -357,10 +348,10 @@ class TrainerServiceTest {
         updatedInfo.setFirstName("NewFirstName");
         updatedInfo.setLastName("NewLastName");
 
-        doThrow(new IllegalArgumentException("ID must be a positive number"))
+        doThrow(new ValidationException("ID must be a positive number"))
                 .when(userValidator).validateId(invalidId);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
             trainerService.updateProfile(invalidId, updatedInfo);
         });
 
@@ -372,7 +363,6 @@ class TrainerServiceTest {
     }
 
 
-    //Test updateProfile when Trainer is invalid and should throw exception
     @DisplayName("updateProfile should throw exception when Trainer is invalid")
     @Test
     void updateProfile_ShouldThrowExceptionWhenTrainerIsInvalid() {
@@ -381,10 +371,10 @@ class TrainerServiceTest {
         invalidTrainer.setFirstName(" ");
         invalidTrainer.setLastName("NewLastName");
 
-        doThrow(new IllegalArgumentException("First name cannot be null or blank"))
+        doThrow(new ValidationException("First name cannot be null or blank"))
                 .when(userValidator).validateUser(invalidTrainer);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
             trainerService.updateProfile(trainerId, invalidTrainer);
         });
 
@@ -397,7 +387,6 @@ class TrainerServiceTest {
     }
 
 
-    //Test updateProfile when trainer not found should throw exception
     @DisplayName("updateProfile should throw exception when trainer not found")
     @Test
     void updateProfile_ShouldThrowExceptionWhenTrainerNotFound() {
@@ -408,11 +397,11 @@ class TrainerServiceTest {
 
         when(trainerDao.findById(trainerId)).thenReturn(Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+        TrainerNotFoundException exception = assertThrows(TrainerNotFoundException.class, () -> {
             trainerService.updateProfile(trainerId, updatedInfo);
         });
 
-        assertEquals("Trainer not found by id:" + trainerId, exception.getMessage());
+        assertEquals("Trainer not found with id: " + trainerId, exception.getMessage());
 
         verify(userValidator).validateId(trainerId);
         verify(userValidator).validateUser(updatedInfo);

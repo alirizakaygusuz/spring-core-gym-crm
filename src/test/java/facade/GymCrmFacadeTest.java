@@ -1,5 +1,6 @@
 package facade;
 
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.facade.GymCrmFacade;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
@@ -268,8 +269,8 @@ class GymCrmFacadeTest {
     void createTrainingProfile_ShouldThrowExceptionWhenTrainingIsNull() {
         Training nullTraining = null;
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        ValidationException exception = assertThrows(
+                ValidationException.class,
                 () -> gymCrmFacade.createTrainingProfile(nullTraining)
         );
 

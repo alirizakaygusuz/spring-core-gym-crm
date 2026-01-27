@@ -9,11 +9,22 @@ import org.springframework.stereotype.Repository;
 import java.util.Map;
 import java.util.Optional;
 
+
+/**
+ * Data Access Object for managing {@link Trainee} entities.
+ *
+ * <p>This class provides in-memory persistence operations for trainees,
+ * including creation, retrieval (by id / username and as a full collection),
+ * update, delete, and existence checks.</p>
+ *
+ * <p>The storage is backed by a {@link Map} and identifier values are generated
+ * using {@link IdSequence}.</p>
+ */
 @Repository
 public class TraineeDao {
 
     private Map<Long, Trainee> traineeStorage;
-    private IdSequence idSequence =  new IdSequence();;
+    private IdSequence idSequence =  new IdSequence();
 
 
     @Autowired
@@ -21,7 +32,6 @@ public class TraineeDao {
         this.traineeStorage = traineeStorage;
     }
 
-    // Create a new trainee
     public Trainee save(Trainee trainee) {
         idSequence.syncFrom(traineeStorage);
         long id = idSequence.next();
@@ -30,12 +40,10 @@ public class TraineeDao {
         return trainee;
     }
 
-    // Retrieve a trainee by ID should return Optional <Trainee> instead of null
     public Optional<Trainee> findById(Long id) {
         return Optional.ofNullable(traineeStorage.get(id));
     }
 
-    // Retrieve a trainee by username should return Optional <Trainee> instead of null and check for null username
     public Optional<Trainee> findByUsername(String username) {
         if(username == null) {
             return Optional.empty();
@@ -45,25 +53,20 @@ public class TraineeDao {
                 .findFirst();
     }
 
-
-    //Retrieve all trainees
     public Map<Long, Trainee> getAll() {
         return Map.copyOf(traineeStorage);
     }
 
-    // Update an existing trainee
     public Trainee update(Long id, Trainee trainee) {
         trainee.setId(id);
         traineeStorage.put(id, trainee);
         return trainee;
     }
 
-    // Delete a trainee by ID
     public void delete(Long id) {
         traineeStorage.remove(id);
     }
 
-    // Check if a trainee exists by Username
     public boolean existsByUsername(String username) {
         if(username == null) {
             return false;
