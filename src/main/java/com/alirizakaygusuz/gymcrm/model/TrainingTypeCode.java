@@ -1,17 +1,17 @@
 package com.alirizakaygusuz.gymcrm.model;
 
 public enum TrainingTypeCode {
-    CARDIO("Cardio"),
-    STRENGTH("Strength"),
-    FLEXIBILITY("Flexibility"),
-    BALANCE("Balance"),
-    YOGA("Yoga"),
-    PILATES("Pilates"),
-    CROSSFIT("CrossFit"),
-    FUNCTIONAL_TRAINING("Functional Training"),
+    CARDIO("CARDIO"),
+    STRENGTH("STRENGTH"),
+    FLEXIBILITY("FLEXIBILITY"),
+    BALANCE("BALANCE"),
+    YOGA("YOGA"),
+    PILATES("PILATES"),
+    CROSSFIT("CROSSFIT"),
+    FUNCTIONAL_TRAINING("FUNCTIONAL_TRAINING"),
     HIIT("HIIT"),
-    MOBILITY("Mobility"),
-    ENDURANCE("Endurance");
+    MOBILITY("MOBILITY"),
+    ENDURANCE("ENDURANCE");
 
     private final String trainingTypeName;
 
