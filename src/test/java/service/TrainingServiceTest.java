@@ -4,7 +4,7 @@ import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
 import com.alirizakaygusuz.gymcrm.exception.TrainingNotFoundException;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.Training;
-import com.alirizakaygusuz.gymcrm.model.TrainingType;
+import com.alirizakaygusuz.gymcrm.model.TrainingTypeCode;
 import com.alirizakaygusuz.gymcrm.service.TrainingService;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,12 +45,12 @@ class TrainingServiceTest {
     void createProfile_ShouldCreateTrainingProfileWhenTrainigIsValid() {
         Training training = new Training();
         training.setTrainingName("Yoga Basics");
-        training.setTrainingType(TrainingType.CROSSFIT);
+        training.setTrainingType(TrainingTypeCode.CROSSFIT);
 
         Training saved = new Training();
         saved.setId(1L);
         saved.setTrainingName("Yoga Basics");
-        saved.setTrainingType(TrainingType.CROSSFIT);
+        saved.setTrainingType(TrainingTypeCode.CROSSFIT);
 
         when(trainingDao.save(training)).thenReturn(saved);
 
@@ -59,12 +59,12 @@ class TrainingServiceTest {
         assertNotNull(createdTraining);
         assertEquals(1L, createdTraining.getId());
         assertEquals("Yoga Basics", createdTraining.getTrainingName());
-        assertEquals(TrainingType.CROSSFIT, createdTraining.getTrainingType());
+        assertEquals(TrainingTypeCode.CROSSFIT, createdTraining.getTrainingType());
 
         verify(commonValidator).validateNotBlank("Yoga Basics", "Training name");
         verify(trainingDao).save(argThat(t ->
                 t.getTrainingName().equals("Yoga Basics") &&
-                        t.getTrainingType() == TrainingType.CROSSFIT
+                        t.getTrainingType() == TrainingTypeCode.CROSSFIT
         ));
         verifyNoMoreInteractions(commonValidator, trainingDao);
 

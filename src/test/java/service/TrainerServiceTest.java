@@ -4,7 +4,7 @@ import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.exception.TrainerNotFoundException;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
-import com.alirizakaygusuz.gymcrm.model.TrainingType;
+import com.alirizakaygusuz.gymcrm.model.TrainingTypeCode;
 import com.alirizakaygusuz.gymcrm.service.TrainerService;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
 import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
@@ -298,20 +298,20 @@ class TrainerServiceTest {
         existingTrainer.setFirstName("OldFirstName");
         existingTrainer.setLastName("OldLastName");
         existingTrainer.setActive(true);
-        existingTrainer.setSpecialization(TrainingType.STRENGTH);
+        existingTrainer.setSpecialization(TrainingTypeCode.STRENGTH);
 
         Trainer updatedInfo = new Trainer();
         updatedInfo.setFirstName("NewFirstName");
         updatedInfo.setLastName("NewLastName");
         updatedInfo.setActive(false);
-        updatedInfo.setSpecialization(TrainingType.CARDIO);
+        updatedInfo.setSpecialization(TrainingTypeCode.CARDIO);
 
         Trainer expectedUpdatedTrainer = new Trainer();
         expectedUpdatedTrainer.setId(trainerId);
         expectedUpdatedTrainer.setFirstName("NewFirstName");
         expectedUpdatedTrainer.setLastName("NewLastName");
         expectedUpdatedTrainer.setActive(false);
-        expectedUpdatedTrainer.setSpecialization(TrainingType.CARDIO);
+        expectedUpdatedTrainer.setSpecialization(TrainingTypeCode.CARDIO);
 
 
         when(trainerDao.findById(trainerId)).thenReturn(Optional.of(existingTrainer));
@@ -324,7 +324,7 @@ class TrainerServiceTest {
         assertEquals("NewFirstName", updatedTrainer.getFirstName());
         assertEquals("NewLastName", updatedTrainer.getLastName());
         assertFalse(updatedTrainer.isActive());
-        assertEquals(TrainingType.CARDIO, updatedTrainer.getSpecialization());
+        assertEquals(TrainingTypeCode.CARDIO, updatedTrainer.getSpecialization());
 
         verify(userValidator).validateId(trainerId);
         verify(userValidator).validateUser(updatedInfo);
@@ -333,7 +333,7 @@ class TrainerServiceTest {
                 t.getFirstName().equals("NewFirstName") &&
                         t.getLastName().equals("NewLastName") &&
                         !t.isActive() &&
-                        t.getSpecialization() == TrainingType.CARDIO
+                        t.getSpecialization() == TrainingTypeCode.CARDIO
         ));
         verifyNoMoreInteractions(trainerDao, userValidator);
         verifyNoInteractions(credentialsGenerator);

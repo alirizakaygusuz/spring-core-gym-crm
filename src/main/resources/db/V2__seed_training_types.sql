@@ -1,4 +1,4 @@
-INSERT INTO training_type (training_type_name) VALUES
+INSERT INTO training_types (training_type_name) VALUES
   ('CARDIO'),
   ('STRENGTH'),
   ('FLEXIBILITY'),
