@@ -19,5 +19,5 @@ public class TrainingType {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "training_type_name", nullable = false, unique = true, length = 100)
-    private String trainingTypeName;
+    private TrainingTypeCode trainingTypeName;
 }
