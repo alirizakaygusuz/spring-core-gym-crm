@@ -43,7 +43,6 @@ public class TrainingDao {
                 trainerName
         );
 
-        // optional filter: training type
         if (trainingType != null) {
             Join<Training, TrainingType> type = ctx.training.join("trainingType");
             ctx.predicates.add(
@@ -63,7 +62,6 @@ public class TrainingDao {
     ) {
         TrainingQueryCtx ctx = baseQuery();
 
-        // mandatory filter: trainer username
         ctx.predicates.add(
                 ctx.cb.equal(ctx.trainerUser.get("username"), trainerUsername)
         );

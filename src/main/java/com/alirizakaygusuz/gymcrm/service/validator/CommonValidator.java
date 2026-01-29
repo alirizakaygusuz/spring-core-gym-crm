@@ -24,4 +24,12 @@ public class CommonValidator {
         }
     }
 
+    public void validateNotNull(Object value, String fieldName) {
+        if (value == null) {
+            throw new ValidationException(fieldName + " cannot be null");
+        }
+    }
+
+
+
 }

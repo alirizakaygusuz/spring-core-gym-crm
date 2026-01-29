@@ -40,4 +40,8 @@ public class TrainerDao {
     }
 
 
+    public boolean existsByUsername(String username) {
+       return  findByUsername(username).isPresent();
+    }
+
 }

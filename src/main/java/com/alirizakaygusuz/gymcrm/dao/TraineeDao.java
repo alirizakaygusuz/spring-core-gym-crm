@@ -40,4 +40,8 @@ public class TraineeDao {
     public void delete(Trainee trainee) {
         entityManager.remove(trainee);
     }
+
+    public boolean existsByUsername(String username) {
+       return  findByUsername(username).isPresent();
+    }
 }

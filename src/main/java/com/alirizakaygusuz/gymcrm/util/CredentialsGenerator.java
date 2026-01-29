@@ -49,7 +49,7 @@ public class CredentialsGenerator {
         String base = firstName + "." + lastName;
         String username = base;
         int suffix = 1;
-        while (traineeDao.existsByUsername(username) || trainerDao.existsByUsername(username)) {
+        while (traineeDao.findByUsername(username).isPresent() || trainerDao.findByUsername(username).isPresent()) {
             username = base + suffix;
             suffix++;
         }

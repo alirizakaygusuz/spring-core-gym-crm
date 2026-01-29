@@ -32,6 +32,7 @@
         <hikari.version>7.0.1</hikari.version>
         <flyway.version>11.19.0</flyway.version>
         <flyway-postgresql.version>11.19.0</flyway-postgresql.version>
+        <spring-security.version>7.0.2</spring-security.version>
 
     </properties>
 
@@ -242,6 +243,17 @@
             <artifactId>flyway-database-postgresql</artifactId>
             <version>${flyway-postgresql.version}</version>
             <scope>runtime</scope>
+        </dependency>
+
+
+        <!--============ Spring Security Dependency ============= -->
+        <!-- Spring Security Core -->
+        <!-- Source: https://mvnrepository.com/artifact/org.springframework.security/spring-security-core -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <version>${spring-security.version}</version>
+            <scope>compile</scope>
         </dependency>
 
 
