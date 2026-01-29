@@ -1,6 +1,6 @@
 package com.alirizakaygusuz.gymcrm.seed.dto;
 
-import com.alirizakaygusuz.gymcrm.model.TrainingType;
+import com.alirizakaygusuz.gymcrm.model.TrainingTypeCode;
 
 import java.time.LocalDate;
 
@@ -10,7 +10,7 @@ public record TrainingSeedDto(
         long traineeId,
         long trainerId,
         String trainingName,
-        TrainingType trainingType,
+        TrainingTypeCode trainingType,
         LocalDate trainingDate,
         int trainingDuration
 ) {}

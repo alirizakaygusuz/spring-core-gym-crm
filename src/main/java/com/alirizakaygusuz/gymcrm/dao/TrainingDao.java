@@ -32,11 +32,8 @@ public class TrainingDao {
     }
 
     public Training save(Training training) {
-        System.out.println("****************************");
         idSequence.syncFrom(trainingStorage);
         long id = idSequence.next();
-        System.out.println(training.getTrainingName());
-        System.out.println("id generated: " + id);
         training.setId(id);
         trainingStorage.put(id, training);
 

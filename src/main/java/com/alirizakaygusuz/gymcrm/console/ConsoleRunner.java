@@ -4,7 +4,7 @@ import com.alirizakaygusuz.gymcrm.facade.GymCrmFacade;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
 import com.alirizakaygusuz.gymcrm.model.Training;
-import com.alirizakaygusuz.gymcrm.model.TrainingType;
+import com.alirizakaygusuz.gymcrm.model.TrainingTypeCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -125,19 +125,19 @@ public class ConsoleRunner {
         trainer1.setFirstName("James");
         trainer1.setLastName("Taylor");
         trainer1.setActive(true);
-        trainer1.setSpecialization(TrainingType.CARDIO);
+        trainer1.setSpecialization(TrainingTypeCode.CARDIO);
 
         Trainer trainer2 = new Trainer();
         trainer2.setFirstName("James");
         trainer2.setLastName("Taylor");
         trainer2.setActive(true);
-        trainer2.setSpecialization(TrainingType.STRENGTH);
+        trainer2.setSpecialization(TrainingTypeCode.STRENGTH);
 
         Trainer trainer3 = new Trainer();
         trainer3.setFirstName("James");
         trainer3.setLastName("Taylor");
         trainer3.setActive(true);
-        trainer3.setSpecialization(TrainingType.FLEXIBILITY);
+        trainer3.setSpecialization(TrainingTypeCode.FLEXIBILITY);
 
         // ========Create Trainer Profiles via GymCrmFacade=======
         state.createdTrainer1 = facade.createTrainerProfile(trainer1);
@@ -173,7 +173,7 @@ public class ConsoleRunner {
         trainerUpdate.setFirstName("JamesUpdated");
         trainerUpdate.setLastName("TaylorUpdated");
         trainerUpdate.setActive(true);
-        trainerUpdate.setSpecialization(TrainingType.STRENGTH);
+        trainerUpdate.setSpecialization(TrainingTypeCode.STRENGTH);
 
         var updatedTrainer = facade.updateTrainerProfile(state.createdTrainer1.getId(), trainerUpdate);
         System.out.println(" - updated trainer1: " + updatedTrainer);
@@ -185,7 +185,7 @@ public class ConsoleRunner {
         training1.setTraineeId(state.createdTrainee1.getId());
         training1.setTrainerId(state.createdTrainer1.getId());
         training1.setTrainingName("Morning Cardio");
-        training1.setTrainingType(TrainingType.CARDIO);
+        training1.setTrainingType(TrainingTypeCode.CARDIO);
         training1.setTrainingDate(LocalDate.now());
         training1.setTrainingDuration(60);
 
@@ -193,7 +193,7 @@ public class ConsoleRunner {
         training2.setTraineeId(state.createdTrainee2.getId());
         training2.setTrainerId(state.createdTrainer2.getId());
         training2.setTrainingName("Evening Strength");
-        training2.setTrainingType(TrainingType.STRENGTH);
+        training2.setTrainingType(TrainingTypeCode.STRENGTH);
         training2.setTrainingDate(LocalDate.now().plusDays(1));
         training2.setTrainingDuration(45);
 
@@ -201,7 +201,7 @@ public class ConsoleRunner {
         training3.setTraineeId(state.createdTrainee2.getId()); // trainee3 deleted, so don’t use it
         training3.setTrainerId(state.createdTrainer3.getId());
         training3.setTrainingName("Afternoon Flexibility");
-        training3.setTrainingType(TrainingType.FLEXIBILITY);
+        training3.setTrainingType(TrainingTypeCode.FLEXIBILITY);
         training3.setTrainingDate(LocalDate.now().plusDays(2));
         training3.setTrainingDuration(30);
 
