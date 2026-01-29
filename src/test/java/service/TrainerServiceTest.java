@@ -1,14 +1,21 @@
 package service;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
-import com.alirizakaygusuz.gymcrm.exception.TrainerNotFoundException;
+import com.alirizakaygusuz.gymcrm.dao.TrainingTypeDao;
+import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerCreateResponse;
+import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerProfileRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerProfileResponse;
+import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
+import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
+import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
-import com.alirizakaygusuz.gymcrm.model.TrainingTypeCode;
+import com.alirizakaygusuz.gymcrm.model.TrainingType;
+import com.alirizakaygusuz.gymcrm.model.User;
 import com.alirizakaygusuz.gymcrm.service.TrainerService;
-import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
-import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
-import org.junit.jupiter.api.BeforeEach;
+import com.alirizakaygusuz.gymcrm.service.UserService;
+import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,12 +23,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,383 +35,417 @@ class TrainerServiceTest {
     private TrainerDao trainerDao;
 
     @Mock
-    private CredentialsGenerator credentialsGenerator;
+    private TrainingTypeDao trainingTypeDao;
 
     @Mock
-    private UserValidator userValidator;
+    private UserService userService;
+
+    @Mock
+    private TrainerMapper trainerMapper;
+
+    @Mock
+    private CommonValidator commonValidator;
 
     @InjectMocks
     private TrainerService trainerService;
 
-
-    @BeforeEach
-    void setUp() {
-        trainerService.setCredentialsGenerator(credentialsGenerator);
-        trainerService.setUserValidator(userValidator);
-    }
-
-    @DisplayName("createProfile should create Trainer when Trainer is valid")
+    @DisplayName("createProfile should return TrainerCreateResponse when request is valid and specialization exists")
     @Test
-    void createProfile_ShouldCreateTrainerWhenTrainerIsValid() {
-        Trainer trainer = new Trainer();
-        trainer.setFirstName("John");
-        trainer.setLastName("Doe");
+    void createProfile_shouldReturnCreateResponseWhenRequestIsValidAndSpecializationExists() {
+        TrainerProfileRequest request = new TrainerProfileRequest("John", "Doe", true, 5L);
 
-        when(credentialsGenerator.generateUniqueUsername("John", "Doe"))
-                .thenReturn("johndoe");
-        when(credentialsGenerator.generateRandomPassword())
-                .thenReturn("randomPassword123");
+        TrainingType specialization = new TrainingType();
+        specialization.setId(5L);
+
+        User savedUser = new User();
+        savedUser.setId(10L);
+        savedUser.setUsername("john.doe");
 
         Trainer savedTrainer = new Trainer();
         savedTrainer.setId(1L);
-        savedTrainer.setFirstName("John");
-        savedTrainer.setLastName("Doe");
-        savedTrainer.setUsername("johndoe");
-        savedTrainer.setPassword("randomPassword123");
+        savedTrainer.setUser(savedUser);
+        savedTrainer.setSpecialization(specialization);
 
+        TrainerCreateResponse response = mock(TrainerCreateResponse.class);
 
-        when(trainerDao.save(trainer)).thenReturn(savedTrainer);
-        Trainer createdTrainer = trainerService.createProfile(trainer);
+        when(trainingTypeDao.findById(5L)).thenReturn(Optional.of(specialization));
+        when(userService.createUserWithCredentials(request)).thenReturn(savedUser);
+        when(trainerDao.save(any(Trainer.class))).thenReturn(savedTrainer);
+        when(trainerMapper.toCreateResponse(savedTrainer)).thenReturn(response);
 
-
-        assertNotNull(createdTrainer);
-        assertEquals(1L, createdTrainer.getId());
-        assertEquals("johndoe", createdTrainer.getUsername());
-        assertEquals("randomPassword123", createdTrainer.getPassword());
-
-
-        verify(userValidator).validateUser(trainer);
-        verify(credentialsGenerator).generateUniqueUsername("John", "Doe");
-        verify(credentialsGenerator).generateRandomPassword();
-        verify(trainerDao).save(argThat(t ->
-                t.getFirstName().equals("John") &&
-                        t.getLastName().equals("Doe") &&
-                        t.getUsername().equals("johndoe") &&
-                        t.getPassword().equals("randomPassword123")
-        ));
-
-        verifyNoMoreInteractions(trainerDao, credentialsGenerator, userValidator);
-
-    }
-
-    @DisplayName("createProfile should throw exception when Trainer is invalid")
-    @Test
-    void createProfile_ShouldThrowExceptionWhenTrainerIsInvalid() {
-        Trainer trainer = new Trainer();
-        trainer.setFirstName(" ");
-        trainer.setLastName("Doe");
-
-        doThrow(new ValidationException("First name cannot be null or blank"))
-                .when(userValidator).validateUser(trainer);
-
-        ValidationException exception = assertThrows(ValidationException.class, () -> {
-            trainerService.createProfile(trainer);
-        });
-
-        assertEquals("First name cannot be null or blank", exception.getMessage());
-        verify(userValidator).validateUser(trainer);
-        verifyNoMoreInteractions(userValidator);
-        verifyNoInteractions(trainerDao, credentialsGenerator);
-
-    }
-
-    @DisplayName("createProfile should throw exception when Trainer is null")
-    @Test
-    void createProfile_ShouldThrowExceptionWhenTrainerIsNull() {
-        Trainer nullUser = null;
-
-        doThrow(new ValidationException("User cannot be null"))
-                .when(userValidator).validateUser(nullUser);
-
-        ValidationException exception = assertThrows(ValidationException.class, () -> {
-            trainerService.createProfile(nullUser);
-        });
-        assertEquals("User cannot be null", exception.getMessage());
-
-        verify(userValidator).validateUser(nullUser);
-        verifyNoMoreInteractions(userValidator);
-        verifyNoInteractions(trainerDao, credentialsGenerator);
-    }
-
-
-    @DisplayName("selectProfile should return selected Trainer when id is valid")
-    @Test
-    void selectProfile_shouldReturnSelectedTrainerWhenIdIsValid() {
-        Long trainerId = 1L;
-        Trainer trainer = new Trainer();
-        trainer.setId(trainerId);
-        trainer.setFirstName("Jane");
-        trainer.setLastName("Doe");
-
-        when(trainerDao.findById(trainerId)).thenReturn(Optional.of(trainer));
-
-        Trainer foundTrainer = trainerService.selectProfile(trainerId);
-
-        assertNotNull(foundTrainer);
-        assertEquals(trainerId, foundTrainer.getId());
-        assertEquals("Jane", foundTrainer.getFirstName());
-        assertEquals("Doe", foundTrainer.getLastName());
-
-        verify(userValidator).validateId(trainerId);
-        verify(trainerDao).findById(trainerId);
-        verifyNoMoreInteractions(trainerDao, userValidator);
-
-    }
-
-
-    @DisplayName("selectProfile should throw exception when id is invalid")
-    @Test
-    void selectProfile_ShouldThrowExceptionWhenIdIsInvalid() {
-        Long invalidId = -1L;
-        doThrow(new ValidationException("ID must be a positive number"))
-                .when(userValidator).validateId(invalidId);
-
-        ValidationException exception = assertThrows(ValidationException.class, () -> {
-            trainerService.selectProfile(invalidId);
-        });
-
-        assertEquals("ID must be a positive number", exception.getMessage());
-
-        verify(userValidator).validateId(invalidId);
-        verifyNoMoreInteractions(userValidator);
-        verifyNoInteractions(trainerDao, credentialsGenerator);
-    }
-
-
-    @DisplayName("selectProfile should throw exception when trainer not found")
-    @Test
-    void selectProfile_ShouldThrowExceptionWhenTrainerNotFound() {
-        Long trainerId = 2L;
-
-
-        when(trainerDao.findById(trainerId)).thenReturn(java.util.Optional.empty());
-
-        TrainerNotFoundException exception = assertThrows(TrainerNotFoundException.class, () -> {
-            trainerService.selectProfile(trainerId);
-        });
-
-        assertEquals("Trainer not found with id: " + trainerId, exception.getMessage());
-
-        verify(userValidator).validateId(trainerId);
-        verify(trainerDao).findById(trainerId);
-        verifyNoMoreInteractions(trainerDao, userValidator);
-    }
-
-
-    @DisplayName("selectProfile should return selected Trainer when username is valid")
-    @Test
-    void selectProfile_shouldReturnSelectedTrainerWhenUsernameIsValid() {
-        String username = "janedoe";
-        Trainer trainer = new Trainer();
-        trainer.setId(1L);
-        trainer.setFirstName("Jane");
-        trainer.setLastName("Doe");
-        trainer.setUsername(username);
-
-        when(trainerDao.findByUsername(username)).thenReturn(Optional.of(trainer));
-
-        Trainer foundTrainer = trainerService.selectProfile(username);
-
-        assertNotNull(foundTrainer);
-        assertEquals(username, foundTrainer.getUsername());
-        assertEquals("Jane", foundTrainer.getFirstName());
-        assertEquals("Doe", foundTrainer.getLastName());
-
-        verify(userValidator).validateUsername(username);
-        verify(trainerDao).findByUsername(username);
-        verifyNoMoreInteractions(trainerDao, userValidator);
-    }
-
-
-    @DisplayName("selectProfile should throw exception when username is invalid")
-    @Test
-    void selectProfile_ShouldThrowExceptionWhenUsernameIsInvalid() {
-        String invalidUsername = "   ";
-        doThrow(new ValidationException("Username cannot be null or blank"))
-                .when(userValidator).validateUsername(invalidUsername);
-
-        ValidationException exception = assertThrows(ValidationException.class, () -> {
-            trainerService.selectProfile(invalidUsername);
-        });
-
-        assertEquals("Username cannot be null or blank", exception.getMessage());
-
-        verify(userValidator).validateUsername(invalidUsername);
-        verifyNoMoreInteractions(userValidator);
-        verifyNoInteractions(trainerDao, credentialsGenerator);
-    }
-
-
-    @DisplayName("selectProfile should throw exception when trainer not found by username")
-    @Test
-    void selectProfile_ShouldThrowExceptionWhenTrainerNotFoundByUsername() {
-        String username = "nonexistentuser";
-
-        when(trainerDao.findByUsername(username)).thenReturn(java.util.Optional.empty());
-
-        TrainerNotFoundException exception = assertThrows(TrainerNotFoundException.class, () -> {
-            trainerService.selectProfile(username);
-        });
-
-        assertEquals("Trainer not found with username: " + username, exception.getMessage());
-
-        verify(userValidator).validateUsername(username);
-        verify(trainerDao).findByUsername(username);
-        verifyNoMoreInteractions(trainerDao, userValidator);
-    }
-
-
-    @DisplayName("getAllTrainers should return all trainers")
-    @Test
-    void getAllTrainers_ShouldReturnAll() {
-        Trainer trainer1 = new Trainer();
-        trainer1.setId(1L);
-        trainer1.setFirstName("Alice");
-        trainer1.setLastName("Smith");
-
-        Trainer trainer2 = new Trainer();
-        trainer2.setId(2L);
-        trainer2.setFirstName("Bob");
-        trainer2.setLastName("Johnson");
-
-        Map<Long, Trainer> trainersMap = new HashMap<>();
-        trainersMap.put(trainer1.getId(), trainer1);
-        trainersMap.put(trainer2.getId(), trainer2);
-
-        when(trainerDao.getAll()).thenReturn(trainersMap);
-
-        Map<Long, Trainer> result = trainerService.getAllTrainers();
+        TrainerCreateResponse result = trainerService.createProfile(request);
 
         assertNotNull(result);
-        assertEquals(2, result.size());
-        assertTrue(result.containsKey(1L));
-        assertTrue(result.containsKey(2L));
+        assertSame(response, result);
 
-        verify(trainerDao).getAll();
-        verifyNoMoreInteractions(trainerDao, userValidator);
+        verify(commonValidator).validateNotNull(request, "Trainer profile creation request");
+        verify(commonValidator).validateNotNull(5L, "Specialization ID");
+        verify(trainingTypeDao).findById(5L);
+        verify(userService).createUserWithCredentials(request);
 
-    }
-
-
-    @DisplayName("updateProfile should update Trainer when inputs are valid")
-    @Test
-    void updateProfile_ShouldUpdateTrainerWhenInputsAreValid() {
-        Long trainerId = 1L;
-        Trainer existingTrainer = new Trainer();
-        existingTrainer.setId(trainerId);
-        existingTrainer.setFirstName("OldFirstName");
-        existingTrainer.setLastName("OldLastName");
-        existingTrainer.setActive(true);
-        existingTrainer.setSpecialization(TrainingTypeCode.STRENGTH);
-
-        Trainer updatedInfo = new Trainer();
-        updatedInfo.setFirstName("NewFirstName");
-        updatedInfo.setLastName("NewLastName");
-        updatedInfo.setActive(false);
-        updatedInfo.setSpecialization(TrainingTypeCode.CARDIO);
-
-        Trainer expectedUpdatedTrainer = new Trainer();
-        expectedUpdatedTrainer.setId(trainerId);
-        expectedUpdatedTrainer.setFirstName("NewFirstName");
-        expectedUpdatedTrainer.setLastName("NewLastName");
-        expectedUpdatedTrainer.setActive(false);
-        expectedUpdatedTrainer.setSpecialization(TrainingTypeCode.CARDIO);
-
-
-        when(trainerDao.findById(trainerId)).thenReturn(Optional.of(existingTrainer));
-        when(trainerDao.update(trainerId, existingTrainer)).thenReturn(expectedUpdatedTrainer);
-
-        Trainer updatedTrainer = trainerService.updateProfile(trainerId, updatedInfo);
-
-        assertNotNull(updatedTrainer);
-        assertEquals(trainerId, updatedTrainer.getId());
-        assertEquals("NewFirstName", updatedTrainer.getFirstName());
-        assertEquals("NewLastName", updatedTrainer.getLastName());
-        assertFalse(updatedTrainer.isActive());
-        assertEquals(TrainingTypeCode.CARDIO, updatedTrainer.getSpecialization());
-
-        verify(userValidator).validateId(trainerId);
-        verify(userValidator).validateUser(updatedInfo);
-        verify(trainerDao).findById(trainerId);
-        verify(trainerDao).update(eq(trainerId), argThat(t ->
-                t.getFirstName().equals("NewFirstName") &&
-                        t.getLastName().equals("NewLastName") &&
-                        !t.isActive() &&
-                        t.getSpecialization() == TrainingTypeCode.CARDIO
+        verify(trainerDao).save(argThat(t ->
+                t.getUser() == savedUser &&
+                        t.getSpecialization() == specialization
         ));
-        verifyNoMoreInteractions(trainerDao, userValidator);
-        verifyNoInteractions(credentialsGenerator);
+
+        verify(trainerMapper).toCreateResponse(savedTrainer);
+
+        verifyNoMoreInteractions(commonValidator, trainingTypeDao, userService, trainerDao, trainerMapper);
     }
 
-
-    @DisplayName("updateProfile should throw exception when id is invalid")
+    @DisplayName("createProfile should throw ValidationException when request is null")
     @Test
-    void updateProfile_ShouldThrowExceptionWhenIdIsInvalid() {
-        Long invalidId = -5L;
-        Trainer updatedInfo = new Trainer();
-        updatedInfo.setFirstName("NewFirstName");
-        updatedInfo.setLastName("NewLastName");
+    void createProfile_shouldThrowValidationExceptionWhenRequestIsNull() {
+        TrainerProfileRequest request = null;
 
-        doThrow(new ValidationException("ID must be a positive number"))
-                .when(userValidator).validateId(invalidId);
+        doThrow(new ValidationException("Trainer profile creation request cannot be null"))
+                .when(commonValidator).validateNotNull(request, "Trainer profile creation request");
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> {
-            trainerService.updateProfile(invalidId, updatedInfo);
-        });
+        ValidationException ex = assertThrows(
+                ValidationException.class,
+                () -> trainerService.createProfile(request)
+        );
 
-        assertEquals("ID must be a positive number", exception.getMessage());
+        assertEquals("Trainer profile creation request cannot be null", ex.getMessage());
 
-        verify(userValidator).validateId(invalidId);
-        verifyNoMoreInteractions(userValidator);
-        verifyNoInteractions(trainerDao, credentialsGenerator);
+        verify(commonValidator).validateNotNull(null, "Trainer profile creation request");
+        verifyNoMoreInteractions(commonValidator);
+        verifyNoInteractions(trainingTypeDao, userService, trainerDao, trainerMapper);
     }
 
-
-    @DisplayName("updateProfile should throw exception when Trainer is invalid")
+    @DisplayName("createProfile should throw ResourceNotFoundException when specialization not found")
     @Test
-    void updateProfile_ShouldThrowExceptionWhenTrainerIsInvalid() {
-        Long trainerId = 1L;
-        Trainer invalidTrainer = new Trainer();
-        invalidTrainer.setFirstName(" ");
-        invalidTrainer.setLastName("NewLastName");
+    void createProfile_shouldThrowResourceNotFoundExceptionWhenSpecializationNotFound() {
+        TrainerProfileRequest request = new TrainerProfileRequest("John", "Doe", true, 5L);
 
-        doThrow(new ValidationException("First name cannot be null or blank"))
-                .when(userValidator).validateUser(invalidTrainer);
+        when(trainingTypeDao.findById(5L)).thenReturn(Optional.empty());
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> {
-            trainerService.updateProfile(trainerId, invalidTrainer);
-        });
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> trainerService.createProfile(request)
+        );
 
-        assertEquals("First name cannot be null or blank", exception.getMessage());
+        assertEquals("TrainingType not found with id : '5'", ex.getMessage());
 
-        verify(userValidator).validateId(trainerId);
-        verify(userValidator).validateUser(invalidTrainer);
-        verifyNoMoreInteractions(userValidator);
-        verifyNoInteractions(trainerDao);
+        verify(commonValidator).validateNotNull(request, "Trainer profile creation request");
+        verify(commonValidator).validateNotNull(5L, "Specialization ID");
+        verify(trainingTypeDao).findById(5L);
+
+        verifyNoMoreInteractions(commonValidator, trainingTypeDao);
+        verifyNoInteractions(userService, trainerDao, trainerMapper);
     }
 
-
-    @DisplayName("updateProfile should throw exception when trainer not found")
+    @DisplayName("selectProfile should return TrainerProfileResponse when auth and trainer exist")
     @Test
-    void updateProfile_ShouldThrowExceptionWhenTrainerNotFound() {
-        Long trainerId = 10L;
-        Trainer updatedInfo = new Trainer();
-        updatedInfo.setFirstName("NewFirstName");
-        updatedInfo.setLastName("NewLastName");
+    void selectProfile_shouldReturnProfileResponseWhenAuthAndTrainerExist() {
+        LoginRequest login = mock(LoginRequest.class);
 
-        when(trainerDao.findById(trainerId)).thenReturn(Optional.empty());
+        User authUser = new User();
+        authUser.setUsername("john.doe");
 
-        TrainerNotFoundException exception = assertThrows(TrainerNotFoundException.class, () -> {
-            trainerService.updateProfile(trainerId, updatedInfo);
-        });
+        Trainer trainer = new Trainer();
+        trainer.setId(1L);
+        trainer.setUser(authUser);
 
-        assertEquals("Trainer not found with id: " + trainerId, exception.getMessage());
+        TrainerProfileResponse response = mock(TrainerProfileResponse.class);
 
-        verify(userValidator).validateId(trainerId);
-        verify(userValidator).validateUser(updatedInfo);
-        verify(trainerDao).findById(trainerId);
-        verifyNoMoreInteractions(trainerDao, userValidator);
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(trainerDao.findByUsername("john.doe")).thenReturn(Optional.of(trainer));
+        when(trainerMapper.toProfileResponse(trainer)).thenReturn(response);
+
+        TrainerProfileResponse result = trainerService.selectProfile(login);
+
+        assertNotNull(result);
+        assertSame(response, result);
+
+        verify(userService).authenticate(login);
+        verify(trainerDao).findByUsername("john.doe");
+        verify(trainerMapper).toProfileResponse(trainer);
+
+        verifyNoMoreInteractions(userService, trainerDao, trainerMapper);
+        verifyNoInteractions(trainingTypeDao, commonValidator);
     }
 
+    @DisplayName("selectProfile should throw ResourceNotFoundException when trainer not found for authenticated user")
+    @Test
+    void selectProfile_shouldThrowResourceNotFoundExceptionWhenTrainerNotFound() {
+        LoginRequest login = mock(LoginRequest.class);
 
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(trainerDao.findByUsername("john.doe")).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> trainerService.selectProfile(login)
+        );
+
+        assertEquals("Trainer not found with username : 'john.doe'", ex.getMessage());
+
+        verify(userService).authenticate(login);
+        verify(trainerDao).findByUsername("john.doe");
+
+        verifyNoMoreInteractions(userService, trainerDao);
+        verifyNoInteractions(trainerMapper, trainingTypeDao, commonValidator);
+    }
+
+    @DisplayName("changePassword should call userService.changePassword when auth and trainer exist")
+    @Test
+    void changePassword_shouldCallUserServiceChangePasswordWhenValid() {
+        LoginRequest login = mock(LoginRequest.class);
+        String newPassword = "newPass";
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        Trainer trainer = new Trainer();
+        trainer.setId(1L);
+        trainer.setUser(authUser);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(trainerDao.findByUsername("john.doe")).thenReturn(Optional.of(trainer));
+
+        assertDoesNotThrow(() -> trainerService.changePassword(login, newPassword));
+
+        verify(userService).authenticate(login);
+        verify(trainerDao).findByUsername("john.doe");
+        verify(userService).changePassword(authUser, newPassword);
+
+        verifyNoMoreInteractions(userService, trainerDao);
+        verifyNoInteractions(trainerMapper, trainingTypeDao, commonValidator);
+    }
+
+    @DisplayName("changePassword should throw ResourceNotFoundException when trainer not found")
+    @Test
+    void changePassword_shouldThrowResourceNotFoundExceptionWhenTrainerNotFound() {
+        LoginRequest login = mock(LoginRequest.class);
+        String newPassword = "newPass";
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(trainerDao.findByUsername("john.doe")).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> trainerService.changePassword(login, newPassword)
+        );
+
+        assertEquals("Trainer not found with username : 'john.doe'", ex.getMessage());
+
+        verify(userService).authenticate(login);
+        verify(trainerDao).findByUsername("john.doe");
+
+        verifyNoMoreInteractions(userService, trainerDao);
+        verifyNoInteractions(trainerMapper, trainingTypeDao, commonValidator);
+    }
+
+    @DisplayName("activateTrainer should call userService.activate when auth and trainer exist")
+    @Test
+    void activateTrainer_shouldCallUserServiceActivateWhenValid() {
+        LoginRequest login = mock(LoginRequest.class);
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        Trainer trainer = new Trainer();
+        trainer.setId(1L);
+        trainer.setUser(authUser);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(trainerDao.findByUsername("john.doe")).thenReturn(Optional.of(trainer));
+
+        assertDoesNotThrow(() -> trainerService.activateTrainer(login));
+
+        verify(userService).authenticate(login);
+        verify(trainerDao).findByUsername("john.doe");
+        verify(userService).activate(authUser);
+
+        verifyNoMoreInteractions(userService, trainerDao);
+        verifyNoInteractions(trainerMapper, trainingTypeDao, commonValidator);
+    }
+
+    @DisplayName("deactivateTrainer should call userService.deactivate when auth and trainer exist")
+    @Test
+    void deactivateTrainer_shouldCallUserServiceDeactivateWhenValid() {
+        LoginRequest login = mock(LoginRequest.class);
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        Trainer trainer = new Trainer();
+        trainer.setId(1L);
+        trainer.setUser(authUser);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(trainerDao.findByUsername("john.doe")).thenReturn(Optional.of(trainer));
+
+        assertDoesNotThrow(() -> trainerService.deactivateTrainer(login));
+
+        verify(userService).authenticate(login);
+        verify(trainerDao).findByUsername("john.doe");
+        verify(userService).deactivate(authUser);
+
+        verifyNoMoreInteractions(userService, trainerDao);
+        verifyNoInteractions(trainerMapper, trainingTypeDao, commonValidator);
+    }
+
+    @DisplayName("updateTrainerProfile should return TrainerProfileResponse and update specialization when specializationId is not null")
+    @Test
+    void updateTrainerProfile_shouldReturnProfileResponseAndUpdateSpecializationWhenSpecializationIdIsNotNull() {
+        LoginRequest login = mock(LoginRequest.class);
+
+        TrainerProfileRequest updateRequest = new TrainerProfileRequest("John", "Doe", true, 7L);
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        User trainerUser = new User();
+        trainerUser.setUsername("john.doe");
+
+        TrainingType oldSpec = new TrainingType();
+        oldSpec.setId(5L);
+
+        TrainingType newSpec = new TrainingType();
+        newSpec.setId(7L);
+
+        Trainer trainer = new Trainer();
+        trainer.setId(1L);
+        trainer.setUser(trainerUser);
+        trainer.setSpecialization(oldSpec);
+
+        Trainer updatedTrainer = new Trainer();
+        updatedTrainer.setId(1L);
+        updatedTrainer.setUser(trainerUser);
+        updatedTrainer.setSpecialization(newSpec);
+
+        TrainerProfileResponse response = mock(TrainerProfileResponse.class);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(trainerDao.findByUsername("john.doe")).thenReturn(Optional.of(trainer));
+        when(trainingTypeDao.findById(7L)).thenReturn(Optional.of(newSpec));
+        when(trainerDao.update(any(Trainer.class))).thenReturn(updatedTrainer);
+        when(trainerMapper.toProfileResponse(updatedTrainer)).thenReturn(response);
+
+        TrainerProfileResponse result = trainerService.updateTrainerProfile(login, updateRequest);
+
+        assertNotNull(result);
+        assertSame(response, result);
+        assertSame(newSpec, trainer.getSpecialization());
+
+        verify(userService).authenticate(login);
+        verify(trainerDao).findByUsername("john.doe");
+        verify(userService).applyProfileUpdate(trainerUser, updateRequest);
+
+        verify(commonValidator).validateNotNull(7L, "Specialization ID");
+        verify(trainingTypeDao).findById(7L);
+
+        verify(trainerDao).update(argThat(t ->
+                t.getId().equals(1L) &&
+                        t.getUser() == trainerUser &&
+                        t.getSpecialization() == newSpec
+        ));
+
+        verify(trainerMapper).toProfileResponse(updatedTrainer);
+
+        verifyNoMoreInteractions(userService, trainerDao, trainingTypeDao, commonValidator, trainerMapper);
+    }
+
+    @DisplayName("updateTrainerProfile should return TrainerProfileResponse and not resolve specialization when specializationId is null")
+    @Test
+    void updateTrainerProfile_shouldReturnProfileResponseWhenSpecializationIdIsNull() {
+        LoginRequest login = mock(LoginRequest.class);
+
+        TrainerProfileRequest updateRequest = new TrainerProfileRequest("John", "Doe", true, null);
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        User trainerUser = new User();
+        trainerUser.setUsername("john.doe");
+
+        TrainingType oldSpec = new TrainingType();
+        oldSpec.setId(5L);
+
+        Trainer trainer = new Trainer();
+        trainer.setId(1L);
+        trainer.setUser(trainerUser);
+        trainer.setSpecialization(oldSpec);
+
+        Trainer updatedTrainer = new Trainer();
+        updatedTrainer.setId(1L);
+        updatedTrainer.setUser(trainerUser);
+        updatedTrainer.setSpecialization(oldSpec);
+
+        TrainerProfileResponse response = mock(TrainerProfileResponse.class);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(trainerDao.findByUsername("john.doe")).thenReturn(Optional.of(trainer));
+        when(trainerDao.update(any(Trainer.class))).thenReturn(updatedTrainer);
+        when(trainerMapper.toProfileResponse(updatedTrainer)).thenReturn(response);
+
+        TrainerProfileResponse result = trainerService.updateTrainerProfile(login, updateRequest);
+
+        assertNotNull(result);
+        assertSame(response, result);
+        assertSame(oldSpec, trainer.getSpecialization());
+
+        verify(userService).authenticate(login);
+        verify(trainerDao).findByUsername("john.doe");
+        verify(userService).applyProfileUpdate(trainerUser, updateRequest);
+        verify(trainerDao).update(any(Trainer.class));
+        verify(trainerMapper).toProfileResponse(updatedTrainer);
+
+        verifyNoMoreInteractions(userService, trainerDao, trainerMapper);
+        verifyNoInteractions(trainingTypeDao, commonValidator);
+    }
+
+    @DisplayName("updateTrainerProfile should throw ResourceNotFoundException when trainer not found")
+    @Test
+    void updateTrainerProfile_shouldThrowResourceNotFoundExceptionWhenTrainerNotFound() {
+        LoginRequest login = mock(LoginRequest.class);
+        TrainerProfileRequest updateRequest = new TrainerProfileRequest("John", "Doe", true, 7L);
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(trainerDao.findByUsername("john.doe")).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> trainerService.updateTrainerProfile(login, updateRequest)
+        );
+
+        assertEquals("Trainer not found with username : 'john.doe'", ex.getMessage());
+
+        verify(userService).authenticate(login);
+        verify(trainerDao).findByUsername("john.doe");
+
+        verifyNoMoreInteractions(userService, trainerDao);
+        verifyNoInteractions(trainingTypeDao, trainerMapper, commonValidator);
+    }
+
+    @DisplayName("selectProfile should throw AuthenticationFailedException when authentication fails")
+    @Test
+    void selectProfile_shouldThrowAuthenticationFailedExceptionWhenAuthenticationFails() {
+        LoginRequest login = mock(LoginRequest.class);
+
+        when(userService.authenticate(login))
+                .thenThrow(new AuthenticationFailedException("Invalid username or password"));
+
+        AuthenticationFailedException ex = assertThrows(
+                AuthenticationFailedException.class,
+                () -> trainerService.selectProfile(login)
+        );
+
+        assertEquals("Invalid username or password", ex.getMessage());
+
+        verify(userService).authenticate(login);
+        verifyNoMoreInteractions(userService);
+        verifyNoInteractions(trainerDao, trainingTypeDao, trainerMapper, commonValidator);
+    }
 }
