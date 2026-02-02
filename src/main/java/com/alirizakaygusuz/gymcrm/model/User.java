@@ -3,8 +3,6 @@ package com.alirizakaygusuz.gymcrm.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Objects;
-
 @Entity
 @Table(name = "users")
 @Getter

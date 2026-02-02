@@ -1,28 +1,32 @@
 package com.alirizakaygusuz.gymcrm.facade;
 
-import com.alirizakaygusuz.gymcrm.exception.ValidationException;
-import com.alirizakaygusuz.gymcrm.model.Trainee;
-import com.alirizakaygusuz.gymcrm.model.Trainer;
-import com.alirizakaygusuz.gymcrm.model.Training;
+import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainee.TraineeCreateResponse;
+import com.alirizakaygusuz.gymcrm.dto.trainee.TraineeProfileRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainee.TraineeProfileResponse;
+import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerCreateResponse;
+import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerProfileRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerProfileResponse;
+import com.alirizakaygusuz.gymcrm.dto.training.TraineeTrainingQueryRequest;
+import com.alirizakaygusuz.gymcrm.dto.training.TrainerTrainingQueryRequest;
+import com.alirizakaygusuz.gymcrm.dto.training.TrainingCreateRequest;
+import com.alirizakaygusuz.gymcrm.dto.training.TrainingResponse;
 import com.alirizakaygusuz.gymcrm.service.TraineeService;
 import com.alirizakaygusuz.gymcrm.service.TrainerService;
 import com.alirizakaygusuz.gymcrm.service.TrainingService;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Facade that exposes a simplified API for Gym CRM use-cases.
  *
  * <p>This class coordinates operations related to trainees, trainers, and trainings,
  * acting as a single entry point for application-level workflows.</p>
- *
- * <p>It delegates business operations to the corresponding service components and
- * orchestrates cross-domain interactions when required.</p>
  */
 @Component
-@Slf4j
+@RequiredArgsConstructor
 public class GymCrmFacade {
 
     private final TraineeService traineeService;
@@ -30,94 +34,76 @@ public class GymCrmFacade {
     private final TrainingService trainingService;
 
 
-    public GymCrmFacade(TraineeService traineeService, TrainerService trainerService, TrainingService trainingService) {
-        this.traineeService = traineeService;
-        this.trainerService = trainerService;
-        this.trainingService = trainingService;
+    public TraineeCreateResponse createTraineeProfile(TraineeProfileRequest request) {
+        return traineeService.createProfile(request);
     }
 
-
-    //TRAINEE METHODS
-    public Trainee createTraineeProfile(Trainee trainee) {
-        return traineeService.createProfile(trainee);
+    public TraineeProfileResponse getTraineeProfile(LoginRequest login) {
+        return traineeService.selectProfile(login);
     }
 
-    public Trainee updateTraineeProfile(Long id, Trainee updatedTrainee) {
-        return traineeService.updateProfile(id, updatedTrainee);
+    public TraineeProfileResponse updateTraineeProfile(LoginRequest login, TraineeProfileRequest request) {
+        return traineeService.updateProfile(login, request);
     }
 
-    public void deleteTraineeProfile(Long id) {
-        traineeService.deleteProfile(id);
+    public void deleteTraineeProfile(LoginRequest login) {
+        traineeService.deleteTrainee(login);
     }
 
-    public Trainee selectTraineeProfileById(Long id) {
-        return traineeService.selectProfile(id);
+    public void activateTrainee(LoginRequest login) {
+        traineeService.activateTrainee(login);
     }
 
-    public Trainee selectTraineeProfileByUsername(String username) {
-        return traineeService.selectProfile(username);
+    public void deactivateTrainee(LoginRequest login) {
+        traineeService.deactivateTrainee(login);
     }
 
-    public Map<Long, Trainee> getAllTraineeProfiles() {
-        return traineeService.getAllProfiles();
+    public void changeTraineePassword(LoginRequest login, String newPassword) {
+        traineeService.changePassword(login, newPassword);
     }
 
-    //TRAINER METHODS
-    public Trainer createTrainerProfile(Trainer trainer) {
-        return trainerService.createProfile(trainer);
+    public List<TrainerProfileResponse> getUnassignedTrainers(LoginRequest login) {
+        return traineeService.getUnassignedTrainers(login);
     }
 
-    public Trainer updateTrainerProfile(Long id, Trainer updatedTrainer) {
-        return trainerService.updateProfile(id, updatedTrainer);
+    public void updateTraineeTrainers(LoginRequest login, List<Long> trainerIds) {
+        traineeService.updateTraineeTrainers(login, trainerIds);
     }
 
-    public Trainer selectTrainerProfileById(Long id) {
-        return trainerService.selectProfile(id);
+    public TrainerCreateResponse createTrainerProfile(TrainerProfileRequest request) {
+        return trainerService.createProfile(request);
     }
 
-    public Trainer selectTrainerProfileByUsername(String username) {
-        return trainerService.selectProfile(username);
+    public TrainerProfileResponse getTrainerProfile(LoginRequest login) {
+        return trainerService.selectProfile(login);
     }
 
-
-    public Map<Long, Trainer> getAllTrainerProfiles() {
-        return trainerService.getAllTrainers();
+    public TrainerProfileResponse updateTrainerProfile(LoginRequest login, TrainerProfileRequest request) {
+        return trainerService.updateTrainerProfile(login, request);
     }
 
-
-    /**
-     * Creates a new training session.
-     *
-     * <p>This method validates the input and ensures that referenced trainee and trainer
-     * profiles exist before delegating the creation to {@link TrainingService}.</p>
-     *
-     * <p>It acts as an orchestration point for cross-domain interactions between
-     * trainee, trainer, and training services.</p>
-     *
-     * @param training training data to be created
-     * @return created training instance
-     * @throws ValidationException if {@code training} is null
-     */
-    public Training createTrainingProfile(Training training) {
-        if (training == null) {
-            log.warn("Training object is null in createTrainingProfile method");
-            throw new ValidationException("Training object cannot be null");
-        }
-
-        log.info("Selecting trainee and trainer profiles for training creatin: traineeId={}, trainerId={}  ", training.getTraineeId(), training.getTrainerId());
-        traineeService.selectProfile(training.getTraineeId());
-        trainerService.selectProfile(training.getTrainerId());
-
-        return trainingService.createProfile(training);
+    public void activateTrainer(LoginRequest login) {
+        trainerService.activateTrainer(login);
     }
 
-    public Training selectTrainingProfile(Long trainingId) {
-        return trainingService.selectProfile(trainingId);
+    public void deactivateTrainer(LoginRequest login) {
+        trainerService.deactivateTrainer(login);
     }
 
-    public Map<Long, Training> getAllTrainingProfiles() {
-        return trainingService.getAllTrainings();
+    public void changeTrainerPassword(LoginRequest login, String newPassword) {
+        trainerService.changePassword(login, newPassword);
     }
 
+    public TrainingResponse addTraining(LoginRequest login, TrainingCreateRequest request) {
+        return trainingService.addTraining(login, request);
+    }
+
+    public List<TrainingResponse> getTraineeTrainings(LoginRequest login, TraineeTrainingQueryRequest query) {
+        return trainingService.getTraineeTrainings(login, query);
+    }
+
+    public List<TrainingResponse> getTrainerTrainings(LoginRequest login, TrainerTrainingQueryRequest query) {
+        return trainingService.getTrainerTrainings(login, query);
+    }
 
 }

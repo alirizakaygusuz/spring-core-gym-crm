@@ -28,7 +28,7 @@ public class UserValidator {
         commonValidator.validateNotBlank(username, "Username");
     }
 
-    private void validateRequiredUserNames(String firstName, String lastName) {
+    public void validateRequiredUserNames(String firstName, String lastName) {
         commonValidator.validateNotBlank(firstName, "First name");
         commonValidator.validateNotBlank(lastName, "Last name");
     }
