@@ -1,115 +1,154 @@
 package com.alirizakaygusuz.gymcrm.service;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
+import com.alirizakaygusuz.gymcrm.dao.TrainingTypeDao;
+import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerCreateResponse;
+import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerProfileRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerProfileResponse;
+import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
+import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
-import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
-import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.alirizakaygusuz.gymcrm.model.TrainingType;
+import com.alirizakaygusuz.gymcrm.model.User;
+import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
-import java.util.logging.Logger;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class TrainerService {
 
     private final TrainerDao trainerDao;
-    private CredentialsGenerator credentialsGenerator;
-    private UserValidator userValidator;
+    private final TrainingTypeDao trainingTypeDao;
+    private final UserService userService;
+    private final TrainerMapper trainerMapper;
+    private final CommonValidator commonValidator;
 
-    private static final Logger log =
-            Logger.getLogger(TrainerService.class.getName());
 
-    //Inject DAOs  via constructor injection
-    public TrainerService(TrainerDao trainerDao) {
-        this.trainerDao = trainerDao;
+    @Transactional
+    public TrainerCreateResponse createProfile(TrainerProfileRequest request) {
+
+        log.info("Starting trainer profile creation");
+        commonValidator.validateNotNull(request, "Trainer profile creation request");
+
+
+        TrainingType specialization = resolveSpecialization(request.specializationId());
+
+        User savedUser = userService.createUserWithCredentials(request);
+
+        Trainer trainer = buildTrainerForCreate(savedUser, specialization);
+        Trainer saved = trainerDao.save(trainer);
+
+        log.info("Trainer profile created. trainerId={}, username={}",
+                saved.getId(), savedUser.getUsername());
+
+        return trainerMapper.toCreateResponse(saved);
     }
 
-    //Inject CredentialsGenerator via setter injection
-    @Autowired
-    public void setCredentialsGenerator(CredentialsGenerator credentialsGenerator) {
-        this.credentialsGenerator = credentialsGenerator;
+
+    @Transactional(readOnly = true)
+    public TrainerProfileResponse selectProfile(LoginRequest request) {
+        log.info("Starting trainer profile selection");
+
+        User authUser = userService.authenticate(request);
+
+        log.info("Selecting trainer profile with username={}", authUser.getUsername());
+
+        Trainer selectedTrainer = findTrainerByUsernameOrThrow(authUser.getUsername());
+
+        return trainerMapper.toProfileResponse(selectedTrainer);
     }
 
-    //Inject UserValidator via setter injection
-    @Autowired
-    public void setUserValidator(UserValidator userValidator) {
-        this.userValidator = userValidator;
+
+    @Transactional
+    public void changePassword(LoginRequest request, String newPassword) {
+
+        User authUser = authenticateAndValidateTrainer(request);
+        log.info("Starting password change for trainer with username={}", authUser.getUsername());
+
+        userService.changePassword(authUser, newPassword);
+        log.info("Password changed for trainer with username={}", authUser.getUsername());
     }
 
-    //Create a new trainer profile with generated credentials and method name is createProfile
-    public Trainer createProfile(Trainer trainer) {
-
-        userValidator.validateUser(trainer);
-
-        //Create a log entry when a new trainer profile is being created
-        log.info("Creating new trainer profile for: " + trainer.getFirstName() + " " + trainer.getLastName());
-
-        String username = credentialsGenerator.generateUniqueUsername(trainer.getFirstName(), trainer.getLastName());
-        String password = credentialsGenerator.generateRandomPassword();
-        trainer.setUsername(username);
-        trainer.setPassword(password);
-        Trainer savedTrainer = trainerDao.save(trainer);
-        //Create a log entry after the trainer profile is created
-        log.info("Trainer profile created with id: " + savedTrainer.getId() + ", username: " + savedTrainer.getUsername());
-
-        return savedTrainer;
+    @Transactional
+    public void activateTrainer(LoginRequest request) {
+        User user = authenticateAndValidateTrainer(request);
+        userService.activate(user);
     }
 
-    //Select trainer profile by id and method name is selectProfile
-    public Trainer selectProfile(Long id) {
-        userValidator.validateId(id);
-
-        //Create a log when selecting a trainer profile
-        log.info("Selecting trainer profile with id: " + id);
-
-        return trainerDao.findById(id).orElseThrow(() -> {
-            log.warning("Trainer not found with id: " + id);
-            return new RuntimeException("Trainer not found with id: " + id);
-        });
+    @Transactional
+    public void deactivateTrainer(LoginRequest request) {
+        User user = authenticateAndValidateTrainer(request);
+        userService.deactivate(user);
     }
 
-    //Select trainer profile by username and method name is selectProfile
-    public Trainer selectProfile(String username) {
-        userValidator.validateUsername(username);
+    @Transactional
+    public TrainerProfileResponse updateTrainerProfile(
+            LoginRequest request,
+            TrainerProfileRequest updateRequest
+    ) {
+        User authUser = userService.authenticate(request);
 
-        //Create a log when selecting a trainer profile by username
-        log.info( "Selecting trainer profile with username: " + username);
+        log.info("Updating trainer profile. username={}", authUser.getUsername());
 
-        return trainerDao.findByUsername(username).orElseThrow(() -> {
-            log.warning("Trainer not found with username: " + username);
-            return new RuntimeException("Trainer not found with username: " + username);
-        });
+        Trainer trainer = findTrainerByUsernameOrThrow(authUser.getUsername());
+
+        userService.applyProfileUpdate(trainer.getUser(), updateRequest);
+
+        if (updateRequest.specializationId() != null) {
+            TrainingType specialization = resolveSpecialization(updateRequest.specializationId());
+            trainer.setSpecialization(specialization);
+        }
+
+        Trainer updatedTrainer = trainerDao.update(trainer);
+
+        log.info("Trainer profile updated. trainerId={}, username={}",
+                updatedTrainer.getId(), updatedTrainer.getUser().getUsername());
+
+        return trainerMapper.toProfileResponse(updatedTrainer);
     }
 
-    public Map<Long , Trainer> getAllTrainers() {
-        //Create a log when retrieving all trainers
-        log.info("Retrieving all trainers");
-        return trainerDao.getAll();
+
+    private Trainer findTrainerByUsernameOrThrow(String username) {
+        return trainerDao.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Trainer",
+                        "username",
+                        username));
     }
 
-    //Update trainer profile and method name is updateProfile
-    public Trainer updateProfile(Long id, Trainer trainer) {
-        userValidator.validateId(id);
-        userValidator.validateUser(trainer);
 
-        //Create a log when updating a trainer profile
-        log.info("Updating trainer profile with id: " + id);
-
-        Trainer currentTrainer = trainerDao.findById(id).orElseThrow(() -> {
-            log.warning("Trainer not found by id: " + id);
-            return new RuntimeException("Trainer not found by id:" + id);
-        });
-
-        currentTrainer.setFirstName(trainer.getFirstName());
-        currentTrainer.setLastName(trainer.getLastName());
-        currentTrainer.setActive(trainer.isActive());
-        currentTrainer.setSpecialization(trainer.getSpecialization());
-
-
-        Trainer updatedTrainer = trainerDao.update(id, currentTrainer);
-        log.info("Trainer profile updated with id: " + updatedTrainer.getId());
-        return updatedTrainer;
+    private User authenticateAndValidateTrainer(LoginRequest request) {
+        User authUser = userService.authenticate(request);
+        findTrainerByUsernameOrThrow(authUser.getUsername());
+        return authUser;
     }
+
+    private Trainer buildTrainerForCreate(User user, TrainingType specialization) {
+        Trainer trainer = new Trainer();
+        trainer.setUser(user);
+        trainer.setSpecialization(specialization);
+        return trainer;
+    }
+
+    private TrainingType resolveSpecialization(Long specializationId) {
+
+        commonValidator.validateNotNull(specializationId, "Specialization ID");
+
+        return trainingTypeDao.findById(specializationId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "TrainingType",
+                                "id",
+                                specializationId
+                        )
+                );
+    }
+
 
 }

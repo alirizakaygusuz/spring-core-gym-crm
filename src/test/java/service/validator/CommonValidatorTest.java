@@ -1,11 +1,12 @@
 package service.validator;
 
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class CommonValidatorTest {
 
@@ -16,36 +17,75 @@ class CommonValidatorTest {
         commonValidator = new CommonValidator();
     }
 
-    @DisplayName("validateId should not throw exception when id is valid")
+    @DisplayName("validateId should not throw when id is positive")
     @Test
-    void validateId_shouldNotThrowExceptionWhenIdIsValid() {
-        commonValidator.validateId(1L);
+    void validateId_shouldNotThrow_whenIdIsPositive() {
+        assertDoesNotThrow(() -> commonValidator.validateId(1L));
+        assertDoesNotThrow(() -> commonValidator.validateId(999L));
     }
 
-    @DisplayName("validateId should throw IllegalArgumentException when id is invalid")
+    @DisplayName("validateId should throw ValidationException when id is null")
     @Test
-    void validateId_shouldThrowExceptionWhenIdIsInvalid(){
-        assertThrows(IllegalArgumentException.class, () -> {
-            commonValidator.validateId(null);
-        });
+    void validateId_shouldThrow_whenIdIsNull() {
+        ValidationException ex = assertThrows(ValidationException.class, () -> commonValidator.validateId(null));
+        assertEquals("ID must be a positive number", ex.getMessage());
     }
 
-    @DisplayName("validateNotBlank should not throw exception when value is valid")
+    @DisplayName("validateId should throw ValidationException when id is zero")
     @Test
-    void validateNotBlank_shouldNotThrowExceptionWhenValueIsValid() {
-        commonValidator.validateNotBlank("ValidValue", "TestField");
+    void validateId_shouldThrow_whenIdIsZero() {
+        ValidationException ex = assertThrows(ValidationException.class, () -> commonValidator.validateId(0L));
+        assertEquals("ID must be a positive number", ex.getMessage());
     }
 
-
-    @DisplayName("validateNotBlank should throw IllegalArgumentException when value is invalid")
+    @DisplayName("validateId should throw ValidationException when id is negative")
     @Test
-    void validateNotBlank_shouldThrowExceptionWhenValueIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            commonValidator.validateNotBlank(null, "TestField");
-        });
+    void validateId_shouldThrow_whenIdIsNegative() {
+        ValidationException ex = assertThrows(ValidationException.class, () -> commonValidator.validateId(-5L));
+        assertEquals("ID must be a positive number", ex.getMessage());
     }
 
+    @DisplayName("validateNotBlank should not throw when value is non-blank")
+    @Test
+    void validateNotBlank_shouldNotThrow_whenValueIsNonBlank() {
+        assertDoesNotThrow(() -> commonValidator.validateNotBlank("abc", "Field"));
+        assertDoesNotThrow(() -> commonValidator.validateNotBlank("  abc  ", "Field"));
+    }
 
+    @DisplayName("validateNotBlank should throw ValidationException when value is null")
+    @Test
+    void validateNotBlank_shouldThrow_whenValueIsNull() {
+        ValidationException ex = assertThrows(
+                ValidationException.class,
+                () -> commonValidator.validateNotBlank(null, "TestField")
+        );
+        assertEquals("TestField cannot be null or blank", ex.getMessage());
+    }
 
+    @DisplayName("validateNotBlank should throw ValidationException when value is blank")
+    @Test
+    void validateNotBlank_shouldThrow_whenValueIsBlank() {
+        ValidationException ex = assertThrows(
+                ValidationException.class,
+                () -> commonValidator.validateNotBlank("   ", "TestField")
+        );
+        assertEquals("TestField cannot be null or blank", ex.getMessage());
+    }
 
+    @DisplayName("validateNotNull should not throw when value is not null")
+    @Test
+    void validateNotNull_shouldNotThrow_whenValueIsNotNull() {
+        assertDoesNotThrow(() -> commonValidator.validateNotNull(new Object(), "Obj"));
+        assertDoesNotThrow(() -> commonValidator.validateNotNull("x", "Str"));
+    }
+
+    @DisplayName("validateNotNull should throw ValidationException when value is null")
+    @Test
+    void validateNotNull_shouldThrow_whenValueIsNull() {
+        ValidationException ex = assertThrows(
+                ValidationException.class,
+                () -> commonValidator.validateNotNull(null, "TestField")
+        );
+        assertEquals("TestField cannot be null", ex.getMessage());
+    }
 }

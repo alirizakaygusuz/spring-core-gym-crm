@@ -1,51 +1,45 @@
 package com.alirizakaygusuz.gymcrm.model;
 
+import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
-public class Trainee extends User {
+@Entity
+@Table(name = "trainees")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Trainee {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
+
+    @OneToOne(optional = false)
+    @JoinColumn(name = "user_id", unique = true, nullable = false)
+    private User user;
+
+    @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
+
+    @Column(name = "address", length = 255)
     private String address;
 
+    @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<TraineeTrainer> trainerLinks = new HashSet<>();
 
-    public Trainee() {
+    @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Training> trainings = new HashSet<>();
+
+    @Transient
+    public boolean isActive() {
+        return user != null && Boolean.TRUE.equals(user.isActive());
     }
 
-    public Trainee(String firstName, String lastName, String username, String password, boolean isActive, LocalDate dateOfBirth, String address) {
-        super(firstName, lastName, username, password, isActive);
-        this.dateOfBirth = dateOfBirth;
-        this.address = address;
-    }
-
-    public Trainee(Long id, String firstName, String lastName, String username, String password, boolean isActive, LocalDate dateOfBirth, String address) {
-        super(id, firstName, lastName, username, password, isActive);
-        this.dateOfBirth = dateOfBirth;
-        this.address = address;
-    }
-
-    public LocalDate getDateOfBirth() {
-        return dateOfBirth;
-    }
-
-    public void setDateOfBirth(LocalDate dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-
-    @Override
-    public String toString() {
-        return "Trainee{" +
-                super.toString() +", " +
-                "dateOfBirth=" + dateOfBirth +
-                ", address='" + address + '\'' +
-                '}';
-    }
 }

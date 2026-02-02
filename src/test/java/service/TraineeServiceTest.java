@@ -1,12 +1,22 @@
 package service;
 
-
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
-import com.alirizakaygusuz.gymcrm.model.Trainee;
+import com.alirizakaygusuz.gymcrm.dao.TraineeTrainerDao;
+import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
+import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainee.TraineeCreateResponse;
+import com.alirizakaygusuz.gymcrm.dto.trainee.TraineeProfileRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainee.TraineeProfileResponse;
+import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerProfileResponse;
+import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
+import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
+import com.alirizakaygusuz.gymcrm.mapper.TraineeMapper;
+import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
+import com.alirizakaygusuz.gymcrm.model.*;
 import com.alirizakaygusuz.gymcrm.service.TraineeService;
-import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
-import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
-import org.junit.jupiter.api.BeforeEach;
+import com.alirizakaygusuz.gymcrm.service.UserService;
+import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,11 +25,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,528 +38,531 @@ class TraineeServiceTest {
     private TraineeDao traineeDao;
 
     @Mock
-    private CredentialsGenerator credentialsGenerator;
+    private TraineeTrainerDao traineeTrainerDao;
 
     @Mock
-    private UserValidator userValidator;
+    private TrainerDao trainerDao;
+
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private TraineeMapper traineeMapper;
+
+    @Mock
+    private TrainerMapper trainerMapper;
+
+    @Mock
+    private CommonValidator commonValidator;
 
     @InjectMocks
     private TraineeService traineeService;
 
-
-    @BeforeEach
-    void setUp() {
-        traineeService.setCredentialsGenerator(credentialsGenerator);
-        traineeService.setUserValidator(userValidator);
-    }
-
-    @DisplayName("createProfile should return created Trainee when Trainee is valid")
+    @DisplayName("createProfile should return TraineeCreateResponse when request is valid")
     @Test
-    void createProfile_shouldReturnCreatedTraineeWhenTraineeIsValid() {
-        Trainee trainee = new Trainee();
-        trainee.setFirstName("John");
-        trainee.setLastName("Smith");
-        trainee.setDateOfBirth(LocalDate.of(1990, 1, 1));
-        trainee.setAddress("123 Main St");
-        trainee.setActive(true);
+    void createProfile_shouldReturnCreateResponseWhenRequestIsValid() {
+        TraineeProfileRequest request = new TraineeProfileRequest(
+                "John",
+                "Doe",
+                true,
+                LocalDate.of(1990, 1, 1),
+                "Address"
+        );
 
-        when(credentialsGenerator.generateUniqueUsername("John", "Smith"))
-                .thenReturn("john.smith");
-        when(credentialsGenerator.generateRandomPassword())
-                .thenReturn("randomPassword123");
-
+        User savedUser = new User();
+        savedUser.setId(10L);
+        savedUser.setUsername("john.doe");
 
         Trainee savedTrainee = new Trainee();
         savedTrainee.setId(1L);
-        savedTrainee.setFirstName("John");
-        savedTrainee.setLastName("Smith");
-        savedTrainee.setUsername("john.smith");
-        savedTrainee.setPassword("randomPassword123");
+        savedTrainee.setUser(savedUser);
         savedTrainee.setDateOfBirth(LocalDate.of(1990, 1, 1));
-        savedTrainee.setAddress("123 Main St");
-        savedTrainee.setActive(true);
+        savedTrainee.setAddress("Address");
 
+        TraineeCreateResponse response = mock(TraineeCreateResponse.class);
 
-        when(traineeDao.save(trainee)).thenReturn(savedTrainee);
+        when(userService.createUserWithCredentials(request)).thenReturn(savedUser);
+        when(traineeDao.save(any(Trainee.class))).thenReturn(savedTrainee);
+        when(traineeMapper.toCreateResponse(savedTrainee)).thenReturn(response);
 
+        TraineeCreateResponse result = traineeService.createProfile(request);
 
-        Trainee createdTrainee = traineeService.createProfile(trainee);
+        assertNotNull(result);
+        assertSame(response, result);
 
-        assertNotNull(createdTrainee);
-        assertEquals("john.smith", createdTrainee.getUsername());
-        assertEquals("randomPassword123", createdTrainee.getPassword());
-
-        verify(userValidator).validateUser(trainee);
-        verify(credentialsGenerator).generateRandomPassword();
-        verify(credentialsGenerator).generateUniqueUsername("John", "Smith");
+        verify(userService).createUserWithCredentials(request);
         verify(traineeDao).save(argThat(t ->
-                t.getFirstName().equals("John") &&
-                        t.getLastName().equals("Smith") &&
-                        t.getUsername().equals("john.smith") &&
-                        t.getPassword().equals("randomPassword123") &&
-                        t.getDateOfBirth().equals(LocalDate.of(1990, 1, 1)) &&
-                        t.getAddress().equals("123 Main St") &&
-                        t.isActive()
-
+                t.getUser() == savedUser &&
+                        "Address".equals(t.getAddress()) &&
+                        LocalDate.of(1990, 1, 1).equals(t.getDateOfBirth())
         ));
+        verify(traineeMapper).toCreateResponse(savedTrainee);
 
-        verifyNoMoreInteractions(traineeDao, credentialsGenerator, userValidator);
-
+        verifyNoMoreInteractions(userService, traineeDao, traineeMapper);
+        verifyNoInteractions(traineeTrainerDao, trainerDao, trainerMapper, commonValidator);
     }
 
-
-    @DisplayName("createProfile should throw IllegalArgumentException when Trainee is invalid")
+    @DisplayName("selectProfile should return TraineeProfileResponse when auth and trainee exist")
     @Test
-    void createProfile_shouldThrowExceptionWhenTraineeIsInvalid() {
-        Trainee trainee = new Trainee();
-        trainee.setFirstName("");
-        trainee.setLastName("Smith");
+    void selectProfile_shouldReturnProfileResponseWhenAuthAndTraineeExist() {
+        LoginRequest login = mock(LoginRequest.class);
 
-        doThrow(new IllegalArgumentException("First name cannot be null or blank"))
-                .when(userValidator).validateUser(trainee);
+        User authUser = new User();
+        authUser.setUsername("john.doe");
 
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> traineeService.createProfile(trainee)
-        );
-
-        assertEquals("First name cannot be null or blank", ex.getMessage());
-
-        verify(userValidator).validateUser(trainee);
-
-        verifyNoMoreInteractions(userValidator);
-        verifyNoInteractions(traineeDao, credentialsGenerator);
-
-    }
-
-
-    @DisplayName("createProfile should throw IllegalArgumentException when Trainee is null")
-    @Test
-    void createProfile_shouldThrow_whenTraineeIsNull() {
-        Trainee nullUser = null;
-
-        doThrow(new IllegalArgumentException("User cannot be null"))
-                .when(userValidator).validateUser(nullUser);
-
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> traineeService.createProfile(nullUser)
-        );
-
-        assertEquals("User cannot be null", ex.getMessage());
-
-        verify(userValidator).validateUser(null);
-        verifyNoInteractions(traineeDao, credentialsGenerator);
-    }
-
-    @DisplayName("selectProfile should return selected Trainee when id is valid")
-    @Test
-    void selectProfile_shouldReturnSelectedTraineeWhenIdIsValid() {
-        Long validId = 1L;
-        Trainee trainee = new Trainee();
-        trainee.setId(validId);
-        trainee.setFirstName("John");
-        trainee.setLastName("Doe");
-
-        when(traineeDao.findById(validId)).thenReturn(Optional.of(trainee));
-
-        Trainee selectedTrainee = traineeService.selectProfile(validId);
-
-        assertNotNull(selectedTrainee);
-        assertEquals(validId, selectedTrainee.getId());
-        assertEquals("John", selectedTrainee.getFirstName());
-        assertEquals("Doe", selectedTrainee.getLastName());
-
-        verify(userValidator).validateId(validId);
-        verify(traineeDao).findById(validId);
-
-        verifyNoMoreInteractions(traineeDao, userValidator);
-    }
-
-
-    @DisplayName("selectProfile should throw IllegalArgumentException when id is invalid")
-    @Test
-    void selectProfile_shouldThrowExceptionWhenIdIsInvalid() {
-        Long invalidId = -1L;
-
-        doThrow(new IllegalArgumentException("ID must be a positive number"))
-                .when(userValidator).validateId(invalidId);
-
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> traineeService.selectProfile(invalidId)
-        );
-
-        assertEquals("ID must be a positive number", ex.getMessage());
-
-        verify(userValidator).validateId(invalidId);
-        verifyNoInteractions(traineeDao);
-    }
-
-    @DisplayName("selectProfile should throw RuntimeException when Trainee not found")
-    @Test
-    void selectProfile_shouldThrowExceptionWhenTraineeNotFound() {
-        Long traineeId = 2L;
-
-
-        when(traineeDao.findById(traineeId)).thenReturn(Optional.empty());
-
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
-                () -> traineeService.selectProfile(traineeId)
-        );
-
-        assertEquals("Trainee not found with id: " + traineeId, ex.getMessage());
-
-        verify(userValidator).validateId(traineeId);
-        verify(traineeDao).findById(traineeId);
-        verifyNoMoreInteractions(traineeDao, userValidator);
-    }
-
-
-    @DisplayName("selectProfile should return selected Trainee when username is valid")
-    @Test
-        //Test happyPath method selectProfile by username
-    void selectProfile_shouldReturnSelectedTraineeWhenUsernameIsValid() {
-        String validUsername = "john.doe";
         Trainee trainee = new Trainee();
         trainee.setId(1L);
-        trainee.setUsername(validUsername);
-        trainee.setFirstName("John");
-        trainee.setLastName("Doe");
+        trainee.setUser(authUser);
 
-        when(traineeDao.findByUsername(validUsername)).thenReturn(Optional.of(trainee));
+        TraineeProfileResponse response = mock(TraineeProfileResponse.class);
 
-        Trainee selectedTrainee = traineeService.selectProfile(validUsername);
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeMapper.toProfileResponse(trainee)).thenReturn(response);
 
-        assertNotNull(selectedTrainee);
-        assertEquals(validUsername, selectedTrainee.getUsername());
-        assertEquals("John", selectedTrainee.getFirstName());
-        assertEquals("Doe", selectedTrainee.getLastName());
+        TraineeProfileResponse result = traineeService.selectProfile(login);
 
-        verify(userValidator).validateUsername(validUsername);
-        verify(traineeDao).findByUsername(validUsername);
-        verifyNoMoreInteractions(traineeDao, userValidator);
+        assertNotNull(result);
+        assertSame(response, result);
+
+        verify(userService).authenticate(login);
+        verify(traineeDao).findByUsername("john.doe");
+        verify(traineeMapper).toProfileResponse(trainee);
+
+        verifyNoMoreInteractions(userService, traineeDao, traineeMapper);
+        verifyNoInteractions(traineeTrainerDao, trainerDao, trainerMapper, commonValidator);
     }
 
-
-    //Test invalid username for selectProfile by username
-    @DisplayName("selectProfile should throw IllegalArgumentException when username is invalid")
+    @DisplayName("selectProfile should throw ResourceNotFoundException when trainee not found for authenticated user")
     @Test
-    void selectProfile_shouldThrowExceptionWhenUsernameIsInvalid() {
-        String invalidUsername = "   ";
-        doThrow(new IllegalArgumentException("Username cannot be null or blank"))
-                .when(userValidator).validateUsername(invalidUsername);
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> traineeService.selectProfile(invalidUsername)
+    void selectProfile_shouldThrowResourceNotFoundExceptionWhenTraineeNotFound() {
+        LoginRequest login = mock(LoginRequest.class);
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> traineeService.selectProfile(login)
         );
 
-        assertEquals("Username cannot be null or blank", ex.getMessage());
-        verify(userValidator).validateUsername(invalidUsername);
-        verifyNoMoreInteractions(userValidator);
-        verifyNoInteractions(traineeDao);
+        assertEquals("Trainee not found with username : 'john.doe'", ex.getMessage());
+
+        verify(userService).authenticate(login);
+        verify(traineeDao).findByUsername("john.doe");
+
+        verifyNoMoreInteractions(userService, traineeDao);
+        verifyNoInteractions(traineeMapper, traineeTrainerDao, trainerDao, trainerMapper, commonValidator);
     }
 
-
-    //Test trainee not found for selectProfile by username
-    @DisplayName("selectProfile should throw RuntimeException when Trainee not found by username")
+    @DisplayName("updateProfile should return TraineeProfileResponse when auth and trainee exist and update request is valid")
     @Test
-    void selectProfile_shouldThrowExceptionWhenTraineeNotFoundByUsername() {
-        String validUsername = "jane.doe";
+    void updateProfile_shouldReturnProfileResponseWhenUpdateIsSuccessful() {
+        LoginRequest login = mock(LoginRequest.class);
 
-        when(traineeDao.findByUsername(validUsername)).thenReturn(Optional.empty());
-
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
-                () -> traineeService.selectProfile(validUsername)
+        TraineeProfileRequest updateRequest = new TraineeProfileRequest(
+                "John",
+                "Doe",
+                true,
+                LocalDate.of(1990, 1, 1),
+                "New Address"
         );
 
-        assertEquals("Trainee not found with username: " + validUsername, ex.getMessage());
+        User authUser = new User();
+        authUser.setUsername("john.doe");
 
-        verify(userValidator).validateUsername(validUsername);
-        verify(traineeDao).findByUsername(validUsername);
-        verifyNoMoreInteractions(traineeDao, userValidator);
-    }
+        User traineeUser = new User();
+        traineeUser.setUsername("john.doe");
 
-
-    //Test getAllProfiles method should return all Trainee profiles work on map
-    @DisplayName("getAllProfiles should return all Trainee profiles")
-    @Test
-    void getAllProfiles_shouldReturnAllTraineeProfiles() {
-        Trainee trainee1 = new Trainee();
-        trainee1.setId(1L);
-        trainee1.setFirstName("John");
-        trainee1.setLastName("Doe");
-
-        Trainee trainee2 = new Trainee();
-        trainee2.setId(2L);
-        trainee2.setFirstName("Jane");
-        trainee2.setLastName("Smith");
-
-        Map<Long, Trainee> traineeMap = Map.of(
-                trainee1.getId(), trainee1,
-                trainee2.getId(), trainee2
-        );
-
-        when(traineeDao.getAll()).thenReturn(traineeMap);
-
-        Map<Long, Trainee> allTrainees = traineeService.getAllProfiles();
-
-        assertNotNull(allTrainees);
-        assertEquals(2, allTrainees.size());
-        assertTrue(allTrainees.containsKey(1L));
-        assertTrue(allTrainees.containsKey(2L));
-        assertEquals("John", allTrainees.get(1L).getFirstName());
-        assertEquals("Jane", allTrainees.get(2L).getFirstName());
-
-        verify(traineeDao).getAll();
-        verifyNoMoreInteractions(traineeDao);
-        verifyNoInteractions(userValidator, credentialsGenerator);
-    }
-
-
-    //Test updateProfile happy path
-    @DisplayName("updateProfile should return updated Trainee when inputs are valid")
-    @Test
-    void updateProfile_shouldReturnUpdatedTraineeWhenInputsAreValid() {
-        Long validId = 1L;
-        Trainee existingTrainee = new Trainee();
-        existingTrainee.setId(validId);
-        existingTrainee.setFirstName("John");
-        existingTrainee.setLastName("Doe");
-        existingTrainee.setActive(true);
-
-        Trainee updatedInfo = new Trainee();
-        updatedInfo.setFirstName("Jane");
-        updatedInfo.setLastName("Smith");
-        updatedInfo.setActive(false);
-
-        Trainee expectedUpdatedTrainee = new Trainee();
-        expectedUpdatedTrainee.setId(validId);
-        expectedUpdatedTrainee.setFirstName("Jane");
-        expectedUpdatedTrainee.setLastName("Smith");
-        expectedUpdatedTrainee.setActive(false);
-
-        when(traineeDao.findById(validId)).thenReturn(Optional.of(existingTrainee));
-        when(traineeDao.update(validId, existingTrainee)).thenReturn(expectedUpdatedTrainee);
-
-        Trainee updatedTrainee = traineeService.updateProfile(validId, updatedInfo);
-
-        assertNotNull(updatedTrainee);
-        assertEquals(validId, updatedTrainee.getId());
-        assertEquals("Jane", updatedTrainee.getFirstName());
-        assertEquals("Smith", updatedTrainee.getLastName());
-        assertFalse(updatedTrainee.isActive());
-
-        verify(userValidator).validateId(validId);
-        verify(userValidator).validateUser(updatedInfo);
-        verify(traineeDao).findById(validId);
-        verify(traineeDao).update(eq(validId), argThat(t ->
-                t.getFirstName().equals("Jane") &&
-                        t.getLastName().equals("Smith") &&
-                        !t.isActive()
-        ));
-        verifyNoMoreInteractions(traineeDao, userValidator);
-
-    }
-
-
-    //Test updateProfile when id is invalid
-    @DisplayName("updateProfile should throw IllegalArgumentException when id is invalid")
-    @Test
-    void updateProfile_shouldThrowExceptionWhenIdIsInvalid() {
-        Long invalidId = -1L;
-        Trainee trainee = new Trainee();
-        trainee.setFirstName("John");
-        trainee.setLastName("Doe");
-
-        doThrow(new IllegalArgumentException("ID must be a positive number"))
-                .when(userValidator).validateId(invalidId);
-
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> traineeService.updateProfile(invalidId, trainee)
-        );
-
-        assertEquals("ID must be a positive number", ex.getMessage());
-
-        verify(userValidator).validateId(invalidId);
-        verifyNoInteractions(traineeDao);
-    }
-
-    //Test updateProfile when Trainee is invalid
-    @DisplayName("updateProfile should throw IllegalArgumentException when Trainee is invalid")
-    @Test
-    void updateProfile_shouldThrowExceptionWhenTraineeIsInvalid() {
-        Long validId = 1L;
-        Trainee trainee = new Trainee();
-        trainee.setFirstName("");
-        trainee.setLastName("Doe");
-
-        doThrow(new IllegalArgumentException("First name cannot be null or blank"))
-                .when(userValidator).validateUser(trainee);
-
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> traineeService.updateProfile(validId, trainee)
-        );
-
-        assertEquals("First name cannot be null or blank", ex.getMessage());
-
-        verify(userValidator).validateId(validId);
-        verify(userValidator).validateUser(trainee);
-        verifyNoInteractions(traineeDao);
-    }
-
-
-    //Test updateProfile when Trainee not found
-    @DisplayName("updateProfile should throw RuntimeException when Trainee not found")
-    @Test
-    void updateProfile_shouldThrowExceptionWhenTraineeNotFound() {
-        Long validId = 2L;
-        Trainee trainee = new Trainee();
-        trainee.setFirstName("John");
-        trainee.setLastName("Doe");
-
-        when(traineeDao.findById(validId)).thenReturn(Optional.empty());
-
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
-                () -> traineeService.updateProfile(validId, trainee)
-        );
-
-        assertEquals("Trainee not found with id: " + validId, ex.getMessage());
-
-        verify(userValidator).validateId(validId);
-        verify(userValidator).validateUser(trainee);
-        verify(traineeDao).findById(validId);
-        verifyNoMoreInteractions(traineeDao, userValidator);
-    }
-
-
-    //Test deleteProfile by id happy path
-    @DisplayName("deleteProfile by id should delete Trainee when id is valid")
-    @Test
-    void deleteProfileById_shouldDeleteTraineeWhenIdIsValid() {
-        Long validId = 1L;
-        Trainee trainee = new Trainee();
-        trainee.setId(validId);
-        trainee.setFirstName("John");
-        trainee.setLastName("Doe");
-
-        when(traineeDao.findById(validId)).thenReturn(Optional.of(trainee));
-
-        assertDoesNotThrow(() -> traineeService.deleteProfile(validId));
-
-        verify(userValidator).validateId(validId);
-        verify(traineeDao).findById(validId);
-        verify(traineeDao).delete(validId);
-        verifyNoMoreInteractions(traineeDao, userValidator);
-    }
-
-    //Test deleteProfile by id when id is invalid
-    @DisplayName("deleteProfile by id should throw IllegalArgumentException when id is invalid")
-    @Test
-    void deleteProfileById_shouldThrowExceptionWhenIdIsInvalid() {
-        Long invalidId = -1L;
-
-        doThrow(new IllegalArgumentException("ID must be a positive number"))
-                .when(userValidator).validateId(invalidId);
-
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> traineeService.deleteProfile(invalidId)
-        );
-
-        assertEquals("ID must be a positive number", ex.getMessage());
-
-        verify(userValidator).validateId(invalidId);
-        verifyNoMoreInteractions(userValidator);
-        verifyNoInteractions(traineeDao);
-    }
-
-
-    //Test deleteProfile by id when Trainee not found
-    @DisplayName("deleteProfile by id should throw RuntimeException when Trainee not found")
-    @Test
-    void deleteProfileById_shouldThrowExceptionWhenTraineeNotFound() {
-        Long validId = 2L;
-
-        when(traineeDao.findById(validId)).thenReturn(Optional.empty());
-
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
-                () -> traineeService.deleteProfile(validId)
-        );
-
-        assertEquals("Trainee not found with id: " + validId, ex.getMessage());
-
-        verify(userValidator).validateId(validId);
-        verify(traineeDao).findById(validId);
-        verifyNoMoreInteractions(traineeDao, userValidator);
-
-    }
-
-    //Test deleteProfile by username happy path
-    @DisplayName("deleteProfile by username should delete Trainee when username is valid")
-    @Test
-    void deleteProfileByUsername_shouldDeleteTraineeWhenUsernameIsValid() {
-        String validUsername = "john.doe";
         Trainee trainee = new Trainee();
         trainee.setId(1L);
-        trainee.setUsername(validUsername);
-        trainee.setFirstName("John");
-        trainee.setLastName("Doe");
+        trainee.setUser(traineeUser);
+        trainee.setAddress("Old Address");
 
-        when(traineeDao.findByUsername(validUsername)).thenReturn(Optional.of(trainee));
+        Trainee updatedTrainee = new Trainee();
+        updatedTrainee.setId(1L);
+        updatedTrainee.setUser(traineeUser);
+        updatedTrainee.setAddress("New Address");
+        updatedTrainee.setDateOfBirth(LocalDate.of(1990, 1, 1));
 
-        assertDoesNotThrow(() -> traineeService.deleteProfile(validUsername));
+        TraineeProfileResponse response = mock(TraineeProfileResponse.class);
 
-        verify(userValidator).validateUsername(validUsername);
-        verify(traineeDao).findByUsername(validUsername);
-        verify(traineeDao).delete(trainee.getId());
-        verifyNoMoreInteractions(traineeDao, userValidator);
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeDao.update(any(Trainee.class))).thenReturn(updatedTrainee);
+        when(traineeMapper.toProfileResponse(updatedTrainee)).thenReturn(response);
+
+        TraineeProfileResponse result = traineeService.updateProfile(login, updateRequest);
+
+        assertNotNull(result);
+        assertSame(response, result);
+        assertEquals("New Address", trainee.getAddress());
+        assertEquals(LocalDate.of(1990, 1, 1), trainee.getDateOfBirth());
+
+        verify(userService).authenticate(login);
+        verify(traineeDao).findByUsername("john.doe");
+        verify(userService).applyProfileUpdate(traineeUser, updateRequest);
+        verify(traineeDao).update(argThat(t ->
+                t.getId().equals(1L) &&
+                        "New Address".equals(t.getAddress()) &&
+                        LocalDate.of(1990, 1, 1).equals(t.getDateOfBirth())
+        ));
+        verify(traineeMapper).toProfileResponse(updatedTrainee);
+
+        verifyNoMoreInteractions(userService, traineeDao, traineeMapper);
+        verifyNoInteractions(traineeTrainerDao, trainerDao, trainerMapper, commonValidator);
     }
 
-    //Test deleteProfile by username when username is invalid
-    @DisplayName("deleteProfile by username should throw IllegalArgumentException when username is invalid")
+    @DisplayName("updateProfile should throw ResourceNotFoundException when trainee not found for authenticated user")
     @Test
-    void deleteProfileByUsername_shouldThrowExceptionWhenUsernameIsInvalid() {
-        String invalidUsername = "   ";
+    void updateProfile_shouldThrowResourceNotFoundExceptionWhenTraineeNotFound() {
+        LoginRequest login = mock(LoginRequest.class);
 
-        doThrow(new IllegalArgumentException("Username cannot be null or blank"))
-                .when(userValidator).validateUsername(invalidUsername);
-
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> traineeService.deleteProfile(invalidUsername)
+        TraineeProfileRequest updateRequest = new TraineeProfileRequest(
+                "John",
+                "Doe",
+                true,
+                LocalDate.of(1990, 1, 1),
+                "Address"
         );
 
-        assertEquals("Username cannot be null or blank", ex.getMessage());
+        User authUser = new User();
+        authUser.setUsername("john.doe");
 
-        verify(userValidator).validateUsername(invalidUsername);
-        verifyNoMoreInteractions(userValidator);
-        verifyNoInteractions(traineeDao);
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> traineeService.updateProfile(login, updateRequest)
+        );
+
+        assertEquals("Trainee not found with username : 'john.doe'", ex.getMessage());
+
+        verify(userService).authenticate(login);
+        verify(traineeDao).findByUsername("john.doe");
+
+        verifyNoMoreInteractions(userService, traineeDao);
+        verifyNoInteractions(traineeMapper, traineeTrainerDao, trainerDao, trainerMapper, commonValidator);
     }
 
-    //Test deleteProfile by username when Trainee not found
-    @DisplayName("deleteProfile by username should throw RuntimeException when Trainee not found")
+    @DisplayName("changePassword should call userService.changePassword when auth and trainee exist")
     @Test
-    void deleteProfileByUsername_shouldThrowExceptionWhenTraineeNotFound() {
-        String validUsername = "jane.doe";
+    void changePassword_shouldCallUserServiceChangePasswordWhenValid() {
+        LoginRequest login = mock(LoginRequest.class);
+        String newPassword = "newPass";
 
-        when(traineeDao.findByUsername(validUsername)).thenReturn(Optional.empty());
+        User authUser = new User();
+        authUser.setUsername("john.doe");
 
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
-                () -> traineeService.deleteProfile(validUsername)
+        Trainee trainee = new Trainee();
+        trainee.setId(1L);
+        trainee.setUser(authUser);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+
+        assertDoesNotThrow(() -> traineeService.changePassword(login, newPassword));
+
+        verify(userService).authenticate(login);
+        verify(traineeDao).findByUsername("john.doe");
+        verify(userService).changePassword(authUser, newPassword);
+
+        verifyNoMoreInteractions(userService, traineeDao);
+        verifyNoInteractions(traineeMapper, traineeTrainerDao, trainerDao, trainerMapper, commonValidator);
+    }
+
+    @DisplayName("changePassword should throw ResourceNotFoundException when trainee not found")
+    @Test
+    void changePassword_shouldThrowResourceNotFoundExceptionWhenTraineeNotFound() {
+        LoginRequest login = mock(LoginRequest.class);
+        String newPassword = "newPass";
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> traineeService.changePassword(login, newPassword)
         );
 
-        assertEquals("Trainee not found with username: " + validUsername, ex.getMessage());
+        assertEquals("Trainee not found with username : 'john.doe'", ex.getMessage());
 
-        verify(userValidator).validateUsername(validUsername);
-        verify(traineeDao).findByUsername(validUsername);
-        verifyNoMoreInteractions(traineeDao, userValidator);
+        verify(userService).authenticate(login);
+        verify(traineeDao).findByUsername("john.doe");
+
+        verifyNoMoreInteractions(userService, traineeDao);
+        verifyNoInteractions(traineeMapper, traineeTrainerDao, trainerDao, trainerMapper, commonValidator);
+    }
+
+    @DisplayName("activateTrainee should call userService.activate when auth and trainee exist")
+    @Test
+    void activateTrainee_shouldCallUserServiceActivateWhenValid() {
+        LoginRequest login = mock(LoginRequest.class);
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        Trainee trainee = new Trainee();
+        trainee.setUser(authUser);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+
+        assertDoesNotThrow(() -> traineeService.activateTrainee(login));
+
+        verify(userService).authenticate(login);
+        verify(traineeDao).findByUsername("john.doe");
+        verify(userService).activate(authUser);
+
+        verifyNoMoreInteractions(userService, traineeDao);
+        verifyNoInteractions(traineeMapper, traineeTrainerDao, trainerDao, trainerMapper, commonValidator);
+    }
+
+    @DisplayName("deactivateTrainee should call userService.deactivate when auth and trainee exist")
+    @Test
+    void deactivateTrainee_shouldCallUserServiceDeactivateWhenValid() {
+        LoginRequest login = mock(LoginRequest.class);
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        Trainee trainee = new Trainee();
+        trainee.setUser(authUser);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+
+        assertDoesNotThrow(() -> traineeService.deactivateTrainee(login));
+
+        verify(userService).authenticate(login);
+        verify(traineeDao).findByUsername("john.doe");
+        verify(userService).deactivate(authUser);
+
+        verifyNoMoreInteractions(userService, traineeDao);
+        verifyNoInteractions(traineeMapper, traineeTrainerDao, trainerDao, trainerMapper, commonValidator);
+    }
+
+    @DisplayName("deleteTrainee should delete trainee when auth and trainee exist")
+    @Test
+    void deleteTrainee_shouldDeleteTraineeWhenValid() {
+        LoginRequest login = mock(LoginRequest.class);
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        User traineeUser = new User();
+        traineeUser.setUsername("john.doe");
+
+        Trainee trainee = new Trainee();
+        trainee.setId(1L);
+        trainee.setUser(traineeUser);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+
+        assertDoesNotThrow(() -> traineeService.deleteTrainee(login));
+
+        verify(userService).authenticate(login);
+        verify(traineeDao, times(2)).findByUsername("john.doe");
+        verify(traineeDao).delete(trainee);
+
+        verifyNoMoreInteractions(userService, traineeDao);
+        verifyNoInteractions(traineeMapper, traineeTrainerDao, trainerDao, trainerMapper, commonValidator);
+    }
+
+    @DisplayName("getUnassignedTrainers should return mapped trainers when auth and trainee exist")
+    @Test
+    void getUnassignedTrainers_shouldReturnMappedTrainerProfilesWhenValid() {
+        LoginRequest login = mock(LoginRequest.class);
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        Trainee trainee = new Trainee();
+        trainee.setId(1L);
+        trainee.setUser(authUser);
+
+        Trainer trainer1 = new Trainer();
+        trainer1.setId(100L);
+        Trainer trainer2 = new Trainer();
+        trainer2.setId(200L);
+
+        TrainerProfileResponse resp1 = mock(TrainerProfileResponse.class);
+        TrainerProfileResponse resp2 = mock(TrainerProfileResponse.class);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeTrainerDao.findUnAssignedTrainersByTraineeUsername("john.doe"))
+                .thenReturn(List.of(trainer1, trainer2));
+        when(trainerMapper.toProfileResponse(trainer1)).thenReturn(resp1);
+        when(trainerMapper.toProfileResponse(trainer2)).thenReturn(resp2);
+
+        List<TrainerProfileResponse> result = traineeService.getUnassignedTrainers(login);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertSame(resp1, result.get(0));
+        assertSame(resp2, result.get(1));
+
+        verify(userService).authenticate(login);
+        verify(traineeDao).findByUsername("john.doe");
+        verify(traineeTrainerDao).findUnAssignedTrainersByTraineeUsername("john.doe");
+        verify(trainerMapper).toProfileResponse(trainer1);
+        verify(trainerMapper).toProfileResponse(trainer2);
+
+        verifyNoMoreInteractions(userService, traineeDao, traineeTrainerDao, trainerMapper);
+        verifyNoInteractions(traineeMapper, trainerDao, commonValidator);
+    }
+
+    @DisplayName("updateTraineeTrainers should delete old links and save new links when input is valid")
+    @Test
+    void updateTraineeTrainers_shouldDeleteOldLinksAndSaveNewLinksWhenValid() {
+        LoginRequest login = mock(LoginRequest.class);
+        List<Long> newTrainerIds = List.of(10L, 20L);
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        User traineeUser = new User();
+        traineeUser.setUsername("john.doe");
+
+        Trainee trainee = new Trainee();
+        trainee.setId(1L);
+        trainee.setUser(traineeUser);
+
+        Trainer trainer10 = new Trainer();
+        trainer10.setId(10L);
+
+        Trainer trainer20 = new Trainer();
+        trainer20.setId(20L);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(trainerDao.findById(10L)).thenReturn(Optional.of(trainer10));
+        when(trainerDao.findById(20L)).thenReturn(Optional.of(trainer20));
+
+        assertDoesNotThrow(() -> traineeService.updateTraineeTrainers(login, newTrainerIds));
+
+        verify(userService).authenticate(login);
+        verify(traineeDao,times(2)).findByUsername("john.doe");
+
+        verify(commonValidator).validateNotNull(newTrainerIds, "New trainer IDs list cannot be null");
+        verify(commonValidator).validateId(10L);
+        verify(commonValidator).validateId(20L);
+
+        verify(traineeTrainerDao).deleteAllByTraineeUsername("john.doe");
+        verify(trainerDao).findById(10L);
+        verify(trainerDao).findById(20L);
+
+        verify(traineeTrainerDao, times(2)).save(argThat(link ->
+                link.getTrainee() == trainee &&
+                        link.getTrainer() != null &&
+                        link.getId() != null &&
+                        link.getId().getTraineeId().equals(1L) &&
+                        (link.getId().getTrainerId().equals(10L) || link.getId().getTrainerId().equals(20L))
+        ));
+
+        verifyNoMoreInteractions(userService, traineeDao, traineeTrainerDao, trainerDao, commonValidator);
+        verifyNoInteractions(traineeMapper, trainerMapper);
+    }
+
+    @DisplayName("updateTraineeTrainers should throw ValidationException when trainerIds list is null")
+    @Test
+    void updateTraineeTrainers_shouldThrowValidationExceptionWhenTrainerIdsIsNull() {
+        LoginRequest login = mock(LoginRequest.class);
+        List<Long> newTrainerIds = null;
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        Trainee trainee = new Trainee();
+        trainee.setId(1L);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+
+        doThrow(new ValidationException("New trainer IDs list cannot be null"))
+                .when(commonValidator).validateNotNull(newTrainerIds, "New trainer IDs list cannot be null");
+
+        ValidationException ex = assertThrows(
+                ValidationException.class,
+                () -> traineeService.updateTraineeTrainers(login, newTrainerIds)
+        );
+
+        assertEquals("New trainer IDs list cannot be null", ex.getMessage());
+
+        verify(userService).authenticate(login);
+        verify(traineeDao).findByUsername("john.doe");
+        verify(commonValidator).validateNotNull(null, "New trainer IDs list cannot be null");
+
+        verifyNoMoreInteractions(userService, traineeDao, commonValidator);
+        verifyNoInteractions(traineeTrainerDao, trainerDao, traineeMapper, trainerMapper);
+    }
+
+    @DisplayName("updateTraineeTrainers should throw ResourceNotFoundException when trainer id not found")
+    @Test
+    void updateTraineeTrainers_shouldThrowResourceNotFoundExceptionWhenTrainerNotFound() {
+        LoginRequest login = mock(LoginRequest.class);
+        List<Long> newTrainerIds = List.of(10L);
+
+        User authUser = new User();
+        authUser.setUsername("john.doe");
+
+        User traineeUser = new User();
+        traineeUser.setUsername("john.doe");
+
+        Trainee trainee = new Trainee();
+        trainee.setId(1L);
+        trainee.setUser(traineeUser);
+
+        when(userService.authenticate(login)).thenReturn(authUser);
+        when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(trainerDao.findById(10L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException ex = assertThrows(
+                ResourceNotFoundException.class,
+                () -> traineeService.updateTraineeTrainers(login, newTrainerIds)
+        );
+
+        assertEquals("Trainer not found with id : '10'", ex.getMessage());
+
+        verify(userService).authenticate(login);
+        verify(traineeDao,times(2)).findByUsername("john.doe");
+
+        verify(commonValidator).validateNotNull(newTrainerIds, "New trainer IDs list cannot be null");
+        verify(commonValidator).validateId(10L);
+
+        verify(traineeTrainerDao).deleteAllByTraineeUsername("john.doe");
+        verify(trainerDao).findById(10L);
+
+        verifyNoMoreInteractions(userService, traineeDao, traineeTrainerDao, trainerDao, commonValidator);
+        verifyNoInteractions(traineeMapper, trainerMapper);
+    }
+
+    @DisplayName("authenticateAndValidateTrainee flow should throw AuthenticationFailedException when authentication fails")
+    @Test
+    void selectProfile_shouldThrowAuthenticationFailedExceptionWhenAuthenticationFails() {
+        LoginRequest login = mock(LoginRequest.class);
+
+        when(userService.authenticate(login))
+                .thenThrow(new AuthenticationFailedException("Invalid username or password"));
+
+        AuthenticationFailedException ex = assertThrows(
+                AuthenticationFailedException.class,
+                () -> traineeService.selectProfile(login)
+        );
+
+        assertEquals("Invalid username or password", ex.getMessage());
+
+        verify(userService).authenticate(login);
+        verifyNoMoreInteractions(userService);
+        verifyNoInteractions(traineeDao, traineeMapper, traineeTrainerDao, trainerDao, trainerMapper, commonValidator);
     }
 }

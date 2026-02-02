@@ -1,15 +1,20 @@
 package com.alirizakaygusuz.gymcrm.service.validator;
 
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Validator for User entities.
+ *
+ * <p>This class provides methods to validate User objects and their attributes.</p>
+ */
 @Component
 public class UserValidator {
 
     private CommonValidator commonValidator;
 
-    //Inject CommonValidator via setter injection
     @Autowired
     public void setCommonValidator(CommonValidator commonValidator) {
         this.commonValidator = commonValidator;
@@ -23,14 +28,14 @@ public class UserValidator {
         commonValidator.validateNotBlank(username, "Username");
     }
 
-    private void validateRequiredUserNames(String firstName, String lastName) {
+    public void validateRequiredUserNames(String firstName, String lastName) {
         commonValidator.validateNotBlank(firstName, "First name");
         commonValidator.validateNotBlank(lastName, "Last name");
     }
 
     public void validateUser(User user){
         if(user == null) {
-            throw new IllegalArgumentException("User cannot be null");
+            throw new ValidationException("User cannot be null");
         }
         validateRequiredUserNames(user.getFirstName(), user.getLastName());
     }

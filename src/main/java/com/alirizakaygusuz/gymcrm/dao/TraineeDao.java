@@ -1,75 +1,47 @@
 package com.alirizakaygusuz.gymcrm.dao;
 
-import com.alirizakaygusuz.gymcrm.dao.util.IdSequence;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
-import java.util.Map;
 import java.util.Optional;
+
 
 @Repository
 public class TraineeDao {
 
-    private Map<Long, Trainee> traineeStorage;
-    private IdSequence idSequence =  new IdSequence();;
+    @PersistenceContext
+    private EntityManager entityManager;
 
-
-    @Autowired
-    public void setTraineeStorage(@Qualifier("traineeStorage") Map<Long, Trainee> traineeStorage) {
-        this.traineeStorage = traineeStorage;
-    }
-
-    // Create a new trainee
     public Trainee save(Trainee trainee) {
-        idSequence.syncFrom(traineeStorage);
-        long id = idSequence.next();
-        trainee.setId(id);
-        traineeStorage.put(id, trainee);
+        entityManager.persist(trainee);
         return trainee;
     }
 
-    // Retrieve a trainee by ID should return Optional <Trainee> instead of null
     public Optional<Trainee> findById(Long id) {
-        return Optional.ofNullable(traineeStorage.get(id));
+        return Optional.ofNullable(entityManager.find(Trainee.class, id));
     }
 
-    // Retrieve a trainee by username should return Optional <Trainee> instead of null and check for null username
     public Optional<Trainee> findByUsername(String username) {
-        if(username == null) {
-            return Optional.empty();
-        }
-        return traineeStorage.values().stream()
-                .filter(trainee -> username.equals(trainee.getUsername()))
+        return entityManager.createQuery(
+                        "select t from Trainee t join t.user u where u.username = :username",
+                        Trainee.class
+                )
+                .setParameter("username", username)
+                .getResultStream()
                 .findFirst();
     }
 
-
-    //Retrieve all trainees
-    public Map<Long, Trainee> getAll() {
-        return Map.copyOf(traineeStorage);
+    public Trainee update(Trainee trainee) {
+        return entityManager.merge(trainee);
     }
 
-    // Update an existing trainee
-    public Trainee update(Long id, Trainee trainee) {
-        trainee.setId(id);
-        traineeStorage.put(id, trainee);
-        return trainee;
+    public void delete(Trainee trainee) {
+        entityManager.remove(trainee);
     }
 
-    // Delete a trainee by ID
-    public void delete(Long id) {
-        traineeStorage.remove(id);
-    }
-
-    // Check if a trainee exists by Username
     public boolean existsByUsername(String username) {
-        if(username == null) {
-            return false;
-        }
-        return traineeStorage.values().stream()
-                .anyMatch(trainee ->  username.equals(trainee.getUsername()));
+       return  findByUsername(username).isPresent();
     }
-
 }

@@ -1,74 +1,47 @@
 package com.alirizakaygusuz.gymcrm.dao;
 
-import com.alirizakaygusuz.gymcrm.dao.util.IdSequence;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
+
 
 @Repository
 public class TrainerDao {
 
-    private Map<Long, Trainer> trainerStorage;
-    private IdSequence idSequence =  new IdSequence();;
+    @PersistenceContext
+    private EntityManager entityManager;
 
-
-    //Set trainer storage via setter injection
-    @Autowired
-    public void setTrainerStorage(@Qualifier("trainerStorage") Map<Long, Trainer> trainerStorage) {
-        this.trainerStorage = trainerStorage;
-    }
-
-
-
-    // Create a new trainer
     public Trainer save(Trainer trainer) {
-        idSequence.syncFrom(trainerStorage);
-        long id = idSequence.next();
-
-        trainer.setId(id);
-        trainerStorage.put(id, trainer);
+        entityManager.persist(trainer);
         return trainer;
     }
 
-
-    // Retrieve a trainer by ID should return Optional <Trainer> instead of null
     public Optional<Trainer> findById(Long id) {
-        return Optional.ofNullable(trainerStorage.get(id));
+        return Optional.ofNullable(entityManager.find(Trainer.class, id));
     }
 
-    // Retrieve a trainer by username should return Optional <Trainer> instead of null and check for null username
     public Optional<Trainer> findByUsername(String username) {
-        if(username == null) {
-            return Optional.empty();
-        }
-        return trainerStorage.values().stream()
-                .filter(trainer -> username.equals(trainer.getUsername()))
+        return entityManager.createQuery(
+                        "select t from Trainer t join t.user u where u.username = :username",
+                        Trainer.class
+                )
+                .setParameter("username", username)
+                .getResultStream()
                 .findFirst();
     }
 
 
-    //Retrieve all trainers
-    public Map<Long, Trainer> getAll() {
-        return Map.copyOf(trainerStorage);
+    public Trainer update(Trainer trainer) {
+        return entityManager.merge(trainer);
     }
 
-    // Update an existing trainer
-    public Trainer update(Long id, Trainer trainer) {
-        trainer.setId(id);
-        trainerStorage.put(id, trainer);
-        return trainer;
-    }
 
-    // Check if a trainer exists by Username
     public boolean existsByUsername(String username) {
-        if (username == null) {
-            return false;
-        }
-        return trainerStorage.values().stream()
-                .anyMatch(trainer -> username.equals(trainer.getUsername()));
+       return  findByUsername(username).isPresent();
     }
+
 }

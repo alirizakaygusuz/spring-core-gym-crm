@@ -1,386 +1,260 @@
-JAVA SPRING CORE TASK
+
+---
+# GymCRM – Hibernate Task 
 =============================
 
-### Main task: 1
+> **Important design decision:** Since the task is not role-based (no RBAC), **All actions except Create** require authentication and operate only **on the authenticated user’s own account.**. 
+**Therefore, in operations described as “by username,” the username is derived from the **authenticated user via LoginRequest**, rather than being provided separately.
 
-**Task:** Implement three service classes: Trainee Service, Trainer Service, Training Service.
+---
 
-**Implementation:**
+## 1) Infrastructure: DB, Hibernate, Flyway
 
--   `service/TraineeService.java`
+* PostgreSQL connection is configured via environment variables defined in `application.properties`.
+* **Hibernate DDL validation** is enabled: (hbm2ddl.auto=validate), which ensures the application fails at startup if entity mappings do not match the database schema.
+* Flyway migrations are located under `classpath:db/migration`.
+* `PersistenceConfiguration` centrally configures:
 
--   `service/TrainerService.java`
+  * DataSource (HikariCP)
+  * Flyway migration
+  * EntityManagerFactory
+  * TransactionManager
 
--   `service/TrainingService.java`
+---
 
-* * * * *
+## 2) Domain Model and Relationships
 
-### Main task: 2
+### User – Trainee/Trainer (Parent-child / One-to-One)
 
-**Task:** Trainee Service class should support possibility to create / update / delete / select Trainee profile.
+* The task specifies a parent-child (one-to-one) relationship between Users and Trainee/Trainer.
+* Instead of inheritance, `Trainee` and `Trainer` use **composition** with `User` via `@OneToOne (user_id)`.
+* This approach provides better alignment with the database schema and avoids unnecessary complexity.
 
-**Implementation:**\
-`TraineeService` supports:
+### Trainee – Trainer (Many-to-Many)
 
--   create
+* The many-to-many relationship is modeled using a dedicated join entity:
 
--   update
+  * `TraineeTrainer`
+  * `TraineeTrainerId` (composite key)
+* This design allows future extensibility and maintains normalization.
 
--   delete
+### Training – TrainingType
 
--   select (by id, by username)
+* `Training` references both `Trainee` and `Trainer` via foreign keys.
+* `TrainingType` is treated as a fixed reference table and is not updated by the application.
+* `TrainingTypeCode` is stored as a string enum using `@Enumerated(EnumType.STRING)`.
 
--   getAll
+### N+1 Risk
 
-**Note:**\
-`getAll` is used in the console test to display all trainee records.
+* Critical relationships use `FetchType.LAZY` (especially `@ManyToOne`) to reduce unnecessary eager loading.
 
-* * * * *
+---
 
-### Main task: 3
+## 3) Layers and DRY Approach
 
-**Task:** Trainer Service class should support possibility to create / update / select Trainer profile.
+### Why UserDomainService + UserService?
 
-**Implementation:**\
-`TrainerService` supports:
+Shared logic between Trainee and Trainer required DRY principles:
 
--   create
+* **UserDomainService**
 
--   update
+  * Contains domain rules
+  * Handles validation
+  * Manages shared user creation logic
+  * Log neccesary pıint
+  
 
--   select (by id, by username)
+* **UserService**
 
--   getAll
+  * Handles database operations
+  * Manages authentication flow
 
-**Note:**\
-`getAll` is used in the console test to display all trainer records.
+### DTO Usage
 
-* * * * *
+* Record-based DTOs (Request/Response) are used to:
 
-### Main task: 4
+  * Prevent direct exposure of persistence entities outside the service layer
+  * Reduce accidental modifications
+  * Improve API clarity
 
-**Task:** Training Service class should support possibility to create / select Training profile.
+---
 
-**Implementation:**\
-`TrainingService` supports:
+## 4) Authentication Rule (Task Notes #2)
 
--   create
+According to the task:
 
--   select (by id only)
+* **All operations except Create Trainee/Trainer must require authentication.**
 
--   getAll
+Implementation:
 
-**Note:**\
-`getAll` is used in the console test to display all training records.
+* Authentication is performed via `LoginRequest(username, password)`.
+* All service methods except Create accept a `LoginRequest`.
+* “By username” operations use the authenticated user's username (self-only rule).
+* Authentication logic is centralized in AuthService, and all authentication attempts are logged there.
+---
 
-* * * * *
+## 5) Transaction Management
 
-Notes
------
+* Write operations → `@Transactional`
+* Read operations → `@Transactional(readOnly = true)`
+* This ensures both consistency and performance optimization.
 
-* * * * *
+---
 
-### Notes: 1 --- Spring application context configuration
+# 6) Task Items – Implementation Mapping
 
-**Task:** Configure spring application context based on the Spring annotation or on Java based approach.
+Below is the mapping of each task item to its implementation:
 
-**Implementation:**
+### 1. Create Trainer Profile
 
--   Annotation-based configuration is used
+* `TrainerService#createProfile(TrainerProfileRequest)`
+* Credentials are generated via `CredentialsGenerator`, and user creation is handled by `UserService / UserDomainService`.
 
--   `@Configuration`, `@ComponentScan`, `@Component` annotations
+### 2. Create Trainee Profile
 
--   No XML configuration
+* `TraineeService#createProfile(TraineeProfileRequest)`
+* Trainee-specific fields are populated from the request.
 
--   Application context initialized manually using `AnnotationConfigApplicationContext`
+### 3. Trainee Username and Password Matching
 
-Files:
+* Authentication handled via `AuthService#authenticateAndGetUser`.
 
--   `config/AppConfig.java`
+### 4. Trainer Username and Password Matching
 
--   `Application.java`
+* Same authentication process.`AuthService`.
 
-* * * * *
+### 5. Select Trainer Profile by Username
 
-### Notes: 2 --- DAO objects and common in-memory storage
+* `TrainerService#selectProfile(LoginRequest)`
+* Username is derived from the authenticated user.
 
-**Task:** Implement DAO objects for Trainer, Trainee, Training. They should store in and retrieve data from a common in-memory storage -- java map. Each entity should be stored under a separate namespace, so you could list particular entity types.
+### 6. Select Trainee Profile by Username
 
-**Implementation:**
+* `TraineeService#selectProfile(LoginRequest)`
 
--   DAO classes:
+### 7. Trainee Password Change
 
-    -   `dao/TraineeDao.java`
+* `TraineeService#changePassword(LoginRequest, newPassword)`
 
-    -   `dao/TrainerDao.java`
+### 8. Trainer Password Change
 
-    -   `dao/TrainingDao.java`
+* `TrainerService#changePassword(LoginRequest, newPassword)`
 
--   Storage type: `Map<Long, Entity>`
+### 9. Update Trainer Profile
 
-**Separate namespaces:**\
-Separate namespaces are implemented using `@Qualifier`-based injection with explicit bean names:
+* `TrainerService#updateProfile(LoginRequest, TrainerProfileRequest)`
 
--   `traineeStorage`
+### 10. Update Trainee Profile
 
--   `trainerStorage`
+* `TraineeService#updateProfile(LoginRequest, TraineeProfileRequest)`
 
--   `trainingStorage`
+### 11. Activate/Deactivate Trainee
 
-Storage definition file:
+- Non-idempotent behavior is enforced centrally:
+  - If the user is already **active** and an **activate** request is made → an exception is thrown.
+  - If the user is **active** and a **deactivate** request is made → the state is changed to inactive.
+  - If the user is already **inactive** and a **deactivate** request is made → an exception is thrown.
+  - If the user is **inactive** and an **activate** request is made → the state is changed to active.
+- The shared validation and state transition logic is centralized in the user-level service layer to avoid duplication.
 
--   `config/InMemoryStorageConfig.java`
 
-* * * * *
+### 12. Activate/Deactivate Trainer
 
-### Notes: 3 --- Storage bean + initialization from file (bean post-processing)
+* Same logic applies as Trainee. 
 
-**Task:** Storage should be implemented as a separate spring bean. Implement the ability to initialize storage with some prepared data from the file during the application start (use spring bean post-processing features). Path to the concrete file should be set using property placeholder and external property file. In other words, every storage (java.util.Map) should be implemented as a separate spring bean.
+### 13. Delete Trainee Profile
 
-**Implementation:**
+* `TraineeService#deleteTrainee(LoginRequest)`
+* Cascade delete removes related trainings.(Hard delete)
 
--   Each in-memory storage is defined as a separate Spring bean in:
+### 14. Get Trainee Trainings List
 
-    -   `config/InMemoryStorageConfig.java`
+* `TrainingService#getTraineeTrainings(LoginRequest, TraineeTrainingQueryRequest)`
+* Criteria API used for filtering.
 
--   Startup initialization is implemented using `BeanPostProcessor` in:
+### 15. Get Trainer Trainings List
 
-    -   `seed/SeedInitializer.java`
+* `TrainingService#getTrainerTrainings(LoginRequest, TrainerTrainingQueryRequest)`
 
--   Seed file paths are configured via property placeholders in:
+### 16. Add Training
 
-    -   `application.properties`
+* `TrainingService#addTraining(LoginRequest, TrainingCreateRequest)`
 
-**Reading prepared data from JSON:**
+### 17. Get Unassigned Trainers
 
--   JSON reading is implemented in:
+* DAO query retrieves trainers not assigned to the trainee.
 
-    -   `seed/JsonSeedReader.java`
+### 18. Update Trainee Trainers List
 
--   Seed DTO classes used for deserialization:
+* Join table relationships updated dynamically.
 
-    -   `seed/dto/TraineeSeedDto.java`
+---
 
-    -   `seed/dto/TrainerSeedDto.java`
+# 7) Notes – Task Rules Covered
 
-    -   `seed/dto/TrainingSeedDto.java`
+1. Credentials generation centralized
+2. Authentication required for all non-create actions
+   3–6. Required field validation implemented
+3. Activate/Deactivate operations are non-idempotent
+4. Training duration stored as Integer
+5. Date fields use LocalDate
+6. Proper FK relationships defined
+7. Boolean active status managed centrally
+8. TrainingType is treated as immutable reference data and is seeded via Flyway migrations. It is not updated through the application.
+9. Each table has its own PK
+10. Normalized Training and TrainingType tables
+11. Proper transaction management
+12. Hibernate DB configuration centralized
+13. Unit tests and SLF4J logging implemented
 
-**Mapping DTO → Entity before inserting into storages:**
+---
 
--   Mapper classes used:
+## 8) Running the Application
 
-    -   `seed/mapper/TraineeSeedMapper.java`
+1. Start PostgreSQL (Docker or local):
 
-    -   `seed/mapper/TrainerSeedMapper.java`
+```bash
+docker compose up -d
+```
 
-    -   `seed/mapper/TrainingSeedMapper.java`
+2. Configure environment variables:
 
-    -   `seed/mapper/UserSeedMapperApplier.java`
+3. Run the application:
 
-    -   `seed/mapper/SeedBaseMapper.java`
+```bash
+mvn clean test
+mvn spring-boot:run
+```
 
-**Note (implementation detail):**\
-During initialization, storage access is handled using `ObjectProvider` to avoid bean initialization order issues, and storages are populated after they are available.
+Flyway runs migrations automatically, and Hibernate validates mappings.
 
-* * * * *
 
-### Notes: 4 --- Dependency injection rules
+___
 
-**Task:** DAO with storage bean should be inserted into services beans using auto wiring. Services beans should be injected into the facade using constructor-based injections. The rest of the injections should be done in a setter-based way.
-
-**Implementation:**
-
-**DAO → Service (constructor injection):**
-
--   Services receive DAOs using constructor injection:
-
-    -   `TraineeService(TraineeDao ...)`
-
-    -   `TrainerService(TrainerDao ...)`
-
-    -   `TrainingService(TrainingDao ...)`
-
-**UserValidator + CredentialsGenerator → Service (setter injection):**
-
--   Services receive supporting dependencies using setter injection:
-
-    -   `setUserValidator(UserValidator ...)`
-
-    -   `setCredentialsGenerator(CredentialsGenerator ...)`
-
-**Services → Facade (constructor injection):**
-
--   `GymCrmFacade` receives services via constructor injection:
-
-    -   `GymCrmFacade(TraineeService, TrainerService, TrainingService)`
-
-**Facade → ConsoleRunner (setter injection):**
-
--   `ConsoleRunner` receives `GymCrmFacade` via a setter method.
-
-* * * * *
-
-### Notes: 5 --- Unit tests
-
-**Task:** Cover code with unit tests.
+## 9) Test Coverage
 
 **Implementation:**
 
 -   Unit tests are implemented for:
-
-    -   DAO layer
-
     -   Service layer
-
-    -   Facade layer
-
-    -   Validator classes
 
     -   Utility classes
 
+
 **Coverage (by layer):**
+-   `service`: 92%
 
--   `dao`: 100%
+-   `util`: 100%
 
--   `service`: 100%
-
--   `facade`: 100%
-
--   `util`: 83%
-
--   `validator`: 100%
 
 ![Coverage report](docs/images/coverage.png)
 
-* * * * *
+---
 
-### Notes: 6 --- Logging
+## 10) Development Summary
 
-**Task:** Code should contain proper logging.
-
-**Implementation:**
-
--   Logging implemented in:
-
-    -   Service layer:
-
-        -   create
-
-        -   update
-
-        -   select
-
-        -   getAll
-
-        -   delete
-
-    -   Facade layer:
-
-        -   `createTrainingProfile`
-
-    -   Seed initialization lifecycle
-
-* * * * *
-
-### Notes: 7 --- Username and password calculation
-
-**Task:** For Trainee and Trainer create profile functionality implement username and password calculation by follow rules.
-
-**Implementation:**
-
--   Credentials logic is centralized in:
-
-    -   `util/CredentialsGenerator.java`
-
--   Username format: `FirstName.LastName`
-
--   Duplicate usernames resolved by numeric suffix
-
--   Password generated as random 10-character string
-
-Used in:
-
--   `TraineeService`
-
--   `TrainerService`
-
--   `seed/mapper/UserSeedMapperApplier.java`
-
-* * * * *
-
-Package Structure (Simplified)
-------------------------------
-
-```
-com.alirizakaygusuz.gymcrm
-├── Application.java
-├── config
-│   ├── AppConfig.java
-│   ├── InMemoryStorageConfig.java
-│   └── JacksonConfig.java
-├── console
-│   └── ConsoleRunner.java
-├── dao
-│   ├── TraineeDao.java
-│   ├── TrainerDao.java
-│   ├── TrainingDao.java
-│   └── util
-│       └── IdSequence.java
-├── facade
-│   └── GymCrmFacade.java
-├── model
-│   ├── User.java
-│   ├── Trainee.java
-│   ├── Trainer.java
-│   ├── Training.java
-│   └── TrainingType.java
-├── seed
-│   ├── SeedInitializer.java
-│   ├── JsonSeedReader.java
-│   ├── dto
-│   │   ├── TraineeSeedDto.java
-│   │   ├── TrainerSeedDto.java
-│   │   └── TrainingSeedDto.java
-│   └── mapper
-│       ├── SeedBaseMapper.java
-│       ├── TraineeSeedMapper.java
-│       ├── TrainerSeedMapper.java
-│       ├── TrainingSeedMapper.java
-│       └── UserSeedMapperApplier.java
-├── service
-│   ├── TraineeService.java
-│   ├── TrainerService.java
-│   ├── TrainingService.java
-│   └── validator
-│       ├── CommonValidator.java
-│       └── UserValidator.java
-└── util
-    └── CredentialsGenerator.java
-```
-
-Dependencies
-------------
-
-### Java & Build
-
--   **Java:** 17 (LTS)
-
--   **Build Tool:** Maven
-
-### Core Framework
-
--   **Spring Framework:** 6.2.7
-
-### JSON Processing
-
--   **Jackson**
-
-### Testing
-
--   **JUnit 5 (Jupiter)**
-
--   **Mockito**
-
--   **AssertJ**
-
-* * * * *
+* Migrated the application from an in-memory architecture to a database-backed architecture using Hibernate/JPA.
+* Implemented Flyway migration strategy
+* Standardized exceptions
+* Refined equals/hashCode
+* Added unit tests and logging
