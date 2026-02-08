@@ -27,6 +27,8 @@
         <postgresql.version>42.6.2</postgresql.version>
         <jakarta.persistence.version>3.2.0</jakarta.persistence.version>
         <hibernate-core.version>7.1.13.Final</hibernate-core.version>
+        <jakarta.validation.version>3.1.1</jakarta.validation.version>
+        <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
         <spring-orm.version>7.0.1</spring-orm.version>
         <spring-tx.version>7.0.1</spring-tx.version>
         <hikari.version>7.0.1</hikari.version>
@@ -144,6 +146,25 @@
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
             <version>${jakarta.annotation.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--============================ Jakarta Bean Validation(Hibernate Validator) ============= -->
+        <!-- Jakarta Validation API -->
+        <!-- Source: https://mvnrepository.com/artifact/jakarta.validation/jakarta.validation-api -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>${jakarta.validation.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Hibernate Validator (Jakarta Bean Validation Implementation) -->
+        <!-- Source: https://mvnrepository.com/artifact/org.hibernate.validator/hibernate-validator -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate-validator.version}</version>
             <scope>compile</scope>
         </dependency>
 
