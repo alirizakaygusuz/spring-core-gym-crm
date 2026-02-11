@@ -23,4 +23,16 @@ public enum TrainingTypeCode {
         return trainingTypeName;
     }
 
+    public static TrainingTypeCode fromString(String trainingTypeName) {
+        if (trainingTypeName == null) {
+            return null;
+        }
+        for (TrainingTypeCode type : TrainingTypeCode.values()) {
+            if (type.trainingTypeName.equalsIgnoreCase(trainingTypeName)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("No enum constant with training type name: " + trainingTypeName);
+    }
+
 }

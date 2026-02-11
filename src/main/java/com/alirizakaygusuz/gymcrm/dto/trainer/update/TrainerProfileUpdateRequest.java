@@ -1,5 +1,6 @@
 package com.alirizakaygusuz.gymcrm.dto.trainer.update;
 
+import com.alirizakaygusuz.gymcrm.dto.common.UserUpdateRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -21,5 +22,5 @@ public record TrainerProfileUpdateRequest(
 
         @NotNull(message = "Active status cannot be null")
         Boolean isActive
-) {
+) implements UserUpdateRequest {
 }

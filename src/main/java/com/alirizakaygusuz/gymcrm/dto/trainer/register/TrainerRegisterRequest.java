@@ -1,5 +1,6 @@
 package com.alirizakaygusuz.gymcrm.dto.trainer.register;
 
+import com.alirizakaygusuz.gymcrm.dto.common.UserRegisterRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -18,5 +19,5 @@ public record TrainerRegisterRequest(
         @Positive(message = "Specialization ID must be a positive number")
         Long specializationId
 
-) {
+) implements UserRegisterRequest {
 }

@@ -1,6 +1,12 @@
 package com.alirizakaygusuz.gymcrm.dto.trainee.update;
 
-import jakarta.validation.constraints.*;
+import com.alirizakaygusuz.gymcrm.dto.common.UserRegisterRequest;
+import com.alirizakaygusuz.gymcrm.dto.common.UserUpdateRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainee.profile.TraineeProfileRequest;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
@@ -24,5 +30,5 @@ public record TraineeProfileUpdateRequest(
         @NotNull(message = "Active status is required")
         Boolean isActive
 
-) {
+) implements UserUpdateRequest , TraineeProfileRequest {
 }

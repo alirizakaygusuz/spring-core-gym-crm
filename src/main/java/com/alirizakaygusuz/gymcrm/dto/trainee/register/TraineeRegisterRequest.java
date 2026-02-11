@@ -1,5 +1,7 @@
 package com.alirizakaygusuz.gymcrm.dto.trainee.register;
 
+import com.alirizakaygusuz.gymcrm.dto.common.UserRegisterRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainee.profile.TraineeProfileRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
@@ -21,5 +23,5 @@ public record TraineeRegisterRequest(
         @Size(max = 255, message = "Address must be at most 255 characters")
         String address
 
-) {
+) implements UserRegisterRequest , TraineeProfileRequest {
 }
