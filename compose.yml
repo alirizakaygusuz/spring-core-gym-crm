@@ -12,6 +12,36 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - ali-gymcrm_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  tomcat:
+    image: tomcat:10.1-jdk17
+    container_name: ali-gymcrm-tomcat
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      JAVA_OPTS: "-Dspring.profiles.active=docker"
+
+      DB_URL: ${DB_URL}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - ./target/gymcrm.war:/usr/local/tomcat/webapps/ROOT.war
+
+    command: >
+      sh -lc "rm -rf /usr/local/tomcat/webapps/ROOT /usr/local/tomcat/work/* /usr/local/tomcat/temp/* &&
+              catalina.sh run"
 
 volumes:
   ali-gymcrm_pgdata:

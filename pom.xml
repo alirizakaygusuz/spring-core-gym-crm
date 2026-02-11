@@ -8,11 +8,13 @@
     <artifactId>spring-core-gym-crm</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <packaging>war</packaging>
+
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-context.version>6.2.7</spring-context.version>
         <jackson-core.version>3.0.3</jackson-core.version>
         <jackson-databind.version>3.0.3</jackson-databind.version>
         <jackson-datatype.version>3.0.0-rc2</jackson-datatype.version>
@@ -23,6 +25,7 @@
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <slf4j.version>2.0.17</slf4j.version>
         <logback.version>1.5.28</logback.version>
+        <jboss-logging.version>3.6.1.Final</jboss-logging.version>
         <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <postgresql.version>42.6.2</postgresql.version>
@@ -30,13 +33,15 @@
         <hibernate-core.version>7.1.13.Final</hibernate-core.version>
         <jakarta.validation.version>3.1.1</jakarta.validation.version>
         <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
-        <spring-orm.version>7.0.1</spring-orm.version>
-        <spring-tx.version>7.0.1</spring-tx.version>
         <hikari.version>7.0.1</hikari.version>
         <flyway.version>11.19.0</flyway.version>
         <flyway-postgresql.version>11.19.0</flyway-postgresql.version>
+        <spring-context.version>7.0.2</spring-context.version>
+        <spring-orm.version>7.0.2</spring-orm.version>
+        <spring-tx.version>7.0.2</spring-tx.version>
         <spring-security.version>7.0.2</spring-security.version>
-        <spring-webmvc.version>7.0.1</spring-webmvc.version>
+        <spring-webmvc.version>7.0.2</spring-webmvc.version>
+        <tomcat-embed-core.version>11.0.14</tomcat-embed-core.version>
         <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
 
     </properties>
@@ -142,6 +147,13 @@
             <version>${logback.version}</version>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <version>${jboss-logging.version}</version>
+        </dependency>
+
 
         <!-- Jakarta Annotations -->
         <!-- Source: https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api -->
@@ -290,27 +302,39 @@
             <scope>compile</scope>
         </dependency>
 
+        <!--Tomcat Embed Core -->
+        <!-- Source: https://mvnrepository.com/artifact/org.apache.tomcat.embed/tomcat-embed-core -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>${tomcat-embed-core.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
 
         <!-- Source: https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <version>${jakarta.servlet-api.version}</version>
-            <scope>provided</scope>
         </dependency>
 
 
     </dependencies>
 
     <build>
+        <finalName>gymcrm</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
+
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <parameters>true</parameters>
+
                     <annotationProcessorPaths>
                         <!--  Lombok Annotation Processor  -->
                         <path>
@@ -332,6 +356,7 @@
                             <artifactId>mapstruct-processor</artifactId>
                             <version>${mapstruct.version}</version>
                         </path>
+
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
