@@ -19,7 +19,7 @@ public interface TraineeService {
                                       String targetUsername);
 
     TraineeProfileUpdateResponse updateProfile(String currentUsername,
-                                               String targetUsername ,
+                                               String targetUsername,
                                                TraineeProfileUpdateRequest request);
 
     void deleteProfile(String currentUsername,

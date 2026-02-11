@@ -14,10 +14,11 @@ public interface TrainerService {
 
     TrainerRegisterResponse register(TrainerRegisterRequest request);
 
-    TrainerProfileResponse getProfile(String currentUsername ,
+    TrainerProfileResponse getProfile(String currentUsername,
                                       String targetUsername);
 
-    TrainerProfileUpdateResponse updateProfile(String currentUsername ,String targetUsername,
+    TrainerProfileUpdateResponse updateProfile(String currentUsername,
+                                               String targetUsername,
                                                TrainerProfileUpdateRequest request);
 
     List<TrainerTrainingFilterResponse> getTrainings(String currentUsername,

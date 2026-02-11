@@ -1,43 +1,64 @@
 package com.alirizakaygusuz.gymcrm.service.trainer;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
+import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingTypeDao;
-import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainer.profile.TrainerProfileResponse;
+import com.alirizakaygusuz.gymcrm.dto.trainer.register.TrainerRegisterRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainer.register.TrainerRegisterResponse;
+import com.alirizakaygusuz.gymcrm.dto.trainer.training.TrainerTrainingFilterRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainer.training.TrainerTrainingFilterResponse;
+import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateResponse;
+import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
+import com.alirizakaygusuz.gymcrm.mapper.TrainingMapper;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
+import com.alirizakaygusuz.gymcrm.model.Training;
 import com.alirizakaygusuz.gymcrm.model.TrainingType;
 import com.alirizakaygusuz.gymcrm.model.User;
-import com.alirizakaygusuz.gymcrm.service.user.UserServiceImpl;
+import com.alirizakaygusuz.gymcrm.service.user.UserService;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
+import com.alirizakaygusuz.gymcrm.service.validator.SelfAccessValidator;
+import com.alirizakaygusuz.gymcrm.service.validator.TrainingDateRangeValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class TrainerServiceImpl {
+public class TrainerServiceImpl implements TrainerService {
 
     private final TrainerDao trainerDao;
     private final TrainingTypeDao trainingTypeDao;
-    private final UserServiceImpl userServiceImpl;
+    private final TrainingDao trainingDao;
+
+    private final UserService userService;
+
     private final TrainerMapper trainerMapper;
+    private final TrainingMapper trainingMapper;
+
+    private final SelfAccessValidator selfAccessValidator;
+
     private final CommonValidator commonValidator;
+    private final TrainingDateRangeValidator trainingDateRangeValidator;
 
 
+    @Override
     @Transactional
-    public TrainerCreateResponse createProfile(TrainerProfileRequest request) {
-
+    public TrainerRegisterResponse register(TrainerRegisterRequest request) {
         log.info("Starting trainer profile creation");
-        commonValidator.validateNotNull(request, "Trainer profile creation request");
+        User savedUser = userService.createUserWithCredentials(request);
 
+        log.info("User profile created with username={}", savedUser.getUsername());
 
         TrainingType specialization = resolveSpecialization(request.specializationId());
-
-        User savedUser = userServiceImpl.createUserWithCredentials(request);
 
         Trainer trainer = buildTrainerForCreate(savedUser, specialization);
         Trainer saved = trainerDao.save(trainer);
@@ -45,61 +66,41 @@ public class TrainerServiceImpl {
         log.info("Trainer profile created. trainerId={}, username={}",
                 saved.getId(), savedUser.getUsername());
 
-        return trainerMapper.toCreateResponse(saved);
+        return trainerMapper.toRegisterResponse(saved.getUser());
     }
 
-
+    @Override
     @Transactional(readOnly = true)
-    public TrainerProfileResponse selectProfile(LoginRequest request) {
+    public TrainerProfileResponse getProfile(String currentUsername, String targetUsername) {
         log.info("Starting trainer profile selection");
 
-        User authUser = userServiceImpl.authenticate(request);
+        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
 
-        log.info("Selecting trainer profile with username={}", authUser.getUsername());
+        log.info("Selecting trainer profile with username={}", targetUsername);
 
-        Trainer selectedTrainer = findTrainerByUsernameOrThrow(authUser.getUsername());
+        Trainer selectedTrainer = findTrainerWithDetailsByUsernameOrThrow(targetUsername);
 
         return trainerMapper.toProfileResponse(selectedTrainer);
+
     }
 
-
+    @Override
     @Transactional
-    public void changePassword(LoginRequest request, String newPassword) {
-
-        User authUser = authenticateAndValidateTrainer(request);
-        log.info("Starting password change for trainer with username={}", authUser.getUsername());
-
-        userServiceImpl.changePassword(authUser, newPassword);
-        log.info("Password changed for trainer with username={}", authUser.getUsername());
-    }
-
-    @Transactional
-    public void activateTrainer(LoginRequest request) {
-        User user = authenticateAndValidateTrainer(request);
-        userServiceImpl.activate(user);
-    }
-
-    @Transactional
-    public void deactivateTrainer(LoginRequest request) {
-        User user = authenticateAndValidateTrainer(request);
-        userServiceImpl.deactivate(user);
-    }
-
-    @Transactional
-    public TrainerProfileResponse updateTrainerProfile(
-            LoginRequest request,
-            TrainerProfileRequest updateRequest
+    public TrainerProfileUpdateResponse updateProfile(
+            String currentUsername,
+            String targetUsername,
+            TrainerProfileUpdateRequest request
     ) {
-        User authUser = userServiceImpl.authenticate(request);
 
-        log.info("Updating trainer profile. username={}", authUser.getUsername());
+        log.info("Updating trainer profile. username={}", targetUsername);
+        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
 
-        Trainer trainer = findTrainerByUsernameOrThrow(authUser.getUsername());
+        Trainer trainer = findTrainerWithDetailsByUsernameOrThrow(targetUsername);
 
-        userServiceImpl.applyProfileUpdate(trainer.getUser(), updateRequest);
+        userService.applyProfileUpdate(trainer.getUser(), request);
 
-        if (updateRequest.specializationId() != null) {
-            TrainingType specialization = resolveSpecialization(updateRequest.specializationId());
+        if (request.specializationId() != null) {
+            TrainingType specialization = resolveSpecialization(request.specializationId());
             trainer.setSpecialization(specialization);
         }
 
@@ -108,7 +109,41 @@ public class TrainerServiceImpl {
         log.info("Trainer profile updated. trainerId={}, username={}",
                 updatedTrainer.getId(), updatedTrainer.getUser().getUsername());
 
-        return trainerMapper.toProfileResponse(updatedTrainer);
+        return trainerMapper.toProfileUpdateResponse(updatedTrainer);
+    }
+
+    @Override
+    public List<TrainerTrainingFilterResponse> getTrainings(
+            String currentUsername,
+            String targetUsername,
+            TrainerTrainingFilterRequest filters
+    ) {
+        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
+
+        trainingDateRangeValidator.validateDateRange(filters.periodFrom(), filters.periodTo());
+
+        trainerDao.findByUsername(targetUsername)
+                .orElseThrow(() -> new AuthenticationFailedException("Only trainer can access trainer trainings list"));
+
+        List<Training> trainings = trainingDao.findTrainerTrainingsByCriteria(
+                targetUsername,
+                filters.periodFrom(),
+                filters.periodTo(),
+                filters.traineeName()
+        );
+
+        return trainings.stream()
+                .map(trainingMapper::toTrainerTrainingFilterResponse)
+                .toList();
+
+    }
+
+
+    @Override
+    public void setActiveStatus(String currentUsername, String targetUsername, boolean isActive) {
+        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
+        Trainer trainer = findTrainerByUsernameOrThrow(targetUsername);
+        userService.setActiveStatus(trainer.getUser(), isActive);
     }
 
 
@@ -120,12 +155,14 @@ public class TrainerServiceImpl {
                         username));
     }
 
-
-    private User authenticateAndValidateTrainer(LoginRequest request) {
-        User authUser = userServiceImpl.authenticate(request);
-        findTrainerByUsernameOrThrow(authUser.getUsername());
-        return authUser;
+    private Trainer findTrainerWithDetailsByUsernameOrThrow(String username) {
+        return trainerDao.findByUsernameWithDetails(username)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Trainer",
+                        "username",
+                        username));
     }
+
 
     private Trainer buildTrainerForCreate(User user, TrainingType specialization) {
         Trainer trainer = new Trainer();

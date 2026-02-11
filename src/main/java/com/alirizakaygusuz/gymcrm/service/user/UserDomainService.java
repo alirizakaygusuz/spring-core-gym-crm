@@ -1,6 +1,7 @@
 package com.alirizakaygusuz.gymcrm.service.user;
 
-import com.alirizakaygusuz.gymcrm.dto.common.UserRegisterResponse;
+import com.alirizakaygusuz.gymcrm.dto.common.UserRegisterRequest;
+import com.alirizakaygusuz.gymcrm.dto.common.UserUpdateRequest;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.User;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
@@ -21,11 +22,9 @@ public class UserDomainService {
     private final UserValidator userValidator;
     private final CommonValidator commonValidator;
 
-    public User createWithCredentials(UserRegisterResponse request) {
-        log.info("Creating user profile and checking request validity");
-
-        validateUserProfileData(request);
-
+    public User createWithCredentials(UserRegisterRequest request) {
+        log.info("Creating user profile with provided data: firstName={}, lastName={}",
+                request.firstName(), request.lastName());
 
         String username = credentialsGenerator.generateUniqueUsername(
                 request.firstName(), request.lastName()
@@ -38,12 +37,10 @@ public class UserDomainService {
         return buildUser(request, username, rawPassword);
     }
 
-    public void applyUpdate(User user, UserRegisterResponse request) {
+    public void applyUpdate(User user, UserUpdateRequest request) {
 
         commonValidator.validateNotNull(user, "User");
         log.info("Applying updates to user profile with username={}", user.getUsername());
-
-        validateUserProfileData(request);
 
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
@@ -52,29 +49,12 @@ public class UserDomainService {
 
 
     public void changePassword(User user, String newPassword) {
-        commonValidator.validateNotNull(user, "User");
-        commonValidator.validateNotBlank(newPassword, "New password");
         log.info("Changing password for user with username={}", user.getUsername());
         user.setPassword(passwordEncoder.encode(newPassword));
     }
 
-    public void activate(User user) {
-        changeActiveStatus(user, true);
-    }
 
-    public void deactivate(User user) {
-        changeActiveStatus(user, false);
-    }
-
-    private void validateUserProfileData(UserRegisterResponse request) {
-        commonValidator.validateNotNull(request, "User profile creation request");
-        userValidator.validateRequiredUserNames(request.firstName(), request.lastName());
-        commonValidator.validateNotNull(request.isActive(), "Active status");
-    }
-
-
-    private void changeActiveStatus(User user, boolean desiredActive) {
-        commonValidator.validateNotNull(user, "User");
+    public void setActiveStatus(User user, boolean desiredActive) {
         String username = user.getUsername();
         log.info("{} user with username={}", desiredActive ? "Activating" : "Deactivating", username);
 
@@ -87,11 +67,11 @@ public class UserDomainService {
         user.setActive(desiredActive);
     }
 
-    private User buildUser(UserRegisterResponse request, String username, String rawPassword) {
+    private User buildUser(UserRegisterRequest request, String username, String rawPassword) {
         User user = new User();
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
-        user.setActive(request.isActive());
+        user.setActive(true);
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(rawPassword));
         return user;
