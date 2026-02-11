@@ -1,16 +1,14 @@
-package com.alirizakaygusuz.gymcrm.service;
+package com.alirizakaygusuz.gymcrm.service.trainer;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingTypeDao;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
-import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerCreateResponse;
-import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerProfileRequest;
-import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerProfileResponse;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
 import com.alirizakaygusuz.gymcrm.model.TrainingType;
 import com.alirizakaygusuz.gymcrm.model.User;
+import com.alirizakaygusuz.gymcrm.service.user.UserServiceImpl;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class TrainerService {
+public class TrainerServiceImpl {
 
     private final TrainerDao trainerDao;
     private final TrainingTypeDao trainingTypeDao;
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     private final TrainerMapper trainerMapper;
     private final CommonValidator commonValidator;
 
@@ -39,7 +37,7 @@ public class TrainerService {
 
         TrainingType specialization = resolveSpecialization(request.specializationId());
 
-        User savedUser = userService.createUserWithCredentials(request);
+        User savedUser = userServiceImpl.createUserWithCredentials(request);
 
         Trainer trainer = buildTrainerForCreate(savedUser, specialization);
         Trainer saved = trainerDao.save(trainer);
@@ -55,7 +53,7 @@ public class TrainerService {
     public TrainerProfileResponse selectProfile(LoginRequest request) {
         log.info("Starting trainer profile selection");
 
-        User authUser = userService.authenticate(request);
+        User authUser = userServiceImpl.authenticate(request);
 
         log.info("Selecting trainer profile with username={}", authUser.getUsername());
 
@@ -71,20 +69,20 @@ public class TrainerService {
         User authUser = authenticateAndValidateTrainer(request);
         log.info("Starting password change for trainer with username={}", authUser.getUsername());
 
-        userService.changePassword(authUser, newPassword);
+        userServiceImpl.changePassword(authUser, newPassword);
         log.info("Password changed for trainer with username={}", authUser.getUsername());
     }
 
     @Transactional
     public void activateTrainer(LoginRequest request) {
         User user = authenticateAndValidateTrainer(request);
-        userService.activate(user);
+        userServiceImpl.activate(user);
     }
 
     @Transactional
     public void deactivateTrainer(LoginRequest request) {
         User user = authenticateAndValidateTrainer(request);
-        userService.deactivate(user);
+        userServiceImpl.deactivate(user);
     }
 
     @Transactional
@@ -92,13 +90,13 @@ public class TrainerService {
             LoginRequest request,
             TrainerProfileRequest updateRequest
     ) {
-        User authUser = userService.authenticate(request);
+        User authUser = userServiceImpl.authenticate(request);
 
         log.info("Updating trainer profile. username={}", authUser.getUsername());
 
         Trainer trainer = findTrainerByUsernameOrThrow(authUser.getUsername());
 
-        userService.applyProfileUpdate(trainer.getUser(), updateRequest);
+        userServiceImpl.applyProfileUpdate(trainer.getUser(), updateRequest);
 
         if (updateRequest.specializationId() != null) {
             TrainingType specialization = resolveSpecialization(updateRequest.specializationId());
@@ -124,7 +122,7 @@ public class TrainerService {
 
 
     private User authenticateAndValidateTrainer(LoginRequest request) {
-        User authUser = userService.authenticate(request);
+        User authUser = userServiceImpl.authenticate(request);
         findTrainerByUsernameOrThrow(authUser.getUsername());
         return authUser;
     }

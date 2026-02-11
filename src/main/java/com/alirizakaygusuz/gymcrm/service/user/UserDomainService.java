@@ -1,6 +1,6 @@
-package com.alirizakaygusuz.gymcrm.service;
+package com.alirizakaygusuz.gymcrm.service.user;
 
-import com.alirizakaygusuz.gymcrm.dto.common.UserProfileData;
+import com.alirizakaygusuz.gymcrm.dto.common.UserRegisterResponse;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.User;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
@@ -21,7 +21,7 @@ public class UserDomainService {
     private final UserValidator userValidator;
     private final CommonValidator commonValidator;
 
-    public User createWithCredentials(UserProfileData request) {
+    public User createWithCredentials(UserRegisterResponse request) {
         log.info("Creating user profile and checking request validity");
 
         validateUserProfileData(request);
@@ -38,7 +38,7 @@ public class UserDomainService {
         return buildUser(request, username, rawPassword);
     }
 
-    public void applyUpdate(User user, UserProfileData request) {
+    public void applyUpdate(User user, UserRegisterResponse request) {
 
         commonValidator.validateNotNull(user, "User");
         log.info("Applying updates to user profile with username={}", user.getUsername());
@@ -66,7 +66,7 @@ public class UserDomainService {
         changeActiveStatus(user, false);
     }
 
-    private void validateUserProfileData(UserProfileData request) {
+    private void validateUserProfileData(UserRegisterResponse request) {
         commonValidator.validateNotNull(request, "User profile creation request");
         userValidator.validateRequiredUserNames(request.firstName(), request.lastName());
         commonValidator.validateNotNull(request.isActive(), "Active status");
@@ -87,7 +87,7 @@ public class UserDomainService {
         user.setActive(desiredActive);
     }
 
-    private User buildUser(UserProfileData request, String username, String rawPassword) {
+    private User buildUser(UserRegisterResponse request, String username, String rawPassword) {
         User user = new User();
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());

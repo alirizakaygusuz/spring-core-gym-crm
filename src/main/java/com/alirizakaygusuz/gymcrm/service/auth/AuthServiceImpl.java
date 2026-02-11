@@ -1,4 +1,4 @@
-package com.alirizakaygusuz.gymcrm.service;
+package com.alirizakaygusuz.gymcrm.service.auth;
 
 import com.alirizakaygusuz.gymcrm.dao.UserDao;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthServiceImpl {
 
     private final UserDao userDao;
     private final PasswordEncoder passwordEncoder;

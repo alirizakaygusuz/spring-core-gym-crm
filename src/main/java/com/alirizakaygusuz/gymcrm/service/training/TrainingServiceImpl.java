@@ -1,19 +1,16 @@
-package com.alirizakaygusuz.gymcrm.service;
+package com.alirizakaygusuz.gymcrm.service.training;
 
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingTypeDao;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
-import com.alirizakaygusuz.gymcrm.dto.training.TraineeTrainingQueryRequest;
-import com.alirizakaygusuz.gymcrm.dto.training.TrainerTrainingQueryRequest;
-import com.alirizakaygusuz.gymcrm.dto.training.TrainingCreateRequest;
-import com.alirizakaygusuz.gymcrm.dto.training.TrainingResponse;
 import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.mapper.TrainingMapper;
 import com.alirizakaygusuz.gymcrm.model.*;
+import com.alirizakaygusuz.gymcrm.service.user.UserServiceImpl;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +25,9 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class TrainingService {
+public class TrainingServiceImpl {
 
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     private final TraineeDao traineeDao;
     private final TrainerDao trainerDao;
     private final TrainingTypeDao trainingTypeDao;
@@ -44,7 +41,7 @@ public class TrainingService {
         commonValidator.validateNotNull(request, "Login request");
         validateTrainingRequest(createRequest);
 
-        User authUser = userService.authenticate(request);
+        User authUser = userServiceImpl.authenticate(request);
         log.info("Add training requested by user={} , trainerId={}, trainingTypeId={}",
                 authUser.getUsername(), createRequest.trainerId(), createRequest.trainingTypeId());
 
@@ -76,7 +73,7 @@ public class TrainingService {
     ) {
         commonValidator.validateNotNull(query, "Trainee training query request");
         validateDateRange(query.from(), query.to());
-        User authUser = userService.authenticate(login);
+        User authUser = userServiceImpl.authenticate(login);
 
         traineeDao.findByUsername(authUser.getUsername())
                 .orElseThrow(() -> new AuthenticationFailedException("Only trainee can access trainee trainings list"));
@@ -103,7 +100,7 @@ public class TrainingService {
         commonValidator.validateNotNull(query, "Trainer training query request");
         validateDateRange(query.from(), query.to());
 
-        User authUser = userService.authenticate(login);
+        User authUser = userServiceImpl.authenticate(login);
 
         trainerDao.findByUsername(authUser.getUsername())
                 .orElseThrow(() -> new AuthenticationFailedException("Only trainer can access trainer trainings list"));

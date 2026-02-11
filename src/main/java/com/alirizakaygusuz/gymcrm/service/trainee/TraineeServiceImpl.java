@@ -1,15 +1,15 @@
-package com.alirizakaygusuz.gymcrm.service;
+package com.alirizakaygusuz.gymcrm.service.trainee;
 
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TraineeTrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
-import com.alirizakaygusuz.gymcrm.dto.trainee.*;
-import com.alirizakaygusuz.gymcrm.dto.trainer.TrainerProfileResponse;
+import com.alirizakaygusuz.gymcrm.dto.trainee.profile.TraineeProfileResponse;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.mapper.TraineeMapper;
 import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
 import com.alirizakaygusuz.gymcrm.model.*;
+import com.alirizakaygusuz.gymcrm.service.user.UserServiceImpl;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,13 +23,13 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class TraineeService {
+public class TraineeServiceImpl {
 
     private final TraineeDao traineeDao;
     private final TraineeTrainerDao traineeTrainerDao;
     private final TrainerDao trainerDao;
 
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
 
     private final TraineeMapper traineeMapper;
     private final TrainerMapper trainerMapper;
@@ -41,7 +41,7 @@ public class TraineeService {
     public TraineeCreateResponse createProfile(TraineeProfileRequest request) {
         log.info("Starting trainee profile creation");
 
-        User savedUser = userService.createUserWithCredentials(request);
+        User savedUser = userServiceImpl.createUserWithCredentials(request);
 
         log.info("User profile created with username={}", savedUser.getUsername());
 
@@ -59,7 +59,7 @@ public class TraineeService {
     public TraineeProfileResponse selectProfile(LoginRequest request) {
         log.info("Starting trainee profile selection");
 
-        User authUser = userService.authenticate(request);
+        User authUser = userServiceImpl.authenticate(request);
 
         log.info("Selecting trainee profile with username {}", authUser.getUsername());
 
@@ -75,13 +75,13 @@ public class TraineeService {
             TraineeProfileRequest updateRequest
     ) {
 
-        User authUser = userService.authenticate(request);
+        User authUser = userServiceImpl.authenticate(request);
 
         log.info("Updating trainee profile. targetUsername={}", authUser.getUsername());
 
         Trainee trainee = findTraineeByUsernameOrThrow(authUser.getUsername());
 
-        userService.applyProfileUpdate(trainee.getUser(), updateRequest);
+        userServiceImpl.applyProfileUpdate(trainee.getUser(), updateRequest);
 
         applyTraineeProfile(trainee, updateRequest);
 
@@ -103,7 +103,7 @@ public class TraineeService {
         log.info("Starting password change for trainee with username={}", authUser.getUsername());
 
 
-        userService.changePassword(authUser, newPassword);
+        userServiceImpl.changePassword(authUser, newPassword);
         log.info("Password changed for trainee with username={}", authUser.getUsername());
     }
 
@@ -111,13 +111,13 @@ public class TraineeService {
     @Transactional
     public void activateTrainee(LoginRequest request) {
         User authUser = authenticateAndValidateTrainee(request);
-        userService.activate(authUser);
+        userServiceImpl.activate(authUser);
     }
 
     @Transactional
     public void deactivateTrainee(LoginRequest request) {
         User authUser = authenticateAndValidateTrainee(request);
-        userService.deactivate(authUser);
+        userServiceImpl.deactivate(authUser);
     }
 
 
@@ -191,7 +191,7 @@ public class TraineeService {
     }
 
     private User authenticateAndValidateTrainee(LoginRequest request) {
-        User authUser = userService.authenticate(request);
+        User authUser = userServiceImpl.authenticate(request);
         findTraineeByUsernameOrThrow(authUser.getUsername());
         return authUser;
     }
