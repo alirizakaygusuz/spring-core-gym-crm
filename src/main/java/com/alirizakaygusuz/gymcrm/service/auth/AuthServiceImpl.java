@@ -51,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean authenticate(String username, String password) {
         User user = userDao.findByUsername(username).orElseThrow(() -> {
             log.warn("Authentication failed: user with username {} not found", username);

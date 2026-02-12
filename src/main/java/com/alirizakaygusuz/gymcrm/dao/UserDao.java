@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -23,13 +24,15 @@ public class UserDao {
     }
 
     public Optional<User> findByUsername(String username) {
-       return entityManager.createQuery(
-                "SELECT u FROM User u WHERE u.username = :username", User.class)
+        List<User> result = entityManager.createQuery(
+                        "SELECT u FROM User u WHERE u.username = :username", User.class)
                 .setParameter("username", username)
-                .getResultStream()
-                .findFirst();
+                .setMaxResults(1)
+                .getResultList();
 
+        return result.stream().findFirst();
     }
+
 
     public User update(User user) {
         return entityManager.merge(user);

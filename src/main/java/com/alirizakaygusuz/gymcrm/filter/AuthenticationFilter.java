@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -27,11 +28,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        log.info("REST IN  {} {}", request.getMethod(), request.getRequestURI());
-
         String transactionId = UUID.randomUUID().toString();
         MDC.put("transactionId", transactionId);
         response.setHeader("X-Transaction-Id", transactionId);
+
+        log.info("REST IN  {} {}", request.getMethod(), request.getRequestURI());
+
+
 
         try {
 
@@ -85,7 +88,12 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         return isMatch(method, uri, "POST", "/api/v1/trainees")
                 || isMatch(method, uri, "POST", "/api/v1/trainers")
-                || isMatch(method, uri, "GET", "/api/v1/login");
+                || isMatch(method, uri, "GET", "/api/v1/login")
+
+                || uri.startsWith("/v3/api-docs")
+                || uri.startsWith("/swagger-ui");
+
+
     }
 
     private boolean isMatch(
