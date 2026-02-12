@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/trainings")
 @RequiredArgsConstructor
+@Tag(
+        name = "Training Management",
+        description = "Operations for creating trainings and retrieving training types"
+)
+@SecurityRequirement(name = "customAuth")
 public class TrainingController extends BaseController {
 
     private final TrainingService trainingService;

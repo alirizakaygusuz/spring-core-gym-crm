@@ -40,8 +40,9 @@ public class TrainerDao {
                         select distinct t
                         from Trainer t
                         join fetch t.user u
-                        left join fetch t.trainees tr
-                        left join fetch tr.user
+                        left join fetch t.traineeLinks trL
+                        left join fetch trL.trainee trn
+                        left join fetch trn.user
                         where u.username = :username
                         """,
                         Trainer.class

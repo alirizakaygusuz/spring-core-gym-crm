@@ -15,9 +15,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jackson-core.version>3.0.3</jackson-core.version>
-        <jackson-databind.version>3.0.3</jackson-databind.version>
-        <jackson-datatype.version>3.0.0-rc2</jackson-datatype.version>
+
         <junit-jupiter.version>5.20.0</junit-jupiter.version>
         <mockito.version>5.20.0</mockito.version>
         <assertj.version>3.27.6</assertj.version>
@@ -46,6 +44,17 @@
         <springdoc-openapi-ui.version>2.7.0</springdoc-openapi-ui.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>2.17.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Spring Context -->
@@ -55,25 +64,16 @@
             <version>${spring-context.version}</version>
         </dependency>
 
-        <!-- ==============JSON Processing with Jackson=========== -->
-        <!-- Jackson Core -->
-        <dependency>
-            <groupId>tools.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson-core.version}</version>
-        </dependency>
 
-        <!-- Jackson Databind -->
+        <!--==========Jackson Dependencies ============-->
         <dependency>
-            <groupId>tools.jackson.core</groupId>
+            <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson-databind.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>tools.jackson.datatype</groupId>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${jackson-datatype.version}</version>
         </dependency>
 
 

@@ -15,6 +15,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -30,6 +32,11 @@ import java.util.List;
 @RequestMapping("/api/v1/trainees")
 @RequiredArgsConstructor
 @Validated
+@Tag(
+        name = "Trainee Management",
+        description = "Operations for managing trainee profiles, trainers, and training sessions"
+)
+@SecurityRequirement(name = "customAuth")
 public class TraineeController extends BaseController {
 
     private final TraineeService traineeService;

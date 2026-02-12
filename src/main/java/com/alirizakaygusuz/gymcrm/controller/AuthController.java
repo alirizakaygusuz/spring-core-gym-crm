@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@Tag(
+        name = "Authentication",
+        description = "User authentication and password management operations"
+)
+@SecurityRequirement(name = "customAuth")
 public class AuthController extends BaseController {
 
     private final AuthService authService;
@@ -53,6 +60,7 @@ public class AuthController extends BaseController {
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
+    @SecurityRequirement(name = "customAuth")
     @PatchMapping("/change-password")
     public ResponseEntity<ApiStandardResponse<Void>> changePassword(
             @RequestBody(required = false)
