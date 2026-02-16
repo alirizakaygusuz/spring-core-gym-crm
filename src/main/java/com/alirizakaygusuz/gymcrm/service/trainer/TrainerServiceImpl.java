@@ -12,6 +12,7 @@ import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateRequest
 import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateResponse;
 import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
 import com.alirizakaygusuz.gymcrm.mapper.TrainingMapper;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
@@ -20,8 +21,7 @@ import com.alirizakaygusuz.gymcrm.model.TrainingType;
 import com.alirizakaygusuz.gymcrm.model.User;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
-import com.alirizakaygusuz.gymcrm.service.validator.SelfAccessValidator;
-import com.alirizakaygusuz.gymcrm.service.validator.TrainingDateRangeValidator;
+import com.alirizakaygusuz.gymcrm.service.validator.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,10 +44,8 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainerMapper trainerMapper;
     private final TrainingMapper trainingMapper;
 
-    private final SelfAccessValidator selfAccessValidator;
-
     private final CommonValidator commonValidator;
-    private final TrainingDateRangeValidator trainingDateRangeValidator;
+    private final ValidationUtils validationUtils;
 
 
     @Override
@@ -69,16 +67,21 @@ public class TrainerServiceImpl implements TrainerService {
         return trainerMapper.toRegisterResponse(saved.getUser());
     }
 
+    private Trainer buildTrainerForCreate(User user, TrainingType specialization) {
+        var trainer = new Trainer();
+        trainer.setUser(user);
+        trainer.setSpecialization(specialization);
+        return trainer;
+    }
+
     @Override
     @Transactional(readOnly = true)
-    public TrainerProfileResponse getProfile(String currentUsername, String targetUsername) {
+    public TrainerProfileResponse getProfile(String username) {
         log.info("Starting trainer profile selection");
 
-        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
+        log.info("Selecting trainer profile with username={}", username);
 
-        log.info("Selecting trainer profile with username={}", targetUsername);
-
-        Trainer selectedTrainer = findTrainerWithDetailsByUsernameOrThrow(targetUsername);
+        Trainer selectedTrainer = findTrainerWithDetailsByUsernameOrThrow(username);
 
         return trainerMapper.toProfileResponse(selectedTrainer);
 
@@ -87,15 +90,13 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     @Transactional
     public TrainerProfileUpdateResponse updateProfile(
-            String currentUsername,
-            String targetUsername,
+            String username,
             TrainerProfileUpdateRequest request
     ) {
 
-        log.info("Updating trainer profile. username={}", targetUsername);
-        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
+        log.info("Updating trainer profile. username={}", username);
 
-        Trainer trainer = findTrainerWithDetailsByUsernameOrThrow(targetUsername);
+        Trainer trainer = findTrainerWithDetailsByUsernameOrThrow(username);
 
         userService.applyProfileUpdate(trainer.getUser(), request);
 
@@ -113,20 +114,22 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrainerTrainingFilterResponse> getTrainings(
-            String currentUsername,
-            String targetUsername,
+            String username,
             TrainerTrainingFilterRequest filters
     ) {
-        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
 
-        trainingDateRangeValidator.validateDateRange(filters.periodFrom(), filters.periodTo());
+        boolean isDateValid = validationUtils.validateDateRange(filters.periodFrom(), filters.periodTo());
+        if(!isDateValid){
+            throw new ValidationException("'from' date must be less than or equal to 'to' date");
+        }
 
-        trainerDao.findByUsername(targetUsername)
+        trainerDao.findByUsername(username)
                 .orElseThrow(() -> new AuthenticationFailedException("Only trainer can access trainer trainings list"));
 
         List<Training> trainings = trainingDao.findTrainerTrainingsByCriteria(
-                targetUsername,
+                username,
                 filters.periodFrom(),
                 filters.periodTo(),
                 filters.traineeName()
@@ -140,9 +143,9 @@ public class TrainerServiceImpl implements TrainerService {
 
 
     @Override
-    public void setActiveStatus(String currentUsername, String targetUsername, boolean isActive) {
-        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
-        Trainer trainer = findTrainerByUsernameOrThrow(targetUsername);
+    @Transactional
+    public void setActiveStatus(String username, boolean isActive) {
+        Trainer trainer = findTrainerByUsernameOrThrow(username);
         userService.setActiveStatus(trainer.getUser(), isActive);
     }
 
@@ -163,13 +166,6 @@ public class TrainerServiceImpl implements TrainerService {
                         username));
     }
 
-
-    private Trainer buildTrainerForCreate(User user, TrainingType specialization) {
-        Trainer trainer = new Trainer();
-        trainer.setUser(user);
-        trainer.setSpecialization(specialization);
-        return trainer;
-    }
 
     private TrainingType resolveSpecialization(Long specializationId) {
 

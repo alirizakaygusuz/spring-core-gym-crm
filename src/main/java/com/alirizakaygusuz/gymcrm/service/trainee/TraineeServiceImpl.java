@@ -15,13 +15,13 @@ import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateRespons
 import com.alirizakaygusuz.gymcrm.dto.trainer.profile.TrainerProfileSummaryResponse;
 import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
+import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.mapper.TraineeMapper;
 import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
 import com.alirizakaygusuz.gymcrm.mapper.TrainingMapper;
 import com.alirizakaygusuz.gymcrm.model.*;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
-import com.alirizakaygusuz.gymcrm.service.validator.SelfAccessValidator;
-import com.alirizakaygusuz.gymcrm.service.validator.TrainingDateRangeValidator;
+import com.alirizakaygusuz.gymcrm.service.validator.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,8 +49,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final TrainerMapper trainerMapper;
     private final TrainingMapper trainingMapper;
 
-    private final TrainingDateRangeValidator trainingDateRangeValidator;
-    private final SelfAccessValidator selfAccessValidator;
+    private final ValidationUtils validationUtils;
 
 
     @Override
@@ -71,16 +70,23 @@ public class TraineeServiceImpl implements TraineeService {
         return traineeMapper.toRegisterResponse(savedTrainee.getUser());
     }
 
+    private Trainee buildTraineeForCreate(TraineeRegisterRequest data, User user) {
+        var trainee = new Trainee();
+        trainee.setUser(user);
+        applyTraineeProfile(trainee, data);
+
+        return trainee;
+    }
+
     @Override
     @Transactional(readOnly = true)
-    public TraineeProfileResponse getProfile(String currentUsername, String targetUsername) {
+    public TraineeProfileResponse getProfile(String username) {
         log.info("Starting trainee profile selection");
 
-        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
 
-        log.info("Selecting trainee profile with username {}", targetUsername);
+        log.info("Selecting trainee profile with username {}", username);
 
-        Trainee selectedTrainee = findTraineeByUsernameWithDetailsOrThrow(targetUsername);
+        Trainee selectedTrainee = findTraineeByUsernameWithDetailsOrThrow(username);
 
         return traineeMapper.toProfileResponse(selectedTrainee);
     }
@@ -89,15 +95,13 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional
     public TraineeProfileUpdateResponse updateProfile(
-            String currentUsername,
-            String targetUsername,
+            String username,
             TraineeProfileUpdateRequest request
     ) {
-        log.info("Starting trainee profile update. targetUsername={}", targetUsername);
-        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
+        log.info("Starting trainee profile update. username={}", username);
 
 
-        Trainee trainee = findTraineeByUsernameWithDetailsOrThrow(targetUsername);
+        Trainee trainee = findTraineeByUsernameWithDetailsOrThrow(username);
 
         userService.applyProfileUpdate(trainee.getUser(), request);
 
@@ -113,10 +117,9 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public void deleteProfile(String currentUsername, String targetUsername) {
-        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
+    public void deleteProfile(String username) {
 
-        Trainee trainee = findTraineeByUsernameOrThrow(targetUsername);
+        Trainee trainee = findTraineeByUsernameOrThrow(username);
 
         log.info("Deleting trainee profile. traineeId={}, username={}",
                 trainee.getId(), trainee.getUser().getUsername());
@@ -129,24 +132,21 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional(readOnly = true)
     public List<TrainerProfileSummaryResponse> getNotAssignedActiveTrainers(
-            String currentUsername,
-            String targetUsername
+            String username
     ) {
 
-        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
-
-        List<Trainer> unassignedTrainers = traineeTrainerDao.findUnAssignedTrainersByTraineeUsername(targetUsername);
+        List<Trainer> unassignedTrainers = traineeTrainerDao.findUnAssignedTrainersByTraineeUsername(username);
 
         List<TrainerProfileSummaryResponse> responses = new ArrayList<>();
 
         log.info("Found {} unassigned trainers for trainee with username={}",
-                unassignedTrainers.size(), targetUsername);
+                unassignedTrainers.size(), username);
         for (Trainer trainer : unassignedTrainers) {
             responses.add(trainerMapper.toProfileSummaryResponse(trainer));
         }
 
         log.info("Returning unassigned trainers for trainee with username={}",
-                targetUsername);
+                username);
 
         return responses;
     }
@@ -154,23 +154,21 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional
     public List<TrainerProfileSummaryResponse> updateTrainerList(
-            String currentUsername,
-            String targetUsername,
+            String username,
             List<String> trainerUsernames
     ) {
-        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
 
-        Trainee trainee = findTraineeByUsernameWithDetailsOrThrow(targetUsername);
+        Trainee trainee = findTraineeByUsernameWithDetailsOrThrow(username);
 
-        traineeTrainerDao.deleteAllByTraineeUsername(targetUsername);
+        traineeTrainerDao.deleteAllByTraineeUsername(username);
 
         List<Trainer> assignedTrainers = new ArrayList<>();
 
         for (String trainerUsername : trainerUsernames) {
             Trainer trainer = trainerDao.findByUsername(trainerUsername)
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainer", "targetUsername", trainerUsername));
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainer", "username", trainerUsername));
 
-            TraineeTrainer traineeTrainer = new TraineeTrainer();
+            var traineeTrainer = new TraineeTrainer();
             traineeTrainer.setTrainee(trainee);
             traineeTrainer.setTrainer(trainer);
             traineeTrainer.setId(new TraineeTrainerId(trainee.getId(), trainer.getId()));
@@ -179,9 +177,7 @@ public class TraineeServiceImpl implements TraineeService {
 
             assignedTrainers.add(trainer);
 
-
         }
-
 
         return assignedTrainers.stream()
                 .map(trainerMapper::toProfileSummaryResponse)
@@ -189,21 +185,23 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TraineeTrainingFilterResponse> getTrainings(
-            String currentUsername,
-            String targetUsername,
+            String username,
             TraineeTrainingFilterRequest filters
     ) {
-        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
 
-        trainingDateRangeValidator.validateDateRange(filters.periodFrom(), filters.periodTo());
+        boolean isDateValid = validationUtils.validateDateRange(filters.periodFrom(), filters.periodTo());
+        if(!isDateValid){
+            throw new ValidationException("'from' date must be less than or equal to 'to' date");
+        }
 
-        traineeDao.findByUsername(targetUsername)
+        traineeDao.findByUsername(username)
                 .orElseThrow(() -> new AuthenticationFailedException("Only trainee can access trainee trainings list"));
 
 
         List<Training> trainings = trainingDao.findTraineeTrainingsByCriteria(
-                targetUsername,
+                username,
                 filters.periodFrom(),
                 filters.periodTo(),
                 filters.trainerName(),
@@ -219,9 +217,8 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public void setActiveStatus(String currentUsername, String targetUsername, boolean isActive) {
-        selfAccessValidator.assertSelfAccess(currentUsername, targetUsername);
-        Trainee trainee = findTraineeByUsernameOrThrow(targetUsername);
+    public void setActiveStatus(String username, boolean isActive) {
+        Trainee trainee = findTraineeByUsernameOrThrow(username);
         userService.setActiveStatus(trainee.getUser(), isActive);
 
     }
@@ -235,15 +232,6 @@ public class TraineeServiceImpl implements TraineeService {
     private Trainee findTraineeByUsernameWithDetailsOrThrow(String username) {
         return traineeDao.findByUsernameWithDetails(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Trainee", "username", username));
-    }
-
-
-    private Trainee buildTraineeForCreate(TraineeRegisterRequest data, User user) {
-        Trainee trainee = new Trainee();
-        trainee.setUser(user);
-        applyTraineeProfile(trainee, data);
-
-        return trainee;
     }
 
 

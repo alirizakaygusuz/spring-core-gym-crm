@@ -2,6 +2,7 @@ package com.alirizakaygusuz.gymcrm.service.user;
 
 import com.alirizakaygusuz.gymcrm.dto.common.UserRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.common.UserUpdateRequest;
+import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.User;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
@@ -37,6 +38,17 @@ public class UserDomainService {
         return buildUser(request, username, rawPassword);
     }
 
+    private User buildUser(UserRegisterRequest request, String username, String rawPassword) {
+        var user = new User();
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+        user.setActive(true);
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(rawPassword));
+        return user;
+    }
+
+
     public void applyUpdate(User user, UserUpdateRequest request) {
 
         commonValidator.validateNotNull(user, "User");
@@ -66,16 +78,5 @@ public class UserDomainService {
 
         user.setActive(desiredActive);
     }
-
-    private User buildUser(UserRegisterRequest request, String username, String rawPassword) {
-        User user = new User();
-        user.setFirstName(request.firstName());
-        user.setLastName(request.lastName());
-        user.setActive(true);
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(rawPassword));
-        return user;
-    }
-
 
 }

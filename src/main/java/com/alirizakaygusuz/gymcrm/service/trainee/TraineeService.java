@@ -15,35 +15,28 @@ public interface TraineeService {
 
     TraineeRegisterResponse register(TraineeRegisterRequest request);
 
-    TraineeProfileResponse getProfile(String currentUsername,
-                                      String targetUsername);
+    TraineeProfileResponse getProfile(String username);
 
-    TraineeProfileUpdateResponse updateProfile(String currentUsername,
-                                               String targetUsername,
+    TraineeProfileUpdateResponse updateProfile(String username,
                                                TraineeProfileUpdateRequest request);
 
-    void deleteProfile(String currentUsername,
-                       String targetUsername);
+    void deleteProfile(String username);
 
     List<TrainerProfileSummaryResponse> getNotAssignedActiveTrainers(
-            String currentUsername,
-            String targetUsername
+            String username
     );
 
     List<TrainerProfileSummaryResponse> updateTrainerList(
-            String currentUsername,
-            String targetUsername,
+            String username,
             List<String> trainerUsernames
     );
 
 
-    List<TraineeTrainingFilterResponse> getTrainings(String currentUsername,
-                                                     String targetUsername,
+    List<TraineeTrainingFilterResponse> getTrainings(String username,
                                                      TraineeTrainingFilterRequest filters);
 
     void setActiveStatus(
-            String currentUsername,
-            String targetUsername,
+            String username,
             boolean isActive
     );
 

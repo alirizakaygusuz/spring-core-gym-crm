@@ -59,7 +59,5 @@ public class TraineeDao {
         entityManager.remove(trainee);
     }
 
-    public boolean existsByUsername(String username) {
-       return  findByUsername(username).isPresent();
-    }
+
 }

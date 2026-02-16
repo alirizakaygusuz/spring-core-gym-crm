@@ -30,6 +30,7 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    @Transactional
     public void setActiveStatus(User user, boolean desiredActive) {
         userDomainService.setActiveStatus(user, desiredActive);
         userDao.update(user);

@@ -26,7 +26,7 @@ public class TraineeTrainerDao {
         String jpql = """
                     select tr
                     from Trainer tr
-                    where tr.isActive = true
+                    where tr.user.active = true
                       and not exists (
                         select 1
                         from TraineeTrainer tt

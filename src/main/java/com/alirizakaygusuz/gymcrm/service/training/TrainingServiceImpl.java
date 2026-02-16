@@ -11,10 +11,10 @@ import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.model.Trainer;
 import com.alirizakaygusuz.gymcrm.model.Training;
 import com.alirizakaygusuz.gymcrm.model.TrainingType;
-import com.alirizakaygusuz.gymcrm.service.validator.SelfAccessValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -29,20 +29,15 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainingTypeDao trainingTypeDao;
     private final TrainingDao trainingDao;
 
-    private final SelfAccessValidator selfAccessValidator;
-
 
     @Override
+    @Transactional
     public void addTraining(
-            String currentUsername,
             TrainingCreateRequest request
     ) {
 
-        selfAccessValidator.assertSelfAccess(currentUsername, request.trainerUsername());
-
-
-        log.info("Add training requested by user={} , trainerName={}, trainingName={}",
-                currentUsername, request.trainerUsername(), request.trainingName());
+        log.info("Add training requested by user-trainerName={} , trainingName={}",
+                 request.trainerUsername(), request.trainingName());
 
         Trainee trainee = traineeDao.findByUsername(request.traineeUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Trainee", "username", request.traineeUsername()));
@@ -62,18 +57,6 @@ public class TrainingServiceImpl implements TrainingService {
 
     }
 
-    @Override
-    public List<TrainingTypeResponse> getTrainingTypes() {
-        log.info("Fetching all training types");
-        return trainingTypeDao.findAll().stream()
-                .map(t -> new TrainingTypeResponse(
-                        t.getId(),
-                        t.getTrainingTypeName()
-                ))
-                .toList();
-    }
-
-
     private Training buildTrainingForCreate(
             TrainingCreateRequest request,
             Trainee trainee, Trainer trainer,
@@ -88,5 +71,19 @@ public class TrainingServiceImpl implements TrainingService {
         training.setTrainingDuration(request.trainingDuration());
         return training;
     }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrainingTypeResponse> getTrainingTypes() {
+        log.info("Fetching all training types");
+        return trainingTypeDao.findAll().stream()
+                .map(t -> new TrainingTypeResponse(
+                        t.getId(),
+                        t.getTrainingTypeName()
+                ))
+                .toList();
+    }
+
 
 }

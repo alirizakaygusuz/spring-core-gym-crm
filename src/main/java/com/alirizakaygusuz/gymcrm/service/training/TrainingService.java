@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface TrainingService {
 
-    void addTraining(String currentUsername, TrainingCreateRequest request);
+    void addTraining(TrainingCreateRequest request);
 
     List<TrainingTypeResponse> getTrainingTypes();
 }

@@ -14,20 +14,16 @@ public interface TrainerService {
 
     TrainerRegisterResponse register(TrainerRegisterRequest request);
 
-    TrainerProfileResponse getProfile(String currentUsername,
-                                      String targetUsername);
+    TrainerProfileResponse getProfile(String username);
 
-    TrainerProfileUpdateResponse updateProfile(String currentUsername,
-                                               String targetUsername,
+    TrainerProfileUpdateResponse updateProfile(String username,
                                                TrainerProfileUpdateRequest request);
 
-    List<TrainerTrainingFilterResponse> getTrainings(String currentUsername,
-                                                     String targetUsername,
+    List<TrainerTrainingFilterResponse> getTrainings(String username,
                                                      TrainerTrainingFilterRequest filters);
 
     void setActiveStatus(
-            String currentUsername,
-            String targetUsername,
+            String username,
             boolean isActive
     );
 }

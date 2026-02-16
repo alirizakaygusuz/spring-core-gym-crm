@@ -1,12 +1,14 @@
 package com.alirizakaygusuz.gymcrm.service.auth;
 
 import com.alirizakaygusuz.gymcrm.dto.auth.ChangePasswordRequest;
+import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
+import com.alirizakaygusuz.gymcrm.dto.auth.LoginResponse;
 
 public interface AuthService {
 
-    void login(String username, String password);
+    LoginResponse login(LoginRequest request);
 
-    void changePassword(String currentUsername, ChangePasswordRequest request);
+    void changePassword(ChangePasswordRequest request);
 
     boolean authenticate(String username, String password);
 }
