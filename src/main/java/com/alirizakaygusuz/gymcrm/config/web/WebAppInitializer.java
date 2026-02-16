@@ -1,41 +1,65 @@
 package com.alirizakaygusuz.gymcrm.config.web;
 
+import com.alirizakaygusuz.gymcrm.config.app.AppConfig;
+import com.alirizakaygusuz.gymcrm.config.jackson.JacksonConfig;
+import com.alirizakaygusuz.gymcrm.config.persistence.PersistenceConfiguration;
+import com.alirizakaygusuz.gymcrm.config.security.SecurityConfig;
+import com.alirizakaygusuz.gymcrm.config.validation.ValidationConfig;
 import jakarta.servlet.DispatcherType;
 import org.springframework.web.WebApplicationInitializer;
+import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
+import org.springframework.web.filter.RequestContextFilter;
+import org.springframework.web.servlet.DispatcherServlet;
 
 import java.util.EnumSet;
 
 public class WebAppInitializer implements WebApplicationInitializer {
   @Override
   public void onStartup(jakarta.servlet.ServletContext sc) {
+
     // ROOT CONTEXT - Business logic, persistence, security
-    var root = new org.springframework.web.context.support.AnnotationConfigWebApplicationContext();
+    var root = new AnnotationConfigWebApplicationContext();
     root.register(
-            com.alirizakaygusuz.gymcrm.config.app.AppConfig.class,
-            com.alirizakaygusuz.gymcrm.config.persistence.PersistenceConfiguration.class,
-            com.alirizakaygusuz.gymcrm.config.security.SecurityConfig.class,
-            com.alirizakaygusuz.gymcrm.config.jackson.JacksonConfig.class,
-            com.alirizakaygusuz.gymcrm.config.validation.ValidationConfig.class
+            AppConfig.class,
+            PersistenceConfiguration.class,
+            SecurityConfig.class,
+            JacksonConfig.class,
+            ValidationConfig.class
     );
 
-    sc.addListener(new org.springframework.web.context.ContextLoaderListener(root));
+    sc.addListener(new ContextLoaderListener(root));
 
-    var servlet = new org.springframework.web.context.support.AnnotationConfigWebApplicationContext();
-    servlet.setParent(root);  // Root context'i parent yap
+    var servlet = new AnnotationConfigWebApplicationContext();
+    servlet.setParent(root);
     servlet.register(
-            com.alirizakaygusuz.gymcrm.config.web.WebConfig.class,
-            com.alirizakaygusuz.gymcrm.config.web.OpenApiConfig.class  // BURAYA TAŞI
+            WebConfig.class,
+            OpenApiConfig.class
     );
 
-    var dispatcher = sc.addServlet("dispatcher", new org.springframework.web.servlet.DispatcherServlet(servlet));
+    var dispatcher = sc.addServlet("dispatcher", new DispatcherServlet(servlet));
     dispatcher.setLoadOnStartup(1);
     dispatcher.addMapping("/");
 
-    var authFilter = sc.addFilter(
-            "authenticationFilter",
-            new DelegatingFilterProxy("authenticationFilter", root)
+
+
+    var requestContextFilter = sc.addFilter("requestContextFilter", new RequestContextFilter());
+    requestContextFilter.addMappingForUrlPatterns(
+            EnumSet.of(DispatcherType.REQUEST),
+            false,
+            "/*"
     );
-    authFilter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, "/*");
+    var jwtFilter = sc.addFilter(
+            "jwtAuthenticationFilter",
+            new DelegatingFilterProxy("jwtAuthenticationFilter", root)
+    );
+    jwtFilter.addMappingForUrlPatterns(
+            EnumSet.of(DispatcherType.REQUEST),
+            false,
+            "/*"
+    );
+
+
   }
 }

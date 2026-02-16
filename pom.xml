@@ -42,6 +42,7 @@
         <tomcat-embed-core.version>11.0.0</tomcat-embed-core.version>
         <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
         <springdoc-openapi-ui.version>2.7.0</springdoc-openapi-ui.version>
+        <jwt.version>0.13.0</jwt.version>
     </properties>
 
     <dependencyManagement>
@@ -304,6 +305,31 @@
         </dependency>
 
 
+
+        <!--============ JWT Dependencies ============= -->
+        <!-- Source: https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jwt.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Source: https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Source: https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
 
     </dependencies>
 

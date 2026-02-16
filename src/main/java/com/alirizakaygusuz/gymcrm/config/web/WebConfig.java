@@ -1,7 +1,9 @@
 package com.alirizakaygusuz.gymcrm.config.web;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.filter.RequestContextFilter;
 import org.springframework.web.servlet.config.annotation.*;
 
 
@@ -9,11 +11,17 @@ import org.springframework.web.servlet.config.annotation.*;
 @EnableWebMvc
 @ComponentScan(
         basePackages = {
-                "com.alirizakaygusuz.gymcrm.controller",  // Kendi controller'larını yükle
-                "org.springdoc"  // Springdoc controller'larını yükle
+                "com.alirizakaygusuz.gymcrm.controller",
+                "org.springdoc"  
         }
 )
 public class WebConfig implements WebMvcConfigurer {
+
+
+    @Bean
+    public RequestContextFilter requestContextFilter() {
+        return new RequestContextFilter();
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -47,9 +55,14 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("X-Username", "X-Password", "Content-Type", "Authorization")
+                .allowedHeaders("Content-Type", "Authorization")
                 .allowCredentials(false);
     }
+
+
+
+
+
 }
 
 
