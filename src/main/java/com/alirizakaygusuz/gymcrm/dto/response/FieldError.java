@@ -10,13 +10,13 @@ public record FieldError(
 
         @Schema(
                 description = "Name of the field that caused the validation error.",
-                example = "firstName"
+                example = "field"
         )
         String field,
 
         @Schema(
                 description = "Validation error message associated with the field.",
-                example = "First name is required"
+                example = "message name is required"
         )
         String message
 ) {
