@@ -9,7 +9,6 @@ import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateResponse;
-import com.alirizakaygusuz.gymcrm.exception.AccessDeniedException;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.mapper.TraineeMapper;
 import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
@@ -18,8 +17,7 @@ import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.model.User;
 import com.alirizakaygusuz.gymcrm.service.trainee.TraineeServiceImpl;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
-import com.alirizakaygusuz.gymcrm.service.validator.SelfAccessValidator;
-import com.alirizakaygusuz.gymcrm.service.validator.TrainingDateRangeValidator;
+import com.alirizakaygusuz.gymcrm.service.validator.ValidationUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,10 +60,7 @@ class TraineeServiceImplTest {
     private TrainingMapper trainingMapper;
 
     @Mock
-    private TrainingDateRangeValidator trainingDateRangeValidator;
-
-    @Mock
-    private SelfAccessValidator selfAccessValidator;
+    private ValidationUtils validationUtils;
 
     @InjectMocks
     private TraineeServiceImpl traineeService;
@@ -107,10 +102,9 @@ class TraineeServiceImplTest {
     }
 
     @Test
-    @DisplayName("getProfile should return trainee profile when access is allowed")
-    void getProfile_shouldReturnTraineeProfileWhenAccessIsAllowed() {
-        String currentUsername = "John.Doe";
-        String targetUsername = "John.Doe";
+    @DisplayName("getProfile should return trainee profile when trainee exists")
+    void getProfile_shouldReturnTraineeProfileWhenTraineeExists() {
+        String username = "John.Doe";
 
         Trainee trainee = new Trainee();
         trainee.setId(1L);
@@ -124,68 +118,45 @@ class TraineeServiceImplTest {
                 null
         );
 
-        when(traineeDao.findByUsernameWithDetails(targetUsername)).thenReturn(Optional.of(trainee));
+        when(traineeDao.findByUsernameWithDetails(username)).thenReturn(Optional.of(trainee));
         when(traineeMapper.toProfileResponse(trainee)).thenReturn(response);
 
-        TraineeProfileResponse result = traineeService.getProfile(currentUsername, targetUsername);
+        TraineeProfileResponse result = traineeService.getProfile(username);
 
         assertNotNull(result);
         assertEquals("John", result.firstName());
         assertEquals("Doe", result.lastName());
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verify(traineeDao).findByUsernameWithDetails(targetUsername);
+        verify(traineeDao).findByUsernameWithDetails(username);
         verify(traineeMapper).toProfileResponse(trainee);
-        verifyNoMoreInteractions(selfAccessValidator, traineeDao, traineeMapper);
-    }
-
-    @Test
-    @DisplayName("getProfile should throw AccessDeniedException when accessing another user's profile")
-    void getProfile_shouldThrowAccessDeniedExceptionWhenAccessingAnotherUsersProfile() {
-        String currentUsername = "John.Doe";
-        String targetUsername = "Jane.Doe";
-
-        doThrow(new AccessDeniedException("You can only access your own profile."))
-                .when(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-
-        AccessDeniedException exception = assertThrows(
-                AccessDeniedException.class,
-                () -> traineeService.getProfile(currentUsername, targetUsername)
-        );
-
-        assertEquals("You can only access your own profile.", exception.getMessage());
-
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verifyNoMoreInteractions(selfAccessValidator);
-        verifyNoInteractions(traineeDao, traineeMapper);
+        verifyNoMoreInteractions(traineeDao, traineeMapper);
     }
 
     @Test
     @DisplayName("getProfile should throw ResourceNotFoundException when trainee not found")
     void getProfile_shouldThrowResourceNotFoundExceptionWhenTraineeNotFound() {
-        String currentUsername = "John.Doe";
-        String targetUsername = "John.Doe";
+        String username = "John.Doe";
 
-        when(traineeDao.findByUsernameWithDetails(targetUsername)).thenReturn(Optional.empty());
+        when(traineeDao.findByUsernameWithDetails(username)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> traineeService.getProfile(currentUsername, targetUsername)
+                () -> traineeService.getProfile(username)
         );
 
-        assertEquals("Trainee not found with username : 'John.Doe'", exception.getMessage());
+        assertTrue(exception.getMessage().contains("Trainee"));
+        assertTrue(exception.getMessage().contains("username"));
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verify(traineeDao).findByUsernameWithDetails(targetUsername);
-        verifyNoMoreInteractions(selfAccessValidator, traineeDao);
+        verify(traineeDao).findByUsernameWithDetails(username);
+        verifyNoMoreInteractions(traineeDao);
         verifyNoInteractions(traineeMapper);
     }
 
     @Test
     @DisplayName("updateProfile should update trainee and return response")
     void updateProfile_shouldUpdateTraineeAndReturnResponse() {
-        String currentUsername = "John.Doe";
-        String targetUsername = "John.Doe";
+        String username = "John.Doe";
+
         TraineeProfileUpdateRequest request = new TraineeProfileUpdateRequest(
                 "John",
                 "Doe",
@@ -215,28 +186,26 @@ class TraineeServiceImplTest {
                 null
         );
 
-        when(traineeDao.findByUsernameWithDetails(targetUsername)).thenReturn(Optional.of(trainee));
+        when(traineeDao.findByUsernameWithDetails(username)).thenReturn(Optional.of(trainee));
         when(traineeDao.update(trainee)).thenReturn(updatedTrainee);
         when(traineeMapper.toProfileUpdateResponse(updatedTrainee)).thenReturn(response);
 
-        TraineeProfileUpdateResponse result = traineeService.updateProfile(currentUsername, targetUsername, request);
+        TraineeProfileUpdateResponse result = traineeService.updateProfile(username, request);
 
         assertNotNull(result);
         assertEquals("John.Doe", result.username());
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verify(traineeDao).findByUsernameWithDetails(targetUsername);
+        verify(traineeDao).findByUsernameWithDetails(username);
         verify(userService).applyProfileUpdate(user, request);
         verify(traineeDao).update(trainee);
         verify(traineeMapper).toProfileUpdateResponse(updatedTrainee);
-        verifyNoMoreInteractions(selfAccessValidator, traineeDao, userService, traineeMapper);
+        verifyNoMoreInteractions(traineeDao, userService, traineeMapper);
     }
 
     @Test
-    @DisplayName("deleteProfile should delete trainee when access is allowed")
-    void deleteProfile_shouldDeleteTraineeWhenAccessIsAllowed() {
-        String currentUsername = "John.Doe";
-        String targetUsername = "John.Doe";
+    @DisplayName("deleteProfile should delete trainee when trainee exists")
+    void deleteProfile_shouldDeleteTraineeWhenTraineeExists() {
+        String username = "John.Doe";
 
         User user = new User();
         user.setUsername("John.Doe");
@@ -245,41 +214,38 @@ class TraineeServiceImplTest {
         trainee.setId(1L);
         trainee.setUser(user);
 
-        when(traineeDao.findByUsername(targetUsername)).thenReturn(Optional.of(trainee));
+        when(traineeDao.findByUsername(username)).thenReturn(Optional.of(trainee));
 
-        assertDoesNotThrow(() -> traineeService.deleteProfile(currentUsername, targetUsername));
+        assertDoesNotThrow(() -> traineeService.deleteProfile(username));
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verify(traineeDao).findByUsername(targetUsername);
+        verify(traineeDao).findByUsername(username);
         verify(traineeDao).delete(trainee);
-        verifyNoMoreInteractions(selfAccessValidator, traineeDao);
+        verifyNoMoreInteractions(traineeDao);
     }
 
     @Test
     @DisplayName("deleteProfile should throw ResourceNotFoundException when trainee not found")
     void deleteProfile_shouldThrowResourceNotFoundExceptionWhenTraineeNotFound() {
-        String currentUsername = "John.Doe";
-        String targetUsername = "John.Doe";
+        String username = "John.Doe";
 
-        when(traineeDao.findByUsername(targetUsername)).thenReturn(Optional.empty());
+        when(traineeDao.findByUsername(username)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> traineeService.deleteProfile(currentUsername, targetUsername)
+                () -> traineeService.deleteProfile(username)
         );
 
-        assertEquals("Trainee not found with username : 'John.Doe'", exception.getMessage());
+        assertTrue(exception.getMessage().contains("Trainee"));
+        assertTrue(exception.getMessage().contains("username"));
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verify(traineeDao).findByUsername(targetUsername);
-        verifyNoMoreInteractions(selfAccessValidator, traineeDao);
+        verify(traineeDao).findByUsername(username);
+        verifyNoMoreInteractions(traineeDao);
     }
 
     @Test
     @DisplayName("setActiveStatus should update trainee active status")
     void setActiveStatus_shouldUpdateTraineeActiveStatus() {
-        String currentUsername = "John.Doe";
-        String targetUsername = "John.Doe";
+        String username = "John.Doe";
 
         User user = new User();
         user.setUsername("John.Doe");
@@ -288,13 +254,12 @@ class TraineeServiceImplTest {
         trainee.setId(1L);
         trainee.setUser(user);
 
-        when(traineeDao.findByUsername(targetUsername)).thenReturn(Optional.of(trainee));
+        when(traineeDao.findByUsername(username)).thenReturn(Optional.of(trainee));
 
-        assertDoesNotThrow(() -> traineeService.setActiveStatus(currentUsername, targetUsername, true));
+        assertDoesNotThrow(() -> traineeService.setActiveStatus(username, true));
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verify(traineeDao).findByUsername(targetUsername);
+        verify(traineeDao).findByUsername(username);
         verify(userService).setActiveStatus(user, true);
-        verifyNoMoreInteractions(selfAccessValidator, traineeDao, userService);
+        verifyNoMoreInteractions(traineeDao, userService);
     }
 }

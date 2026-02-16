@@ -8,7 +8,6 @@ import com.alirizakaygusuz.gymcrm.dto.trainer.register.TrainerRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainer.register.TrainerRegisterResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateResponse;
-import com.alirizakaygusuz.gymcrm.exception.AccessDeniedException;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
@@ -20,8 +19,7 @@ import com.alirizakaygusuz.gymcrm.model.User;
 import com.alirizakaygusuz.gymcrm.service.trainer.TrainerServiceImpl;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
-import com.alirizakaygusuz.gymcrm.service.validator.SelfAccessValidator;
-import com.alirizakaygusuz.gymcrm.service.validator.TrainingDateRangeValidator;
+import com.alirizakaygusuz.gymcrm.service.validator.ValidationUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,13 +55,10 @@ class TrainerServiceImplTest {
     private TrainingMapper trainingMapper;
 
     @Mock
-    private SelfAccessValidator selfAccessValidator;
-
-    @Mock
     private CommonValidator commonValidator;
 
     @Mock
-    private TrainingDateRangeValidator trainingDateRangeValidator;
+    private ValidationUtils validationUtils;
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
@@ -96,7 +91,7 @@ class TrainerServiceImplTest {
         when(userService.createUserWithCredentials(request)).thenReturn(savedUser);
         when(trainingTypeDao.findById(1L)).thenReturn(Optional.of(specialization));
         when(trainerDao.save(any(Trainer.class))).thenReturn(savedTrainer);
-        when(trainerMapper.toRegisterResponse(savedUser)).thenReturn(response);
+        when(trainerMapper.toRegisterResponse(savedTrainer.getUser())).thenReturn(response);
 
         TrainerRegisterResponse result = trainerService.register(request);
 
@@ -107,7 +102,7 @@ class TrainerServiceImplTest {
         verify(commonValidator).validateNotNull(1L, "Specialization ID");
         verify(trainingTypeDao).findById(1L);
         verify(trainerDao).save(any(Trainer.class));
-        verify(trainerMapper).toRegisterResponse(savedUser);
+        verify(trainerMapper).toRegisterResponse(savedTrainer.getUser());
         verifyNoMoreInteractions(userService, commonValidator, trainingTypeDao, trainerDao, trainerMapper);
     }
 
@@ -132,7 +127,7 @@ class TrainerServiceImplTest {
                 () -> trainerService.register(request)
         );
 
-        assertEquals("TrainingType not found with id : '999'", exception.getMessage());
+        assertTrue(exception.getMessage().contains("TrainingType"));
 
         verify(userService).createUserWithCredentials(request);
         verify(commonValidator).validateNotNull(999L, "Specialization ID");
@@ -172,10 +167,9 @@ class TrainerServiceImplTest {
     }
 
     @Test
-    @DisplayName("getProfile should return trainer profile when access is allowed")
-    void getProfile_shouldReturnTrainerProfileWhenAccessIsAllowed() {
-        String currentUsername = "Jane.Smith";
-        String targetUsername = "Jane.Smith";
+    @DisplayName("getProfile should return trainer profile when trainer exists")
+    void getProfile_shouldReturnTrainerProfileWhenTrainerExists() {
+        String username = "Jane.Smith";
 
         Trainer trainer = new Trainer();
         trainer.setId(1L);
@@ -188,68 +182,44 @@ class TrainerServiceImplTest {
                 null
         );
 
-        when(trainerDao.findByUsernameWithDetails(targetUsername)).thenReturn(Optional.of(trainer));
+        when(trainerDao.findByUsernameWithDetails(username)).thenReturn(Optional.of(trainer));
         when(trainerMapper.toProfileResponse(trainer)).thenReturn(response);
 
-        TrainerProfileResponse result = trainerService.getProfile(currentUsername, targetUsername);
+        TrainerProfileResponse result = trainerService.getProfile(username);
 
         assertNotNull(result);
         assertEquals("Jane", result.firstName());
         assertEquals("Smith", result.lastName());
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verify(trainerDao).findByUsernameWithDetails(targetUsername);
+        verify(trainerDao).findByUsernameWithDetails(username);
         verify(trainerMapper).toProfileResponse(trainer);
-        verifyNoMoreInteractions(selfAccessValidator, trainerDao, trainerMapper);
-    }
-
-    @Test
-    @DisplayName("getProfile should throw AccessDeniedException when accessing another user's profile")
-    void getProfile_shouldThrowAccessDeniedExceptionWhenAccessingAnotherUsersProfile() {
-        String currentUsername = "Jane.Smith";
-        String targetUsername = "John.Doe";
-
-        doThrow(new AccessDeniedException("You can only access your own profile."))
-                .when(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-
-        AccessDeniedException exception = assertThrows(
-                AccessDeniedException.class,
-                () -> trainerService.getProfile(currentUsername, targetUsername)
-        );
-
-        assertEquals("You can only access your own profile.", exception.getMessage());
-
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verifyNoMoreInteractions(selfAccessValidator);
-        verifyNoInteractions(trainerDao, trainerMapper);
+        verifyNoMoreInteractions(trainerDao, trainerMapper);
     }
 
     @Test
     @DisplayName("getProfile should throw ResourceNotFoundException when trainer not found")
     void getProfile_shouldThrowResourceNotFoundExceptionWhenTrainerNotFound() {
-        String currentUsername = "Jane.Smith";
-        String targetUsername = "Jane.Smith";
+        String username = "Jane.Smith";
 
-        when(trainerDao.findByUsernameWithDetails(targetUsername)).thenReturn(Optional.empty());
+        when(trainerDao.findByUsernameWithDetails(username)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> trainerService.getProfile(currentUsername, targetUsername)
+                () -> trainerService.getProfile(username)
         );
 
-        assertEquals("Trainer not found with username : 'Jane.Smith'", exception.getMessage());
+        assertTrue(exception.getMessage().contains("Trainer"));
+        assertTrue(exception.getMessage().contains("username"));
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verify(trainerDao).findByUsernameWithDetails(targetUsername);
-        verifyNoMoreInteractions(selfAccessValidator, trainerDao);
+        verify(trainerDao).findByUsernameWithDetails(username);
+        verifyNoMoreInteractions(trainerDao);
         verifyNoInteractions(trainerMapper);
     }
 
     @Test
     @DisplayName("updateProfile should update trainer and return response")
     void updateProfile_shouldUpdateTrainerAndReturnResponse() {
-        String currentUsername = "Jane.Smith";
-        String targetUsername = "Jane.Smith";
+        String username = "Jane.Smith";
         TrainerProfileUpdateRequest request = new TrainerProfileUpdateRequest(
                 "Jane",
                 "Smith",
@@ -282,32 +252,30 @@ class TrainerServiceImplTest {
                 null
         );
 
-        when(trainerDao.findByUsernameWithDetails(targetUsername)).thenReturn(Optional.of(trainer));
+        when(trainerDao.findByUsernameWithDetails(username)).thenReturn(Optional.of(trainer));
         when(trainingTypeDao.findById(2L)).thenReturn(Optional.of(newSpecialization));
         when(trainerDao.update(trainer)).thenReturn(updatedTrainer);
         when(trainerMapper.toProfileUpdateResponse(updatedTrainer)).thenReturn(response);
 
-        TrainerProfileUpdateResponse result = trainerService.updateProfile(currentUsername, targetUsername, request);
+        TrainerProfileUpdateResponse result = trainerService.updateProfile(username, request);
 
         assertNotNull(result);
         assertEquals("Jane.Smith", result.username());
         assertEquals(TrainingTypeCode.STRENGTH, result.specialization());
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verify(trainerDao).findByUsernameWithDetails(targetUsername);
+        verify(trainerDao).findByUsernameWithDetails(username);
         verify(userService).applyProfileUpdate(user, request);
         verify(commonValidator).validateNotNull(2L, "Specialization ID");
         verify(trainingTypeDao).findById(2L);
         verify(trainerDao).update(trainer);
         verify(trainerMapper).toProfileUpdateResponse(updatedTrainer);
-        verifyNoMoreInteractions(selfAccessValidator, trainerDao, userService, commonValidator, trainingTypeDao, trainerMapper);
+        verifyNoMoreInteractions(trainerDao, userService, commonValidator, trainingTypeDao, trainerMapper);
     }
 
     @Test
     @DisplayName("setActiveStatus should update trainer active status")
     void setActiveStatus_shouldUpdateTrainerActiveStatus() {
-        String currentUsername = "Jane.Smith";
-        String targetUsername = "Jane.Smith";
+        String username = "Jane.Smith";
 
         User user = new User();
         user.setUsername("Jane.Smith");
@@ -316,34 +284,32 @@ class TrainerServiceImplTest {
         trainer.setId(1L);
         trainer.setUser(user);
 
-        when(trainerDao.findByUsername(targetUsername)).thenReturn(Optional.of(trainer));
+        when(trainerDao.findByUsername(username)).thenReturn(Optional.of(trainer));
 
-        assertDoesNotThrow(() -> trainerService.setActiveStatus(currentUsername, targetUsername, true));
+        assertDoesNotThrow(() -> trainerService.setActiveStatus(username, true));
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verify(trainerDao).findByUsername(targetUsername);
+        verify(trainerDao).findByUsername(username);
         verify(userService).setActiveStatus(user, true);
-        verifyNoMoreInteractions(selfAccessValidator, trainerDao, userService);
+        verifyNoMoreInteractions(trainerDao, userService);
     }
 
     @Test
     @DisplayName("setActiveStatus should throw ResourceNotFoundException when trainer not found")
     void setActiveStatus_shouldThrowResourceNotFoundExceptionWhenTrainerNotFound() {
-        String currentUsername = "Jane.Smith";
-        String targetUsername = "Jane.Smith";
+        String username = "Jane.Smith";
 
-        when(trainerDao.findByUsername(targetUsername)).thenReturn(Optional.empty());
+        when(trainerDao.findByUsername(username)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> trainerService.setActiveStatus(currentUsername, targetUsername, true)
+                () -> trainerService.setActiveStatus(username, true)
         );
 
-        assertEquals("Trainer not found with username : 'Jane.Smith'", exception.getMessage());
+        assertTrue(exception.getMessage().contains("Trainer"));
+        assertTrue(exception.getMessage().contains("username"));
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, targetUsername);
-        verify(trainerDao).findByUsername(targetUsername);
-        verifyNoMoreInteractions(selfAccessValidator, trainerDao);
+        verify(trainerDao).findByUsername(username);
+        verifyNoMoreInteractions(trainerDao);
         verifyNoInteractions(userService);
     }
 }

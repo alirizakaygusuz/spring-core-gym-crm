@@ -1,12 +1,15 @@
 package service;
 
+import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
+import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.UserDao;
 import com.alirizakaygusuz.gymcrm.dto.auth.ChangePasswordRequest;
-import com.alirizakaygusuz.gymcrm.exception.AccessDeniedException;
+import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
+import com.alirizakaygusuz.gymcrm.dto.auth.LoginResponse;
 import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
 import com.alirizakaygusuz.gymcrm.model.User;
+import com.alirizakaygusuz.gymcrm.security.jwt.JwtService;
 import com.alirizakaygusuz.gymcrm.service.auth.AuthServiceImpl;
-import com.alirizakaygusuz.gymcrm.service.validator.SelfAccessValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,10 +30,16 @@ class AuthServiceImplTest {
     private UserDao userDao;
 
     @Mock
+    private TraineeDao traineeDao;
+
+    @Mock
+    private TrainerDao trainerDao;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
-    private SelfAccessValidator selfAccessValidator;
+    private JwtService jwtService;
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -41,19 +50,30 @@ class AuthServiceImplTest {
         String username = "john.doe";
         String password = "password123";
 
+        LoginRequest request = new LoginRequest(username, password);
+
         User user = new User();
         user.setUsername(username);
         user.setPassword("encodedPassword");
 
         when(userDao.findByUsername(username)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, "encodedPassword")).thenReturn(true);
+        when(jwtService.generateToken(username)).thenReturn("token123");
+        when(jwtService.getExpirationTime()).thenReturn(3600000L);
 
-        assertDoesNotThrow(() -> authService.login(username, password));
+        LoginResponse response = authService.login(request);
+
+        assertNotNull(response);
+        assertEquals("token123", response.accessToken());
+        assertEquals("Bearer", response.tokenType());
+        assertEquals(3600000L, response.expiresIn());
 
         verify(userDao).findByUsername(username);
         verify(passwordEncoder).matches(password, "encodedPassword");
-        verifyNoMoreInteractions(userDao, passwordEncoder);
-        verifyNoInteractions(selfAccessValidator);
+        verify(jwtService).generateToken(username);
+        verify(jwtService).getExpirationTime();
+        verifyNoMoreInteractions(userDao, passwordEncoder, jwtService);
+        verifyNoInteractions(traineeDao, trainerDao);
     }
 
     @Test
@@ -62,18 +82,20 @@ class AuthServiceImplTest {
         String username = "john.doe";
         String password = "password123";
 
+        LoginRequest request = new LoginRequest(username, password);
+
         when(userDao.findByUsername(username)).thenReturn(Optional.empty());
 
         AuthenticationFailedException exception = assertThrows(
                 AuthenticationFailedException.class,
-                () -> authService.login(username, password)
+                () -> authService.login(request)
         );
 
         assertEquals("Invalid username or password", exception.getMessage());
 
         verify(userDao).findByUsername(username);
         verifyNoMoreInteractions(userDao);
-        verifyNoInteractions(passwordEncoder, selfAccessValidator);
+        verifyNoInteractions(passwordEncoder, jwtService, traineeDao, trainerDao);
     }
 
     @Test
@@ -81,6 +103,8 @@ class AuthServiceImplTest {
     void login_shouldThrowAuthenticationFailedExceptionWhenPasswordIsIncorrect() {
         String username = "john.doe";
         String password = "wrongPassword";
+
+        LoginRequest request = new LoginRequest(username, password);
 
         User user = new User();
         user.setUsername(username);
@@ -91,7 +115,7 @@ class AuthServiceImplTest {
 
         AuthenticationFailedException exception = assertThrows(
                 AuthenticationFailedException.class,
-                () -> authService.login(username, password)
+                () -> authService.login(request)
         );
 
         assertEquals("Invalid username or password", exception.getMessage());
@@ -99,13 +123,12 @@ class AuthServiceImplTest {
         verify(userDao).findByUsername(username);
         verify(passwordEncoder).matches(password, "encodedPassword");
         verifyNoMoreInteractions(userDao, passwordEncoder);
-        verifyNoInteractions(selfAccessValidator);
+        verifyNoInteractions(jwtService, traineeDao, trainerDao);
     }
 
     @Test
-    @DisplayName("changePassword should update password when valid request and access allowed")
-    void changePassword_shouldUpdatePasswordWhenValidRequestAndAccessAllowed() {
-        String currentUsername = "john.doe";
+    @DisplayName("changePassword should update password when valid request")
+    void changePassword_shouldUpdatePasswordWhenValidRequest() {
         ChangePasswordRequest request = new ChangePasswordRequest(
                 "john.doe",
                 "oldPassword",
@@ -119,46 +142,20 @@ class AuthServiceImplTest {
         when(userDao.findByUsername(request.username())).thenReturn(Optional.of(user));
         when(passwordEncoder.encode(request.newPassword())).thenReturn("newEncodedPassword");
 
-        assertDoesNotThrow(() -> authService.changePassword(currentUsername, request));
+        assertDoesNotThrow(() -> authService.changePassword(request));
 
         assertEquals("newEncodedPassword", user.getPassword());
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, request.username());
         verify(userDao).findByUsername(request.username());
         verify(passwordEncoder).encode(request.newPassword());
         verify(userDao).update(user);
-        verifyNoMoreInteractions(selfAccessValidator, userDao, passwordEncoder);
-    }
-
-    @Test
-    @DisplayName("changePassword should throw AccessDeniedException when trying to change another user's password")
-    void changePassword_shouldThrowAccessDeniedExceptionWhenTryingToChangeAnotherUsersPassword() {
-        String currentUsername = "john.doe";
-        ChangePasswordRequest request = new ChangePasswordRequest(
-                "jane.doe",
-                "oldPassword",
-                "newPassword123"
-        );
-
-        doThrow(new AccessDeniedException("You can only access your own profile."))
-                .when(selfAccessValidator).assertSelfAccess(currentUsername, request.username());
-
-        AccessDeniedException exception = assertThrows(
-                AccessDeniedException.class,
-                () -> authService.changePassword(currentUsername, request)
-        );
-
-        assertEquals("You can only access your own profile.", exception.getMessage());
-
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, request.username());
-        verifyNoMoreInteractions(selfAccessValidator);
-        verifyNoInteractions(userDao, passwordEncoder);
+        verifyNoMoreInteractions(userDao, passwordEncoder);
+        verifyNoInteractions(jwtService, traineeDao, trainerDao);
     }
 
     @Test
     @DisplayName("changePassword should throw AuthenticationFailedException when user not found")
     void changePassword_shouldThrowAuthenticationFailedExceptionWhenUserNotFound() {
-        String currentUsername = "john.doe";
         ChangePasswordRequest request = new ChangePasswordRequest(
                 "john.doe",
                 "oldPassword",
@@ -169,15 +166,14 @@ class AuthServiceImplTest {
 
         AuthenticationFailedException exception = assertThrows(
                 AuthenticationFailedException.class,
-                () -> authService.changePassword(currentUsername, request)
+                () -> authService.changePassword(request)
         );
 
         assertEquals("Invalid username or password", exception.getMessage());
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, request.username());
         verify(userDao).findByUsername(request.username());
-        verifyNoMoreInteractions(selfAccessValidator, userDao);
-        verifyNoInteractions(passwordEncoder);
+        verifyNoMoreInteractions(userDao);
+        verifyNoInteractions(passwordEncoder, jwtService, traineeDao, trainerDao);
     }
 
     @Test
@@ -200,7 +196,7 @@ class AuthServiceImplTest {
         verify(userDao).findByUsername(username);
         verify(passwordEncoder).matches(password, "encodedPassword");
         verifyNoMoreInteractions(userDao, passwordEncoder);
-        verifyNoInteractions(selfAccessValidator);
+        verifyNoInteractions(jwtService, traineeDao, trainerDao);
     }
 
     @Test
@@ -223,7 +219,7 @@ class AuthServiceImplTest {
         verify(userDao).findByUsername(username);
         verify(passwordEncoder).matches(password, "encodedPassword");
         verifyNoMoreInteractions(userDao, passwordEncoder);
-        verifyNoInteractions(selfAccessValidator);
+        verifyNoInteractions(jwtService, traineeDao, trainerDao);
     }
 
     @Test
@@ -243,6 +239,6 @@ class AuthServiceImplTest {
 
         verify(userDao).findByUsername(username);
         verifyNoMoreInteractions(userDao);
-        verifyNoInteractions(passwordEncoder, selfAccessValidator);
+        verifyNoInteractions(passwordEncoder, jwtService, traineeDao, trainerDao);
     }
 }

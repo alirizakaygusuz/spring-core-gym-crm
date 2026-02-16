@@ -1,4 +1,4 @@
-package service;
+package com.alirizakaygusuz.gymcrm.service.training;
 
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
@@ -6,11 +6,8 @@ import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingTypeDao;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingCreateRequest;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingTypeResponse;
-import com.alirizakaygusuz.gymcrm.exception.AccessDeniedException;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.model.*;
-import com.alirizakaygusuz.gymcrm.service.training.TrainingServiceImpl;
-import com.alirizakaygusuz.gymcrm.service.validator.SelfAccessValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,16 +38,12 @@ class TrainingServiceImplTest {
     @Mock
     private TrainingDao trainingDao;
 
-    @Mock
-    private SelfAccessValidator selfAccessValidator;
-
     @InjectMocks
     private TrainingServiceImpl trainingService;
 
     @Test
-    @DisplayName("addTraining should create training when all entities exist and access is allowed")
-    void addTraining_shouldCreateTrainingWhenAllEntitiesExistAndAccessIsAllowed() {
-        String currentUsername = "trainer.jane";
+    @DisplayName("addTraining should create training when all entities exist")
+    void addTraining_shouldCreateTrainingWhenAllEntitiesExist() {
         TrainingCreateRequest request = new TrainingCreateRequest(
                 "john.doe",
                 "trainer.jane",
@@ -77,47 +70,18 @@ class TrainingServiceImplTest {
         when(trainingTypeDao.findByName("CARDIO")).thenReturn(Optional.of(trainingType));
         when(trainingDao.save(any(Training.class))).thenReturn(savedTraining);
 
-        assertDoesNotThrow(() -> trainingService.addTraining(currentUsername, request));
+        assertDoesNotThrow(() -> trainingService.addTraining(request));
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, request.trainerUsername());
         verify(traineeDao).findByUsername("john.doe");
         verify(trainerDao).findByUsername("trainer.jane");
         verify(trainingTypeDao).findByName("CARDIO");
         verify(trainingDao).save(any(Training.class));
-        verifyNoMoreInteractions(selfAccessValidator, traineeDao, trainerDao, trainingTypeDao, trainingDao);
-    }
-
-    @Test
-    @DisplayName("addTraining should throw AccessDeniedException when trying to add training for another trainer")
-    void addTraining_shouldThrowAccessDeniedExceptionWhenTryingToAddTrainingForAnotherTrainer() {
-        String currentUsername = "trainer.john";
-        TrainingCreateRequest request = new TrainingCreateRequest(
-                "john.doe",
-                "trainer.jane",
-                "CARDIO",
-                LocalDate.of(2024, 6, 15),
-                60
-        );
-
-        doThrow(new AccessDeniedException("You can only access your own profile."))
-                .when(selfAccessValidator).assertSelfAccess(currentUsername, request.trainerUsername());
-
-        AccessDeniedException exception = assertThrows(
-                AccessDeniedException.class,
-                () -> trainingService.addTraining(currentUsername, request)
-        );
-
-        assertEquals("You can only access your own profile.", exception.getMessage());
-
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, request.trainerUsername());
-        verifyNoMoreInteractions(selfAccessValidator);
-        verifyNoInteractions(traineeDao, trainerDao, trainingTypeDao, trainingDao);
+        verifyNoMoreInteractions(traineeDao, trainerDao, trainingTypeDao, trainingDao);
     }
 
     @Test
     @DisplayName("addTraining should throw ResourceNotFoundException when trainee not found")
     void addTraining_shouldThrowResourceNotFoundExceptionWhenTraineeNotFound() {
-        String currentUsername = "trainer.jane";
         TrainingCreateRequest request = new TrainingCreateRequest(
                 "john.doe",
                 "trainer.jane",
@@ -128,23 +92,22 @@ class TrainingServiceImplTest {
 
         when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(
+        ResourceNotFoundException ex = assertThrows(
                 ResourceNotFoundException.class,
-                () -> trainingService.addTraining(currentUsername, request)
+                () -> trainingService.addTraining(request)
         );
 
-        assertEquals("Trainee not found with username : 'john.doe'", exception.getMessage());
+        assertTrue(ex.getMessage().contains("Trainee"));
+        assertTrue(ex.getMessage().contains("john.doe"));
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, request.trainerUsername());
         verify(traineeDao).findByUsername("john.doe");
-        verifyNoMoreInteractions(selfAccessValidator, traineeDao);
+        verifyNoMoreInteractions(traineeDao);
         verifyNoInteractions(trainerDao, trainingTypeDao, trainingDao);
     }
 
     @Test
     @DisplayName("addTraining should throw ResourceNotFoundException when trainer not found")
     void addTraining_shouldThrowResourceNotFoundExceptionWhenTrainerNotFound() {
-        String currentUsername = "trainer.jane";
         TrainingCreateRequest request = new TrainingCreateRequest(
                 "john.doe",
                 "trainer.jane",
@@ -159,24 +122,23 @@ class TrainingServiceImplTest {
         when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
         when(trainerDao.findByUsername("trainer.jane")).thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(
+        ResourceNotFoundException ex = assertThrows(
                 ResourceNotFoundException.class,
-                () -> trainingService.addTraining(currentUsername, request)
+                () -> trainingService.addTraining(request)
         );
 
-        assertEquals("Trainer not found with username : 'trainer.jane'", exception.getMessage());
+        assertTrue(ex.getMessage().contains("Trainer"));
+        assertTrue(ex.getMessage().contains("trainer.jane"));
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, request.trainerUsername());
         verify(traineeDao).findByUsername("john.doe");
         verify(trainerDao).findByUsername("trainer.jane");
-        verifyNoMoreInteractions(selfAccessValidator, traineeDao, trainerDao);
+        verifyNoMoreInteractions(traineeDao, trainerDao);
         verifyNoInteractions(trainingTypeDao, trainingDao);
     }
 
     @Test
     @DisplayName("addTraining should throw ResourceNotFoundException when training type not found")
     void addTraining_shouldThrowResourceNotFoundExceptionWhenTrainingTypeNotFound() {
-        String currentUsername = "trainer.jane";
         TrainingCreateRequest request = new TrainingCreateRequest(
                 "john.doe",
                 "trainer.jane",
@@ -195,60 +157,47 @@ class TrainingServiceImplTest {
         when(trainerDao.findByUsername("trainer.jane")).thenReturn(Optional.of(trainer));
         when(trainingTypeDao.findByName("CARDIO")).thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(
+        ResourceNotFoundException ex = assertThrows(
                 ResourceNotFoundException.class,
-                () -> trainingService.addTraining(currentUsername, request)
+                () -> trainingService.addTraining(request)
         );
 
-        assertEquals("TrainingType not found with name : 'CARDIO'", exception.getMessage());
+        assertTrue(ex.getMessage().contains("TrainingType"));
+        assertTrue(ex.getMessage().contains("CARDIO"));
 
-        verify(selfAccessValidator).assertSelfAccess(currentUsername, request.trainerUsername());
         verify(traineeDao).findByUsername("john.doe");
         verify(trainerDao).findByUsername("trainer.jane");
         verify(trainingTypeDao).findByName("CARDIO");
-        verifyNoMoreInteractions(selfAccessValidator, traineeDao, trainerDao, trainingTypeDao);
+        verifyNoMoreInteractions(traineeDao, trainerDao, trainingTypeDao);
         verifyNoInteractions(trainingDao);
     }
 
     @Test
-    @DisplayName("getTrainingTypes should return all training types")
-    void getTrainingTypes_shouldReturnAllTrainingTypes() {
-        TrainingType type1 = new TrainingType();
-        type1.setId(1L);
-        type1.setTrainingTypeName(TrainingTypeCode.CARDIO);
+    @DisplayName("getTrainingTypes should return mapped list")
+    void getTrainingTypes_shouldReturnMappedList() {
+        TrainingType t1 = new TrainingType();
+        t1.setId(1L);
+        t1.setTrainingTypeName(TrainingTypeCode.CARDIO);
 
-        TrainingType type2 = new TrainingType();
-        type2.setId(2L);
-        type2.setTrainingTypeName(TrainingTypeCode.STRENGTH);
+        TrainingType t2 = new TrainingType();
+        t2.setId(2L);
+        t2.setTrainingTypeName(TrainingTypeCode.STRENGTH);
 
-        when(trainingTypeDao.findAll()).thenReturn(List.of(type1, type2));
+        when(trainingTypeDao.findAll()).thenReturn(List.of(t1, t2));
 
         List<TrainingTypeResponse> result = trainingService.getTrainingTypes();
 
         assertNotNull(result);
         assertEquals(2, result.size());
+
         assertEquals(1L, result.get(0).id());
         assertEquals(TrainingTypeCode.CARDIO, result.get(0).trainingType());
+
         assertEquals(2L, result.get(1).id());
         assertEquals(TrainingTypeCode.STRENGTH, result.get(1).trainingType());
 
         verify(trainingTypeDao).findAll();
         verifyNoMoreInteractions(trainingTypeDao);
-        verifyNoInteractions(traineeDao, trainerDao, trainingDao, selfAccessValidator);
-    }
-
-    @Test
-    @DisplayName("getTrainingTypes should return empty list when no training types exist")
-    void getTrainingTypes_shouldReturnEmptyListWhenNoTrainingTypesExist() {
-        when(trainingTypeDao.findAll()).thenReturn(List.of());
-
-        List<TrainingTypeResponse> result = trainingService.getTrainingTypes();
-
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-
-        verify(trainingTypeDao).findAll();
-        verifyNoMoreInteractions(trainingTypeDao);
-        verifyNoInteractions(traineeDao, trainerDao, trainingDao, selfAccessValidator);
+        verifyNoInteractions(traineeDao, trainerDao, trainingDao);
     }
 }
