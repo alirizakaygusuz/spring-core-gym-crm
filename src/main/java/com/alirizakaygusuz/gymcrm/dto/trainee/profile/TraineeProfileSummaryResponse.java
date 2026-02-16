@@ -10,7 +10,7 @@ public record TraineeProfileSummaryResponse(
 
         @Schema(
                 description = "Username of the trainee.",
-                example = "john_doe"
+                example = "john.doe"
         )
         String username,
 

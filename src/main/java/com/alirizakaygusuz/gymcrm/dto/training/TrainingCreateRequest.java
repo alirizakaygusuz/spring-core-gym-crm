@@ -13,7 +13,7 @@ public record TrainingCreateRequest(
 
         @Schema(
                 description = "Username of the trainee who will attend the training.",
-                example = "john_doe",
+                example = "john.doe",
                 required = true
         )
         @NotBlank(message = "Trainee username is required")
@@ -22,7 +22,7 @@ public record TrainingCreateRequest(
 
         @Schema(
                 description = "Username of the trainer who will conduct the training.",
-                example = "trainer_jane",
+                example = "trainer.jane",
                 required = true
         )
         @NotBlank(message = "Trainer username is required")

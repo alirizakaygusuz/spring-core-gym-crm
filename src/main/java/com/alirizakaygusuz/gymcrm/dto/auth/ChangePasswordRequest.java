@@ -21,7 +21,7 @@ public record ChangePasswordRequest(
 
         @Schema(
                 description = "Current password of the user",
-                example = "P@ssw0rd",
+                example = "password123",
                 required = true
         )
         @NotBlank(message = "Old password is required")
@@ -30,7 +30,7 @@ public record ChangePasswordRequest(
 
         @Schema(
                 description = "New password for the user",
-                example = "N3wP@ssw0rd!",
+                example = "newpassword123",
                 required = true
         )
         @NotBlank(message = "New password is required")

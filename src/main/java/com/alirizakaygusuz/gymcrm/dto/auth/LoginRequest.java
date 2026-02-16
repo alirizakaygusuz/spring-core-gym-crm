@@ -21,7 +21,7 @@ public record LoginRequest(
 
         @Schema(
                 description = "Password used for authentication.",
-                example = "P@ssw0rd12345",
+                example = "password123",
                 required = true
         )
         @NotBlank(message = "Password is required")

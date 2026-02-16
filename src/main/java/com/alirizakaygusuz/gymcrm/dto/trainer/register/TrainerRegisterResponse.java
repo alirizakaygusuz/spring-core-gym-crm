@@ -11,13 +11,13 @@ public record TrainerRegisterResponse(
 
         @Schema(
                 description = "Generated username for the trainer.",
-                example = "trainer_jane"
+                example = "trainer.jane"
         )
         String username,
 
         @Schema(
                 description = "Generated initial password for the trainer.",
-                example = "P@ssw0rd123"
+                example = "password123"
         )
         String password
 ) implements UserRegisterResponse {

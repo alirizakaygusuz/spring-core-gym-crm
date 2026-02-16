@@ -8,22 +8,23 @@ import com.alirizakaygusuz.gymcrm.dto.trainer.training.TrainerTrainingFilterRequ
 import com.alirizakaygusuz.gymcrm.dto.trainer.training.TrainerTrainingFilterResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateResponse;
-import com.alirizakaygusuz.gymcrm.filter.CurrentUserExtractor;
 import com.alirizakaygusuz.gymcrm.service.trainer.TrainerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.servlet.http.HttpServletRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
+
+import static com.alirizakaygusuz.gymcrm.controller.ControllerAuthUtils.verifyUserAccess;
 
 @RestController
 @RequestMapping("/api/v1/trainers")
@@ -37,7 +38,6 @@ import java.util.List;
 public class TrainerController extends BaseController {
 
     private final TrainerService trainerService;
-    private final CurrentUserExtractor currentUserExtractor;
 
     @Operation(
             summary = "Register a new trainer",
@@ -68,15 +68,14 @@ public class TrainerController extends BaseController {
     })
     @GetMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<TrainerProfileResponse>> getProfile(
-            @Parameter(hidden = true)
-            HttpServletRequest httpServletRequest,
 
-            @Parameter(description = "Username of the trainer whose profile will be retrieved", example = "trainer_jane", required = true)
-            @PathVariable(value = "username")
-            @NotBlank String targetUsername
+            @Parameter(description = "Username of the trainer whose profile will be retrieved", example = "trainer.jane", required = true)
+            @PathVariable
+            @NotBlank String username
     ) {
-        String currentUsername = currentUserExtractor.currentUser(httpServletRequest);
-        return ok(trainerService.getProfile(currentUsername, targetUsername));
+
+        verifyUserAccess(username);
+        return ok(trainerService.getProfile(username));
     }
 
     @Operation(
@@ -92,17 +91,14 @@ public class TrainerController extends BaseController {
     })
     @PutMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<TrainerProfileUpdateResponse>> updateProfile(
-            @Parameter(hidden = true)
-            HttpServletRequest httpServletRequest,
 
-            @Parameter(description = "Username of the trainer whose profile will be updated", example = "trainer_jane", required = true)
-            @PathVariable(value = "username")
-            @NotBlank String targetUsername,
+            @Parameter(description = "Username of the trainer whose profile will be updated", example = "trainer.jane", required = true)
+            @PathVariable @NotBlank String username,
 
             @Valid @RequestBody TrainerProfileUpdateRequest request
     ) {
-        String currentUsername = currentUserExtractor.currentUser(httpServletRequest);
-        return ok(trainerService.updateProfile(currentUsername, targetUsername, request));
+        verifyUserAccess(username);
+        return ok(trainerService.updateProfile(username, request));
     }
 
     @Operation(
@@ -118,17 +114,14 @@ public class TrainerController extends BaseController {
     })
     @GetMapping("/{username}/trainings")
     public ResponseEntity<ApiStandardResponse<List<TrainerTrainingFilterResponse>>> getTrainings(
-            @Parameter(hidden = true)
-            HttpServletRequest httpServletRequest,
 
-            @Parameter(description = "Username of the trainer", example = "trainer_jane", required = true)
-            @PathVariable(value = "username")
-            @NotBlank String targetUsername,
+            @Parameter(description = "Username of the trainer", example = "trainer.jane", required = true)
+            @PathVariable @NotBlank String username,
 
             TrainerTrainingFilterRequest filters
     ) {
-        String currentUsername = currentUserExtractor.currentUser(httpServletRequest);
-        return ok(trainerService.getTrainings(currentUsername, targetUsername, filters));
+        verifyUserAccess(username);
+        return ok(trainerService.getTrainings(username, filters));
     }
 
     @Operation(
@@ -144,18 +137,16 @@ public class TrainerController extends BaseController {
     })
     @PatchMapping("/{username}/active-status")
     public ResponseEntity<ApiStandardResponse<Void>> setActiveStatus(
-            @Parameter(hidden = true)
-            HttpServletRequest httpServletRequest,
 
-            @Parameter(description = "Username of the trainer", example = "trainer_jane", required = true)
-            @PathVariable(value = "username")
-            @NotBlank String targetUsername,
+            @Parameter(description = "Username of the trainer", example = "trainer.jane", required = true)
+            @PathVariable @NotBlank String username,
 
             @Parameter(description = "New active status", example = "true", required = true)
             @RequestParam boolean isActive
     ) {
-        String currentUsername = currentUserExtractor.currentUser(httpServletRequest);
-        trainerService.setActiveStatus(currentUsername, targetUsername, isActive);
+
+        verifyUserAccess(username);
+        trainerService.setActiveStatus(username, isActive);
         return ok();
     }
 }

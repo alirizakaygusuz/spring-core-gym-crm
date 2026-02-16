@@ -11,13 +11,13 @@ public record TraineeRegisterResponse(
 
         @Schema(
                 description = "Generated username",
-                example = "john_doe"
+                example = "john.doe"
         )
         String username,
 
         @Schema(
                 description = "Generated password",
-                example = "P@ssw0rd123"
+                example = "password123"
         )
         String password
 

@@ -1,21 +1,21 @@
 package com.alirizakaygusuz.gymcrm.controller;
 
 import com.alirizakaygusuz.gymcrm.dto.auth.ChangePasswordRequest;
+import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
+import com.alirizakaygusuz.gymcrm.dto.auth.LoginResponse;
 import com.alirizakaygusuz.gymcrm.dto.response.ApiStandardResponse;
-import com.alirizakaygusuz.gymcrm.filter.CurrentUserExtractor;
 import com.alirizakaygusuz.gymcrm.service.auth.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.servlet.http.HttpServletRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static com.alirizakaygusuz.gymcrm.controller.ControllerAuthUtils.verifyUserAccess;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -28,26 +28,22 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController extends BaseController {
 
     private final AuthService authService;
-    private final CurrentUserExtractor currentUserExtractor;
 
     @Operation(
-            summary = "Login user",
-            description = "Authenticates user with username and password"
+            summary = "User login",
+            description = "Authenticates a user and returns a JWT token"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Login successful"),
-            @ApiResponse(responseCode = "401", description = "Invalid credentials")
+            @ApiResponse(responseCode = "200", description = "Login successful" ),
+            @ApiResponse(responseCode = "400", description = "Invalid login request"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
-    @GetMapping("/login")
-    public ResponseEntity<ApiStandardResponse<Void>> login(
-            @Parameter(description = "Username", example = "john.doe", required = true)
-            @RequestParam("username") String username,
-
-            @Parameter(description = "Password", example = "P@ssw0rd", required = true)
-            @RequestParam("password") String password
+    @PostMapping("/login")
+    public ResponseEntity<ApiStandardResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest loginRequest
     ) {
-        authService.login(username, password);
-        return ok();
+
+        return ok(authService.login(loginRequest));
     }
 
     @Operation(
@@ -63,13 +59,12 @@ public class AuthController extends BaseController {
     @SecurityRequirement(name = "customAuth")
     @PatchMapping("/change-password")
     public ResponseEntity<ApiStandardResponse<Void>> changePassword(
-            @RequestBody(required = false)
-            HttpServletRequest httpServletRequest,
-
             @Valid @RequestBody ChangePasswordRequest request
+
+
     ) {
-        String currentUsername = currentUserExtractor.currentUser(httpServletRequest);
-        authService.changePassword(currentUsername, request);
+        verifyUserAccess(request.username());
+        authService.changePassword(request);
         return ok();
     }
 }

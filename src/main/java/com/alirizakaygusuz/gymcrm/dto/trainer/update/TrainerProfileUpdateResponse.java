@@ -14,7 +14,7 @@ public record TrainerProfileUpdateResponse(
 
         @Schema(
                 description = "Username of the trainer.",
-                example = "trainer_jane"
+                example = "trainer.jane"
         )
         String username,
 
