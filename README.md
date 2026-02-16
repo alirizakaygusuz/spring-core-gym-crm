@@ -1,21 +1,23 @@
 # GymCRM - REST API
 
-A gym customer relationship management system with REST API.
+A gym customer relationship management system with JWT-based REST API authentication.
 
 ---
 
 ## Key Features
 
 ### Authentication & Authorization
-- Custom header-based authentication (`X-Username`, `X-Password`)
+- **JWT-based authentication** with Bearer token
+- Login endpoint returns JWT token in response body
+- Protected endpoints require `Authorization: Bearer <token>` header
 - **Self-access enforcement:** Users can only access their own resources
   - Trainee `john.doe` can only view/update their own profile
   - Trainer `trainer.jane` can only view/update their own profile
 - BCrypt password encryption
-- Public endpoints: trainee/trainer registration, login
+- Public endpoints: trainee/trainer registration, login, training types
 
 ### API Endpoints
-- **Authentication:** Login, change password
+- **Authentication:** Login (POST), change password
 - **Trainee Management:** Register, get profile, update, delete, activate/deactivate
 - **Trainer Management:** Register, get profile, update, activate/deactivate
 - **Training Management:** Add training (trainer only), get training types
@@ -23,7 +25,31 @@ A gym customer relationship management system with REST API.
 
 ### Important Rules
 - **Only trainers can create trainings** - Trainees cannot add training sessions
-- Training creation requires trainer authentication (`X-Username` must be a trainer)
+- Training creation requires trainer authentication (JWT token must belong to a trainer)
+
+---
+
+## Implementation Details
+
+### Architecture
+- **Context-based authentication:** Custom `AuthenticationContext` handles authentication/authorization via `ContextLoaderListener`
+- **Removed dispatcher servlet overhead:** Authentication now handled at context level via `RequestContextHolder`
+- **Clean controller layer:** Controllers no longer require `HttpServletRequest` parameters; authentication handled transparently
+
+### Error Handling
+- Enhanced `ApiError` structure with URN, request ID, and timestamp for better traceability
+- Request ID extracted via `RequestContextHolder` instead of directly from `HttpServletRequest`
+- Distinct exception types:
+  - `AuthenticationFailedException`: Invalid credentials
+  - `AuthorizationFailedException`: Forbidden access (403)
+
+### Code Quality
+- Service methods refactored: self-access control moved to context layer
+- Public service methods organized with related private methods grouped below
+- Type inference used where appropriate (`var` instead of explicit types)
+- Generic `ValidationUtils` class replaces specific validator classes
+- Validation methods throw exceptions explicitly on failure
+- Swagger schemas aligned with mock data for easier manual testing
 
 ---
 
@@ -70,25 +96,37 @@ Wait for: `Server startup in [XXXX] milliseconds`
 #### 1. Open Swagger UI
 Navigate to: http://localhost:8080/swagger-ui/index.html
 
-![Swagger UI](docs/images/openapi.png)
+![Swagger UI](docs/images/swagger_ui.png)
 
-#### 2. Authorize
+#### 2. Login to Get JWT Token
+```
+POST /api/v1/login
+Body: {
+  "username": "john.doe",
+  "password": "password123"
+}
+→ 200 OK
+Response: {
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+![Login](docs/images/login_trainee.png)
+
+#### 3. Authorize with JWT Token
 - Click **"Authorize"** button (top right)
-- Enter credentials:
-  - **X-Username:** `john.doe`
-  - **X-Password:** `password123`
-- Click **"Authorize"** for both fields
+- Enter: `Bearer <your-token-here>`
+- Click **"Authorize"**
 - Click **"Close"**
 
-#### 3. Test Examples
+#### 4. Test Examples
 
 **Example 1: Get Trainee Profile (requires auth)**
 ```
 GET /api/v1/trainees/john.doe
+Authorization: Bearer <token>
 → 200 OK
 ```
-
-![Trainee Profile](docs/images/traineeRequest.png)
 
 **Example 2: Register New Trainee (public - no auth)**
 ```
@@ -102,7 +140,8 @@ Body: {
 → 200 OK (returns username & password)
 ```
 
-![Register Trainee](docs/images/traineePost.png)
+![Register Trainee](docs/images/register_trainee.png)
+![Register Trainee DB](docs/images/register_trainee_db.png)
 
 **Example 3: Get Training Types (public - no auth)**
 ```
@@ -110,20 +149,16 @@ GET /api/v1/trainings/types
 → 200 OK (CARDIO, STRENGTH, FLEXIBILITY, etc.)
 ```
 
-![Training Types](docs/images/trainings.png)
-
 **Example 4: Get Trainer Profile (requires auth)**
 ```
-Authorize with: trainer.jane / password123
+Authorize with trainer.jane's JWT token
 GET /api/v1/trainers/trainer.jane
 → 200 OK
 ```
 
-![Trainer Profile](docs/images/trainerRequest.png)
-
 **Example 5: Update Trainee Profile**
 ```
-Authorize with: john.doe / password123
+Authorize with john.doe's JWT token
 PUT /api/v1/trainees/john.doe
 Body: {
   "firstName": "John",
@@ -137,7 +172,7 @@ Body: {
 
 **Example 6: Change Password**
 ```
-Authorize with: john.doe / password123
+Authorize with john.doe's JWT token
 PATCH /api/v1/change-password
 Body: {
   "username": "john.doe",
@@ -149,7 +184,7 @@ Body: {
 
 **Example 7: Add Training**
 ```
-Authorize with: trainer.jane / password123
+Authorize with trainer.jane's JWT token
 POST /api/v1/trainings
 Body: {
   "traineeUsername": "john.doe",
@@ -168,14 +203,14 @@ Body: {
 **What it means:**
 - Each user can only access their own resources
 - Attempting to access another user's profile returns `403 Forbidden`
+- Authorization is now handled by `AuthenticationContext` at the context layer
 
 **Examples:**
 
 ✅ **Allowed:**
 ```bash
 # john.doe accessing own profile
-X-Username: john.doe
-X-Password: password123
+Authorization: Bearer <john.doe's-token>
 GET /api/v1/trainees/john.doe
 → 200 OK
 ```
@@ -183,10 +218,30 @@ GET /api/v1/trainees/john.doe
 ❌ **Forbidden:**
 ```bash
 # john.doe trying to access trainer.jane's profile
-X-Username: john.doe
-X-Password: password123
+Authorization: Bearer <john.doe's-token>
 GET /api/v1/trainers/trainer.jane
-→ 403 Forbidden (Access Denied)
+→ 403 Forbidden (AuthorizationFailedException)
+```
+
+---
+
+## Enhanced Error Responses
+
+All error responses include:
+- **URN:** Unique resource identifier for the error type
+- **Request ID:** Correlation ID for tracking across logs
+- **Timestamp:** ISO-8601 formatted error occurrence time
+
+**Example:**
+```json
+{
+  "urn": "urn:gymcrm:error:authorization-failed",
+  "requestId": "a7f3c2e1-4b9d-8e2f-1a3c-5d6e7f8g9h0i",
+  "timestamp": "2024-06-15T14:32:15.234Z",
+  "status": 403,
+  "error": "Forbidden",
+  "message": "Access denied"
+}
 ```
 
 ---
@@ -194,16 +249,22 @@ GET /api/v1/trainers/trainer.jane
 ## Test Coverage
 
 Unit tests cover:
-- **Service layer:** 90% coverage
+- **Service layer:** 88% coverage
 - **Utility classes:** 100% coverage
-- **Validators:** Full coverage
+- **Validators:** 93% coverage
+- **Auth layer:** 100% coverage
 
-![Test Coverage](docs/images/testCoverage.png)
+![Test Coverage](docs/images/test_coverage.png)
 
 ### Running Tests
 ```bash
 mvn test
 ```
+
+All tests updated to reflect:
+- JWT-based authentication flow
+- Context-layer authorization
+- Enhanced error response structure
 
 ---
 
@@ -213,6 +274,14 @@ Full API documentation is available at:
 - **Swagger UI:** http://localhost:8080/swagger-ui/index.html
 - **OpenAPI JSON:** http://localhost:8080/v3/api-docs
 
-All endpoints, request/response schemas, and authentication requirements are documented there.
+All endpoints, request/response schemas, JWT authentication requirements, and example payloads are documented there.
 
-**Note:** This project uses **Springdoc OpenAPI 3** instead of Swagger 2 due to compatibility issues with Jakarta EE 10 (Tomcat 10.1). Swagger 2 dependencies caused conflicts with the `jakarta.servlet` namespace.
+**Note:** This project uses **Springdoc OpenAPI 3** with Bearer token authentication configured for JWT. Swagger UI is pre-configured with mock data examples that match the database seed data for easier manual testing.
+
+---
+
+## Database
+
+![Register User DB](docs/images/register_user_db.png)
+
+Pre-loaded test users are stored with BCrypt-hashed passwords. Upon registration, unique usernames are generated in `FirstName.LastName` format with automatic numeric suffixes for duplicates.
