@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.2</version>
+        <version>3.5.10</version>
     </parent>
 
     <groupId>com.alirizakaygusuz.gymcrm</groupId>
@@ -93,7 +93,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok-mapstruct-binding</artifactId>
-            <version>0.2.0</version>
+            <version>${lombok-mapstruct-binding.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -133,6 +133,7 @@
 
         <!--============ Flyway Database Migration Dependencies ============= -->
         <!-- Flyway Core -->
+
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
@@ -142,26 +143,15 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
 
-        <!--============ Spring Security Dependencies ============= -->
-        <!-- spring-boot-starter-security includes:
-             spring-boot-starter,
-             spring-security-core,
-             spring-security-config,
-             spring-security-web
-             spring-security-crypto  (BCryptPasswordEncoder, PasswordEncoder) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
 
+
+        <!-- BCryptPasswordEncoder -->
         <dependency>
             <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
 

@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${STG_DB_HOST}:${STG_DB_PORT}/${STG_DB_NAME}
+    username: ${STG_DB_USER}
+    password: ${STG_DB_PASSWORD}
+
+logging:
+  level:
+    com.alirizakaygusuz.gymcrm: INFO
+    org.springframework.web: WARN

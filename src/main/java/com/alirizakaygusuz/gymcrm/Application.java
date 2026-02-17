@@ -1,20 +1,14 @@
 package com.alirizakaygusuz.gymcrm;
 
-import com.alirizakaygusuz.gymcrm.config.app.AppConfig;
-import com.alirizakaygusuz.gymcrm.config.app.DevConfig;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
 public class Application {
 
     public static void main(String[] args) {
-        try (var context = new AnnotationConfigApplicationContext()) {
-
-            context.getEnvironment().setActiveProfiles("dev");
-
-            context.register(AppConfig.class, DevConfig.class);
-            context.refresh();
-
-        }
+        SpringApplication.run(Application.class, args);
     }
 
 }
