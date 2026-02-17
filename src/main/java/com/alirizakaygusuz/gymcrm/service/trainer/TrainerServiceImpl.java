@@ -19,6 +19,7 @@ import com.alirizakaygusuz.gymcrm.model.Trainer;
 import com.alirizakaygusuz.gymcrm.model.Training;
 import com.alirizakaygusuz.gymcrm.model.TrainingType;
 import com.alirizakaygusuz.gymcrm.model.User;
+import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import com.alirizakaygusuz.gymcrm.service.validator.ValidationUtils;
@@ -47,11 +48,17 @@ public class TrainerServiceImpl implements TrainerService {
     private final CommonValidator commonValidator;
     private final ValidationUtils validationUtils;
 
+    private final AppMetrics appMetrics;
+
 
     @Override
     @Transactional
     public TrainerRegisterResponse register(TrainerRegisterRequest request) {
         log.info("Starting trainer profile creation");
+
+        appMetrics.incrementTraineeRegistrationAttempts();
+
+
         User savedUser = userService.createUserWithCredentials(request);
 
         log.info("User profile created with username={}", savedUser.getUsername());
@@ -64,6 +71,7 @@ public class TrainerServiceImpl implements TrainerService {
         log.info("Trainer profile created. trainerId={}, username={}",
                 saved.getId(), savedUser.getUsername());
 
+        appMetrics.incrementTrainerRegistrationSuccess();
         return trainerMapper.toRegisterResponse(saved.getUser());
     }
 
@@ -82,6 +90,7 @@ public class TrainerServiceImpl implements TrainerService {
         log.info("Selecting trainer profile with username={}", username);
 
         Trainer selectedTrainer = findTrainerWithDetailsByUsernameOrThrow(username);
+
 
         return trainerMapper.toProfileResponse(selectedTrainer);
 

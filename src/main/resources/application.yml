@@ -11,3 +11,29 @@ spring:
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}
+
+
+management:
+  info:
+    env:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+    info:
+      enabled: true
+
+info:
+  app:
+    name: Gym CRM System
+    description: Spring Boot Gym CRM project developed by Ali Riza Kaygusuz
+    version: 1.0-SNAPSHOT
+  build:
+    artifact: gymcrm
+    group: com.alirizakaygusuz.gymcrm
+  contact:
+    name: Ali Riza Kaygusuz

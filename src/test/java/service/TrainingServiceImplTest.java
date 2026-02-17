@@ -1,4 +1,4 @@
-package com.alirizakaygusuz.gymcrm.service.training;
+package service;
 
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
@@ -8,6 +8,8 @@ import com.alirizakaygusuz.gymcrm.dto.training.TrainingCreateRequest;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingTypeResponse;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.model.*;
+import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
+import com.alirizakaygusuz.gymcrm.service.training.TrainingServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +39,9 @@ class TrainingServiceImplTest {
 
     @Mock
     private TrainingDao trainingDao;
+
+    @Mock
+    private AppMetrics appMetrics;
 
     @InjectMocks
     private TrainingServiceImpl trainingService;

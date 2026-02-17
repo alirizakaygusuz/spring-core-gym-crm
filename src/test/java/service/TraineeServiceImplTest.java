@@ -15,6 +15,7 @@ import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
 import com.alirizakaygusuz.gymcrm.mapper.TrainingMapper;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.model.User;
+import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.service.trainee.TraineeServiceImpl;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
 import com.alirizakaygusuz.gymcrm.service.validator.ValidationUtils;
@@ -54,16 +55,12 @@ class TraineeServiceImplTest {
     private TraineeMapper traineeMapper;
 
     @Mock
-    private TrainerMapper trainerMapper;
-
-    @Mock
-    private TrainingMapper trainingMapper;
-
-    @Mock
-    private ValidationUtils validationUtils;
+    private AppMetrics appMetrics;
 
     @InjectMocks
     private TraineeServiceImpl traineeService;
+
+
 
     @Test
     @DisplayName("register should create trainee and return response")
