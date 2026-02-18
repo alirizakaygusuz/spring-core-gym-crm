@@ -1,9 +1,10 @@
 package service;
 
-import com.alirizakaygusuz.gymcrm.dto.trainee.TraineeProfileRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterRequest;
+import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateRequest;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.model.User;
-import com.alirizakaygusuz.gymcrm.service.UserDomainService;
+import com.alirizakaygusuz.gymcrm.service.user.UserDomainService;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
 import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -39,79 +39,54 @@ class UserDomainServiceTest {
     @InjectMocks
     private UserDomainService userDomainService;
 
-    @DisplayName("createWithCredentials should return User when request is valid")
     @Test
-    void createWithCredentials_shouldReturnUserWhenRequestIsValid() {
-        TraineeProfileRequest request = new TraineeProfileRequest(
+    @DisplayName("createWithCredentials should create user with generated credentials")
+    void createWithCredentials_shouldCreateUserWithGeneratedCredentials() {
+        TraineeRegisterRequest request = new TraineeRegisterRequest(
                 "John",
                 "Doe",
-                true,
                 LocalDate.of(1990, 1, 1),
-                "Address"
+                "123 Main St"
         );
 
         when(credentialsGenerator.generateUniqueUsername("John", "Doe"))
-                .thenReturn("john.doe");
+                .thenReturn("John.Doe");
         when(credentialsGenerator.generateRandomPassword())
-                .thenReturn("rawPass123");
-        when(passwordEncoder.encode("rawPass123"))
-                .thenReturn("ENC(rawPass123)");
+                .thenReturn("rawPassword123");
+        when(passwordEncoder.encode("rawPassword123"))
+                .thenReturn("encodedPassword123");
 
-        User user = userDomainService.createWithCredentials(request);
+        User result = userDomainService.createWithCredentials(request);
 
-        assertNotNull(user);
-        assertEquals("John", user.getFirstName());
-        assertEquals("Doe", user.getLastName());
-        assertTrue(user.isActive());
-        assertEquals("john.doe", user.getUsername());
-        assertEquals("ENC(rawPass123)", user.getPassword());
-
-        verify(commonValidator).validateNotNull(request, "User profile creation request");
-        verify(userValidator).validateRequiredUserNames("John", "Doe");
-        verify(commonValidator).validateNotNull(true, "Active status");
+        assertNotNull(result);
+        assertEquals("John", result.getFirstName());
+        assertEquals("Doe", result.getLastName());
+        assertEquals("John.Doe", result.getUsername());
+        assertEquals("encodedPassword123", result.getPassword());
+        assertTrue(result.isActive());
 
         verify(credentialsGenerator).generateUniqueUsername("John", "Doe");
         verify(credentialsGenerator).generateRandomPassword();
-        verify(passwordEncoder).encode("rawPass123");
-
-        verifyNoMoreInteractions(commonValidator, userValidator, credentialsGenerator, passwordEncoder);
+        verify(passwordEncoder).encode("rawPassword123");
+        verifyNoMoreInteractions(credentialsGenerator, passwordEncoder);
+        verifyNoInteractions(commonValidator, userValidator);
     }
 
-    @DisplayName("createWithCredentials should throw ValidationException when request is null")
     @Test
-    void createWithCredentials_shouldThrowValidationExceptionWhenRequestIsNull() {
-        TraineeProfileRequest request = null;
-
-        doThrow(new ValidationException("User profile creation request cannot be null"))
-                .when(commonValidator).validateNotNull(request, "User profile creation request");
-
-        ValidationException ex = assertThrows(
-                ValidationException.class,
-                () -> userDomainService.createWithCredentials(request)
-        );
-
-        assertEquals("User profile creation request cannot be null", ex.getMessage());
-
-        verify(commonValidator).validateNotNull(null, "User profile creation request");
-        verifyNoMoreInteractions(commonValidator);
-        verifyNoInteractions(userValidator, credentialsGenerator, passwordEncoder);
-    }
-
-    @DisplayName("applyUpdate should apply updates when inputs are valid")
-    @Test
-    void applyUpdate_shouldApplyUpdatesWhenInputsAreValid() {
+    @DisplayName("applyUpdate should update user fields from request")
+    void applyUpdate_shouldUpdateUserFieldsFromRequest() {
         User user = new User();
-        user.setUsername("john.doe");
-        user.setFirstName("Old");
-        user.setLastName("Name");
+        user.setUsername("John.Doe");
+        user.setFirstName("OldFirst");
+        user.setLastName("OldLast");
         user.setActive(false);
 
-        TraineeProfileRequest request = new TraineeProfileRequest(
+        TraineeProfileUpdateRequest request = new TraineeProfileUpdateRequest(
                 "John",
                 "Doe",
-                true,
                 LocalDate.of(1990, 1, 1),
-                "Address"
+                "123 Main St",
+                true
         );
 
         userDomainService.applyUpdate(user, request);
@@ -121,65 +96,114 @@ class UserDomainServiceTest {
         assertTrue(user.isActive());
 
         verify(commonValidator).validateNotNull(user, "User");
-        verify(commonValidator).validateNotNull(request, "User profile creation request");
-        verify(userValidator).validateRequiredUserNames("John", "Doe");
-        verify(commonValidator).validateNotNull(true, "Active status");
-
-        verifyNoMoreInteractions(commonValidator, userValidator);
-        verifyNoInteractions(credentialsGenerator, passwordEncoder);
+        verifyNoMoreInteractions(commonValidator);
+        verifyNoInteractions(userValidator, credentialsGenerator, passwordEncoder);
     }
 
-    @DisplayName("changePassword should set encoded password when inputs are valid")
     @Test
-    void changePassword_shouldSetEncodedPasswordWhenInputsAreValid() {
-        User user = new User();
-        user.setUsername("john.doe");
-        user.setPassword("old");
+    @DisplayName("applyUpdate should throw ValidationException when user is null")
+    void applyUpdate_shouldThrowValidationExceptionWhenUserIsNull() {
+        TraineeProfileUpdateRequest request = new TraineeProfileUpdateRequest(
+                "John",
+                "Doe",
+                LocalDate.of(1990, 1, 1),
+                "123 Main St",
+                true
+        );
 
-        when(passwordEncoder.encode("newPass"))
-                .thenReturn("ENC(newPass)");
+        doThrow(new ValidationException("User cannot be null"))
+                .when(commonValidator).validateNotNull(null, "User");
 
-        userDomainService.changePassword(user, "newPass");
+        ValidationException exception = assertThrows(
+                ValidationException.class,
+                () -> userDomainService.applyUpdate(null, request)
+        );
 
-        assertEquals("ENC(newPass)", user.getPassword());
+        assertEquals("User cannot be null", exception.getMessage());
 
-        verify(commonValidator).validateNotNull(user, "User");
-        verify(commonValidator).validateNotBlank("newPass", "New password");
-        verify(passwordEncoder).encode("newPass");
-
-        verifyNoMoreInteractions(commonValidator, passwordEncoder);
-        verifyNoInteractions(userValidator, credentialsGenerator);
+        verify(commonValidator).validateNotNull(null, "User");
+        verifyNoMoreInteractions(commonValidator);
+        verifyNoInteractions(userValidator, credentialsGenerator, passwordEncoder);
     }
 
-    @DisplayName("activate should set active=true when user is currently inactive")
     @Test
-    void activate_shouldSetActiveTrueWhenUserIsCurrentlyInactive() {
+    @DisplayName("changePassword should encode and set new password")
+    void changePassword_shouldEncodeAndSetNewPassword() {
         User user = new User();
-        user.setUsername("john.doe");
+        user.setUsername("John.Doe");
+        user.setPassword("oldPassword");
+
+        when(passwordEncoder.encode("newPassword123"))
+                .thenReturn("encodedNewPassword");
+
+        userDomainService.changePassword(user, "newPassword123");
+
+        assertEquals("encodedNewPassword", user.getPassword());
+
+        verify(passwordEncoder).encode("newPassword123");
+        verifyNoMoreInteractions(passwordEncoder);
+        verifyNoInteractions(commonValidator, userValidator, credentialsGenerator);
+    }
+
+    @Test
+    @DisplayName("setActiveStatus should activate user when currently inactive")
+    void setActiveStatus_shouldActivateUserWhenCurrentlyInactive() {
+        User user = new User();
+        user.setUsername("John.Doe");
         user.setActive(false);
 
-        userDomainService.activate(user);
+        userDomainService.setActiveStatus(user, true);
 
         assertTrue(user.isActive());
 
-        verify(commonValidator).validateNotNull(user, "User");
-        verifyNoMoreInteractions(commonValidator);
-        verifyNoInteractions(userValidator, credentialsGenerator, passwordEncoder);
+        verifyNoInteractions(commonValidator, userValidator, credentialsGenerator, passwordEncoder);
     }
 
-    @DisplayName("deactivate should set active=false when user is currently active")
     @Test
-    void deactivate_shouldSetActiveFalseWhenUserIsCurrentlyActive() {
+    @DisplayName("setActiveStatus should deactivate user when currently active")
+    void setActiveStatus_shouldDeactivateUserWhenCurrentlyActive() {
         User user = new User();
-        user.setUsername("john.doe");
+        user.setUsername("John.Doe");
         user.setActive(true);
 
-        userDomainService.deactivate(user);
+        userDomainService.setActiveStatus(user, false);
 
         assertFalse(user.isActive());
 
-        verify(commonValidator).validateNotNull(user, "User");
-        verifyNoMoreInteractions(commonValidator);
-        verifyNoInteractions(userValidator, credentialsGenerator, passwordEncoder);
+        verifyNoInteractions(commonValidator, userValidator, credentialsGenerator, passwordEncoder);
+    }
+
+    @Test
+    @DisplayName("setActiveStatus should throw ValidationException when user is already active")
+    void setActiveStatus_shouldThrowValidationExceptionWhenUserIsAlreadyActive() {
+        User user = new User();
+        user.setUsername("John.Doe");
+        user.setActive(true);
+
+        ValidationException exception = assertThrows(
+                ValidationException.class,
+                () -> userDomainService.setActiveStatus(user, true)
+        );
+
+        assertEquals("User is already active", exception.getMessage());
+
+        verifyNoInteractions(commonValidator, userValidator, credentialsGenerator, passwordEncoder);
+    }
+
+    @Test
+    @DisplayName("setActiveStatus should throw ValidationException when user is already inactive")
+    void setActiveStatus_shouldThrowValidationExceptionWhenUserIsAlreadyInactive() {
+        User user = new User();
+        user.setUsername("John.Doe");
+        user.setActive(false);
+
+        ValidationException exception = assertThrows(
+                ValidationException.class,
+                () -> userDomainService.setActiveStatus(user, false)
+        );
+
+        assertEquals("User is already inactive", exception.getMessage());
+
+        verifyNoInteractions(commonValidator, userValidator, credentialsGenerator, passwordEncoder);
     }
 }

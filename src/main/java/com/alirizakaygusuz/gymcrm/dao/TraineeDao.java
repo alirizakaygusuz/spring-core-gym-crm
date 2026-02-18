@@ -33,6 +33,24 @@ public class TraineeDao {
                 .findFirst();
     }
 
+    public Optional<Trainee> findByUsernameWithDetails(String username) {
+        return entityManager.createQuery(
+                        """
+                        select distinct t
+                        from Trainee t
+                        join fetch t.user u
+                        left join fetch t.trainerLinks tl
+                        left join fetch tl.trainer tr
+                        left join fetch tr.user
+                        where u.username = :username
+                        """,
+                        Trainee.class
+                )
+                .setParameter("username", username)
+                .getResultStream()
+                .findFirst();
+    }
+
     public Trainee update(Trainee trainee) {
         return entityManager.merge(trainee);
     }
@@ -41,7 +59,5 @@ public class TraineeDao {
         entityManager.remove(trainee);
     }
 
-    public boolean existsByUsername(String username) {
-       return  findByUsername(username).isPresent();
-    }
+
 }

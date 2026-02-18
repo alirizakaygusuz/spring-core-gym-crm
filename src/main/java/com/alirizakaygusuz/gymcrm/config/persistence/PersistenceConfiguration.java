@@ -12,6 +12,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import javax.sql.DataSource;
 import java.util.Properties;
@@ -30,6 +31,8 @@ public class PersistenceConfiguration {
         ds.setJdbcUrl(url);
         ds.setUsername(username);
         ds.setPassword(password);
+        ds.setDriverClassName("org.postgresql.Driver");
+
 
         ds.setMaximumPoolSize(10);
         ds.setPoolName("gymcrm-hikari");
@@ -54,7 +57,8 @@ public class PersistenceConfiguration {
             DataSource dataSource,
             @Value("${hibernate.hbm2ddl.auto}") String ddlAuto,
             @Value("${hibernate.show_sql}") boolean showSql,
-            @Value("${hibernate.format_sql}") boolean formatSql
+            @Value("${hibernate.format_sql}") boolean formatSql,
+            LocalValidatorFactoryBean validatorFactory
     ) {
         var emf = new LocalContainerEntityManagerFactoryBean();
         emf.setDataSource(dataSource);
@@ -67,6 +71,9 @@ public class PersistenceConfiguration {
         props.put("hibernate.hbm2ddl.auto", ddlAuto);
         props.put("hibernate.show_sql", String.valueOf(showSql));
         props.put("hibernate.format_sql", String.valueOf(formatSql));
+
+        props.put("jakarta.persistence.validation.factory", validatorFactory);
+
         emf.setJpaProperties(props);
 
         return emf;

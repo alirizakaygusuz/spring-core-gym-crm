@@ -34,6 +34,25 @@ public class TrainerDao {
                 .findFirst();
     }
 
+    public Optional<Trainer> findByUsernameWithDetails(String username) {
+        return entityManager.createQuery(
+                        """
+                        select distinct t
+                        from Trainer t
+                        join fetch t.user u
+                        left join fetch t.traineeLinks trL
+                        left join fetch trL.trainee trn
+                        left join fetch trn.user
+                        where u.username = :username
+                        """,
+                        Trainer.class
+                )
+                .setParameter("username", username)
+                .getResultStream()
+                .findFirst();
+    }
+
+
 
     public Trainer update(Trainer trainer) {
         return entityManager.merge(trainer);
