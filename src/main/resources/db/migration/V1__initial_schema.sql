@@ -46,7 +46,8 @@ CREATE TABLE IF NOT EXISTS trainee_trainer (
     CONSTRAINT pk_trainee_trainer PRIMARY KEY (trainee_id, trainer_id),
 
     CONSTRAINT fk_tt_trainee
-        FOREIGN KEY (trainee_id) REFERENCES trainees(id),
+        FOREIGN KEY (trainee_id) REFERENCES trainees(id)
+        ON DELETE CASCADE,
 
     CONSTRAINT fk_tt_trainer
         FOREIGN KEY (trainer_id) REFERENCES trainers(id)
@@ -63,7 +64,8 @@ CREATE TABLE IF NOT EXISTS trainings (
     training_duration INTEGER      NOT NULL CHECK (training_duration > 0),
 
     CONSTRAINT fk_trainings_trainee
-        FOREIGN KEY (trainee_id) REFERENCES trainees(id),
+        FOREIGN KEY (trainee_id) REFERENCES trainees(id)
+        ON DELETE CASCADE,
 
     CONSTRAINT fk_trainings_trainer
         FOREIGN KEY (trainer_id) REFERENCES trainers(id),

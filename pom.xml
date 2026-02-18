@@ -8,72 +8,79 @@
     <artifactId>spring-core-gym-crm</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <packaging>war</packaging>
+
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-context.version>6.2.7</spring-context.version>
-        <jackson-core.version>3.0.3</jackson-core.version>
-        <jackson-databind.version>3.0.3</jackson-databind.version>
-        <jackson-datatype.version>3.0.0-rc2</jackson-datatype.version>
+
         <junit-jupiter.version>5.20.0</junit-jupiter.version>
         <mockito.version>5.20.0</mockito.version>
         <assertj.version>3.27.6</assertj.version>
         <lombok.version>1.18.30</lombok.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <slf4j.version>2.0.17</slf4j.version>
+        <logback.version>1.5.28</logback.version>
+        <jboss-logging.version>3.6.1.Final</jboss-logging.version>
         <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <postgresql.version>42.6.2</postgresql.version>
         <jakarta.persistence.version>3.2.0</jakarta.persistence.version>
         <hibernate-core.version>7.1.13.Final</hibernate-core.version>
-        <spring-orm.version>7.0.1</spring-orm.version>
-        <spring-tx.version>7.0.1</spring-tx.version>
+        <jakarta.validation.version>3.1.1</jakarta.validation.version>
+        <hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
         <hikari.version>7.0.1</hikari.version>
         <flyway.version>11.19.0</flyway.version>
         <flyway-postgresql.version>11.19.0</flyway-postgresql.version>
+        <spring-context.version>7.0.2</spring-context.version>
+        <spring-orm.version>7.0.2</spring-orm.version>
+        <spring-tx.version>7.0.2</spring-tx.version>
         <spring-security.version>7.0.2</spring-security.version>
-
+        <spring-webmvc.version>7.0.2</spring-webmvc.version>
+        <tomcat-embed-core.version>11.0.0</tomcat-embed-core.version>
+        <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
+        <springdoc-openapi-ui.version>2.7.0</springdoc-openapi-ui.version>
+        <jwt.version>0.13.0</jwt.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>2.17.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Spring Context -->
-        <!-- https://mvnrepository.com/artifact/org.springframework/spring-context -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <version>${spring-context.version}</version>
         </dependency>
 
-        <!-- ==============JSON Processing with Jackson=========== -->
-        <!-- Jackson Core -->
-        <!-- https://mvnrepository.com/artifact/tools.jackson.core/jackson-core -->
+
+        <!--==========Jackson Dependencies ============-->
         <dependency>
-            <groupId>tools.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson-core.version}</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- Jackson Databind -->
-        <!-- https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind -->
         <dependency>
-            <groupId>tools.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson-databind.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/tools.jackson.datatype/jackson-datatype-jsr310 -->
-        <dependency>
-            <groupId>tools.jackson.datatype</groupId>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${jackson-datatype.version}</version>
         </dependency>
 
 
 
         <!-- ===========Testing Dependencies ============-->
         <!-- JUnit Jupiter -->
-        <!-- Source: https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
@@ -82,7 +89,6 @@
         </dependency>
 
         <!-- Mockito -->
-        <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
@@ -91,7 +97,6 @@
         </dependency>
 
         <!-- AssertJ -->
-        <!-- https://mvnrepository.com/artifact/org.assertj/assertj-core -->
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
@@ -102,7 +107,6 @@
 
         <!-- ============Lombok Dependency ============= -->
         <!--Lombok -->
-        <!-- Source: https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -111,7 +115,6 @@
         </dependency>
 
         <!-- ============Lombok + MapStruct Binding Dependency ============= -->
-        <!-- Source: https://mvnrepository.com/artifact/org.projectlombok/lombok-mapstruct-binding -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok-mapstruct-binding</artifactId>
@@ -122,7 +125,6 @@
 
         <!-- ============SLF4J Dependency ============= -->
         <!-- SLF4J API -->
-        <!-- Source: https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -130,16 +132,21 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- SLF4J Simple Implementation -->
-        <!-- Provides an SLF4J backend to avoid NOP logger and show logs -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j.version}</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+            <scope>compile</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <version>${jboss-logging.version}</version>
+        </dependency>
+
+
         <!-- Jakarta Annotations -->
-        <!-- Source: https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api -->
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
@@ -147,10 +154,26 @@
             <scope>compile</scope>
         </dependency>
 
+        <!--============================ Jakarta Bean Validation(Hibernate Validator) ============= -->
+        <!-- Jakarta Validation API -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>${jakarta.validation.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Hibernate Validator (Jakarta Bean Validation Implementation) -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate-validator.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
 
         <!--============ MapStruct Dependency ============= -->
         <!-- MapStruct -->
-        <!-- Source: https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
@@ -166,7 +189,6 @@
 
         <!--============ Database Driver Dependencies ============= -->
         <!--PostgreSQL JDBC Driver -->
-        <!-- Source: https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -176,9 +198,6 @@
 
 
         <!--============ ORM and JPA Dependencies ============= -->
-        <!-- Spring Data JPA -->
-        <!-- Source: https://mvnrepository.com/artifact/org.springframework.data/spring-data-jpa -->
-        <!-- Source: https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
@@ -187,7 +206,6 @@
         </dependency>
 
         <!-- Hibernate Core -->
-        <!-- Source: https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
@@ -197,7 +215,6 @@
 
 
         <!-- Spring ORM -->
-        <!-- Source: https://mvnrepository.com/artifact/org.springframework/spring-orm -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-orm</artifactId>
@@ -207,7 +224,6 @@
 
 
         <!-- Spring Transaction Management -->
-        <!-- Source: https://mvnrepository.com/artifact/org.springframework/spring-tx -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
@@ -217,7 +233,6 @@
 
 
         <!-- HikariCP Connection Pool -->
-        <!-- Source: https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
@@ -228,7 +243,6 @@
 
         <!--============ Flyway Database Migration Dependencies ============= -->
         <!-- Flyway Core -->
-        <!-- Source: https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
@@ -237,7 +251,6 @@
         </dependency>
 
         <!-- Flyway PostgreSQL Database Support -->
-        <!-- Source: https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
@@ -248,7 +261,6 @@
 
         <!--============ Spring Security Dependency ============= -->
         <!-- Spring Security Core -->
-        <!-- Source: https://mvnrepository.com/artifact/org.springframework.security/spring-security-core -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
@@ -257,17 +269,83 @@
         </dependency>
 
 
+        <!--============ Spring Web MVC Dependency ============= -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${spring-webmvc.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--Tomcat Embed Core -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>${tomcat-embed-core.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <!-- CRITICAL: servlet-api MUST be provided scope -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>${jakarta.servlet-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+
+
+        <!--============ Swagger/OpenAPI Dependencies ============= -->
+        <!-- Springdoc OpenAPI (replaces deprecated Springfox) -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc-openapi-ui.version}</version>
+        </dependency>
+
+
+
+        <!--============ JWT Dependencies ============= -->
+        <!-- Source: https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jwt.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Source: https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Source: https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
+        <finalName>gymcrm</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
+
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <parameters>true</parameters>
+
                     <annotationProcessorPaths>
                         <!--  Lombok Annotation Processor  -->
                         <path>
@@ -289,6 +367,7 @@
                             <artifactId>mapstruct-processor</artifactId>
                             <version>${mapstruct.version}</version>
                         </path>
+
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>

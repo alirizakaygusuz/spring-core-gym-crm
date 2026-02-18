@@ -20,6 +20,16 @@ public class TrainingTypeDao {
         return Optional.ofNullable(trainingType);
     }
 
+    public Optional<TrainingType> findByName(String trainingTypeName) {
+        return entityManager.createQuery(
+                        "select t from TrainingType t where t.trainingTypeName = :trainingTypeName",
+                        TrainingType.class
+                )
+                .setParameter("trainingTypeName", trainingTypeName)
+                .getResultStream()
+                .findFirst();
+    }
+
 
     public Optional<TrainingType> findByCode(TrainingTypeCode trainingTypeName) {
         return entityManager.createQuery(

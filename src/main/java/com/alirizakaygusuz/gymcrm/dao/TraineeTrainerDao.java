@@ -21,26 +21,18 @@ public class TraineeTrainerDao {
         return traineeTrainer;
     }
 
-    public Optional<TraineeTrainer> findByIds(Long traineeId, Long trainerId) {
-        String jpql = "SELECT tt FROM TraineeTrainer tt WHERE tt.trainee.id = :traineeId AND tt.trainer.id = :trainerId";
-        return entityManager.createQuery(jpql, TraineeTrainer.class)
-                .setParameter("traineeId", traineeId)
-                .setParameter("trainerId", trainerId)
-                .getResultStream()
-                .findFirst();
-
-    }
 
     public List<Trainer> findUnAssignedTrainersByTraineeUsername(String username) {
         String jpql = """
                     select tr
                     from Trainer tr
-                    where not exists (
+                    where tr.user.active = true
+                      and not exists (
                         select 1
                         from TraineeTrainer tt
                         where tt.trainer = tr
                           and tt.trainee.user.username = :username
-                    )
+                      )
                 """;
 
         return entityManager.createQuery(jpql, Trainer.class)

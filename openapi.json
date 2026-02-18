@@ -1,0 +1,1784 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Gym CRM API",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Training Management",
+      "description": "Operations for creating trainings and retrieving training types"
+    },
+    {
+      "name": "Trainee Management",
+      "description": "Operations for managing trainee profiles, trainers, and training sessions"
+    },
+    {
+      "name": "Authentication",
+      "description": "User authentication and password management operations"
+    },
+    {
+      "name": "Trainer Management",
+      "description": "Operations for managing trainer profiles and training sessions"
+    }
+  ],
+  "paths": {
+    "/api/v1/trainers/{username}": {
+      "get": {
+        "tags": [
+          "Trainer Management"
+        ],
+        "summary": "Get trainer profile by username",
+        "description": "Returns trainer profile details including specialization, assigned trainees (if applicable), and active status.",
+        "operationId": "getProfile",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username of the trainer whose profile will be retrieved",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "trainer_jane"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Profile retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trainer not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Trainer Management"
+        ],
+        "summary": "Update trainer profile",
+        "description": "Updates trainer profile details such as personal information and specialization (depending on request model).",
+        "operationId": "updateProfile",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username of the trainer whose profile will be updated",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "trainer_jane"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainerProfileUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trainer not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      }
+    },
+    "/api/v1/trainees/{username}": {
+      "get": {
+        "tags": [
+          "Trainee Management"
+        ],
+        "summary": "Get trainee profile by username",
+        "description": "Returns trainee profile details including personal info, assigned trainers and active status.",
+        "operationId": "getProfile_1",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username of the trainee whose profile will be retrieved",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "john_doe"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Profile retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trainee not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Trainee Management"
+        ],
+        "summary": "Update trainee profile",
+        "description": "Updates trainee profile details. The request may include personal details and address fields.",
+        "operationId": "updateProfile_1",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username of the trainee whose profile will be updated",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "john_doe"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TraineeProfileUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trainee not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Trainee Management"
+        ],
+        "summary": "Delete trainee profile",
+        "description": "Deletes the trainee profile and related associations.",
+        "operationId": "deleteProfile",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username of the trainee whose profile will be deleted",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "john_doe"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trainee not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Profile deleted successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      }
+    },
+    "/api/v1/trainees/{username}/trainers": {
+      "put": {
+        "tags": [
+          "Trainee Management"
+        ],
+        "summary": "Update trainee's assigned trainers",
+        "description": "Replaces/updates the list of trainers assigned to a trainee using trainer usernames.",
+        "operationId": "updateTrainerList",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username of the trainee",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "john_doe"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "description": "List of trainer usernames to assign to the trainee",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Trainer list updated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trainee not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      }
+    },
+    "/api/v1/trainings": {
+      "post": {
+        "tags": [
+          "Training Management"
+        ],
+        "summary": "Add training",
+        "description": "Creates a new training record for the authenticated user.",
+        "operationId": "addTraining",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Training created successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      }
+    },
+    "/api/v1/trainers": {
+      "post": {
+        "tags": [
+          "Trainer Management"
+        ],
+        "summary": "Register a new trainer",
+        "description": "Creates a new trainer profile and returns registration details.",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainerRegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "409": {
+            "description": "Conflict (e.g., username already exists)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Trainer registered successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/trainees": {
+      "post": {
+        "tags": [
+          "Trainee Management"
+        ],
+        "summary": "Register a new trainee",
+        "description": "Creates a new trainee profile and returns registration details.",
+        "operationId": "register_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TraineeRegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Trainee registered successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict (e.g., username already exists)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "User login",
+        "description": "Authenticates a user and returns a JWT token",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid login request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/trainers/{username}/active-status": {
+      "patch": {
+        "tags": [
+          "Trainer Management"
+        ],
+        "summary": "Set trainer active status",
+        "description": "Activates or deactivates the trainer profile.",
+        "operationId": "setActiveStatus",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username of the trainer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "trainer_jane"
+          },
+          {
+            "name": "isActive",
+            "in": "query",
+            "description": "New active status",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            },
+            "example": true
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Active status updated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trainer not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      }
+    },
+    "/api/v1/trainees/{username}/active-status": {
+      "patch": {
+        "tags": [
+          "Trainee Management"
+        ],
+        "summary": "Set trainee active status",
+        "description": "Activates or deactivates the trainee profile.",
+        "operationId": "setActiveStatus_1",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username of the trainee",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "john_doe"
+          },
+          {
+            "name": "isActive",
+            "in": "query",
+            "description": "New active status",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            },
+            "example": true
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trainee not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Active status updated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      }
+    },
+    "/api/v1/change-password": {
+      "patch": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Change user password",
+        "description": "Allows authenticated users to change their password",
+        "operationId": "changePassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Password changed successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      }
+    },
+    "/api/v1/trainings/types": {
+      "get": {
+        "tags": [
+          "Training Management"
+        ],
+        "summary": "Get training types",
+        "description": "Returns the list of available training types.",
+        "operationId": "getTrainingTypes",
+        "responses": {
+          "200": {
+            "description": "Training types retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/trainers/{username}/trainings": {
+      "get": {
+        "tags": [
+          "Trainer Management"
+        ],
+        "summary": "Get trainer trainings with filters",
+        "description": "Returns training sessions for the specified trainer. Optional filters may include date range and trainee-related fields (depending on filter DTO).",
+        "operationId": "getTrainings",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username of the trainer",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "trainer_jane"
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TrainerTrainingFilterRequest"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Trainings retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trainer not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      }
+    },
+    "/api/v1/trainees/{username}/trainings": {
+      "get": {
+        "tags": [
+          "Trainee Management"
+        ],
+        "summary": "Get trainee trainings with filters",
+        "description": "Returns trainee training sessions. Optional filters may include date range and trainer-related fields (depending on filter DTO).",
+        "operationId": "getTrainings_1",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username of the trainee",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "john_doe"
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TraineeTrainingFilterRequest"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Trainings retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trainee not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      }
+    },
+    "/api/v1/trainees/{username}/trainers/not-assigned": {
+      "get": {
+        "tags": [
+          "Trainee Management"
+        ],
+        "summary": "Get active trainers not assigned to trainee",
+        "description": "Returns a list of active trainers who are not currently assigned to the specified trainee.",
+        "operationId": "getNotAssignedActiveTrainers",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "Username of the trainee",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "john_doe"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trainee not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Trainers retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiStandardResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "customAuth": []
+          },
+          {
+            "Bearer Authentication": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TrainerProfileUpdateRequest": {
+        "required": [
+          "firstName",
+          "isActive",
+          "lastName",
+          "specializationId"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "maxLength": 64,
+            "minLength": 2,
+            "type": "string",
+            "description": "Trainer's first name.",
+            "example": "Jane"
+          },
+          "lastName": {
+            "maxLength": 64,
+            "minLength": 2,
+            "type": "string",
+            "description": "Trainer's last name.",
+            "example": "Smith"
+          },
+          "specializationId": {
+            "type": "integer",
+            "description": "Identifier of the trainer's specialization (training type).",
+            "format": "int64",
+            "example": 2
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Indicates whether the trainer profile is active.",
+            "example": true
+          }
+        },
+        "description": "Request body for updating a trainer's profile information."
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "description": "Unique identifier for the request, useful for tracing and debugging.",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "urn": {
+            "type": "string",
+            "description": "URN identifying the type of error.",
+            "example": "urn:com.alirizakaygusuz.gymcrm:error:validation"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp indicating when the error occurred.",
+            "format": "date-time",
+            "example": "2024-06-01T12:00:00Z"
+          },
+          "code": {
+            "type": "string",
+            "description": "Application-specific error code.",
+            "example": "VALIDATION_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message describing the failure.",
+            "example": "Validation failed"
+          },
+          "fieldErrors": {
+            "$ref": "#/components/schemas/FieldError"
+          }
+        },
+        "description": "Standard error response object returned when an API request fails."
+      },
+      "ApiStandardResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TrainerProfileUpdateResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        },
+        "description": "Standard API response wrapper. Contains either data on success or error details on failure."
+      },
+      "FieldError": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "Name of the field that caused the validation error.",
+            "example": "field"
+          },
+          "message": {
+            "type": "string",
+            "description": "Validation error message associated with the field.",
+            "example": "message name is required"
+          }
+        },
+        "description": "Represents a validation error for a specific request field."
+      },
+      "TraineeProfileSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Username of the trainee.",
+            "example": "john.doe"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Trainee's first name.",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Trainee's last name.",
+            "example": "Doe"
+          }
+        },
+        "description": "Summary information of a trainee profile, typically used in trainer- or list-related responses."
+      },
+      "TrainerProfileUpdateResponse": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Username of the trainer.",
+            "example": "trainer.jane"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Trainer's first name.",
+            "example": "Jane"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Trainer's last name.",
+            "example": "Smith"
+          },
+          "specialization": {
+            "type": "string",
+            "description": "Trainer's area of specialization.",
+            "example": "CARDIO",
+            "enum": [
+              "CARDIO",
+              "STRENGTH",
+              "FLEXIBILITY",
+              "BALANCE",
+              "YOGA",
+              "PILATES",
+              "CROSSFIT",
+              "FUNCTIONAL_TRAINING",
+              "HIIT",
+              "MOBILITY",
+              "ENDURANCE"
+            ]
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Indicates whether the trainer profile is active.",
+            "example": true
+          },
+          "trainees": {
+            "type": "array",
+            "description": "List of trainees currently assigned to the trainer.",
+            "items": {
+              "$ref": "#/components/schemas/TraineeProfileSummaryResponse"
+            }
+          }
+        },
+        "description": "Response object returned after successfully updating a trainer's profile."
+      },
+      "TraineeProfileUpdateRequest": {
+        "required": [
+          "firstName",
+          "isActive",
+          "lastName"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "maxLength": 64,
+            "minLength": 2,
+            "type": "string",
+            "description": "Trainee's first name.",
+            "example": "John"
+          },
+          "lastName": {
+            "maxLength": 64,
+            "minLength": 2,
+            "type": "string",
+            "description": "Trainee's last name.",
+            "example": "Doe"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "description": "Trainee's date of birth (ISO-8601, yyyy-MM-dd).",
+            "format": "date",
+            "example": "1990-01-01"
+          },
+          "address": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string",
+            "description": "Trainee's address.",
+            "example": "123 Main St, Anytown, USA"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the trainee profile is active.",
+            "example": true
+          }
+        },
+        "description": "Request body for updating a trainee profile, including personal details and active status."
+      },
+      "TrainingCreateRequest": {
+        "required": [
+          "traineeUsername",
+          "trainerUsername",
+          "trainingDate",
+          "trainingDuration",
+          "trainingName"
+        ],
+        "type": "object",
+        "properties": {
+          "traineeUsername": {
+            "maxLength": 150,
+            "minLength": 3,
+            "type": "string",
+            "description": "Username of the trainee who will attend the training.",
+            "example": "john.doe"
+          },
+          "trainerUsername": {
+            "maxLength": 150,
+            "minLength": 3,
+            "type": "string",
+            "description": "Username of the trainer who will conduct the training.",
+            "example": "trainer.jane"
+          },
+          "trainingName": {
+            "maxLength": 100,
+            "minLength": 3,
+            "type": "string",
+            "description": "Name/title of the training session.",
+            "example": "Morning Cardio"
+          },
+          "trainingDate": {
+            "type": "string",
+            "description": "Date when the training session will take place. ISO-8601 format (yyyy-MM-dd).",
+            "format": "date",
+            "example": "2024-06-15"
+          },
+          "trainingDuration": {
+            "type": "integer",
+            "description": "Duration of the training session in minutes.",
+            "format": "int32",
+            "example": 60
+          }
+        },
+        "description": "Request body for creating a new training session between a trainee and a trainer."
+      },
+      "TrainerRegisterRequest": {
+        "required": [
+          "firstName",
+          "lastName",
+          "specializationId"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "maxLength": 64,
+            "minLength": 2,
+            "type": "string",
+            "description": "Trainer's first name.",
+            "example": "Jane"
+          },
+          "lastName": {
+            "maxLength": 64,
+            "minLength": 2,
+            "type": "string",
+            "description": "Trainer's last name.",
+            "example": "Smith"
+          },
+          "specializationId": {
+            "type": "integer",
+            "description": "Identifier of the trainer's specialization (training type).",
+            "format": "int64",
+            "example": 1
+          }
+        },
+        "description": "Request body for registering a new trainer, including personal details and specialization."
+      },
+      "TraineeRegisterRequest": {
+        "required": [
+          "firstName",
+          "lastName"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "maxLength": 64,
+            "minLength": 2,
+            "type": "string",
+            "description": "Trainee's first name.",
+            "example": "John"
+          },
+          "lastName": {
+            "maxLength": 64,
+            "minLength": 2,
+            "type": "string",
+            "description": "Trainee's last name.",
+            "example": "Doe"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "description": "Trainee's date of birth (ISO-8601, yyyy-MM-dd).",
+            "format": "date",
+            "example": "1990-01-01"
+          },
+          "address": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string",
+            "description": "Trainee's address.",
+            "example": "123 Main St, Anytown, USA"
+          }
+        },
+        "description": "Request body for registering a new trainee, including personal details and profile information."
+      },
+      "LoginRequest": {
+        "required": [
+          "password",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "maxLength": 150,
+            "minLength": 3,
+            "type": "string",
+            "description": "Username used for authentication.",
+            "example": "john.doe"
+          },
+          "password": {
+            "maxLength": 255,
+            "minLength": 10,
+            "type": "string",
+            "description": "Password used for authentication.",
+            "example": "password123"
+          }
+        },
+        "description": "Request body used to authenticate a user with username and password."
+      },
+      "ChangePasswordRequest": {
+        "required": [
+          "newPassword",
+          "oldPassword",
+          "username"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "maxLength": 150,
+            "minLength": 3,
+            "type": "string",
+            "description": "Username of the user",
+            "example": "john.doe"
+          },
+          "oldPassword": {
+            "maxLength": 255,
+            "minLength": 10,
+            "type": "string",
+            "description": "Current password of the user",
+            "example": "P@ssw0rd"
+          },
+          "newPassword": {
+            "maxLength": 255,
+            "minLength": 10,
+            "type": "string",
+            "description": "New password for the user",
+            "example": "N3wP@ssw0rd!"
+          }
+        },
+        "description": "Request payload for changing user password"
+      },
+      "TrainerTrainingFilterRequest": {
+        "type": "object",
+        "properties": {
+          "periodFrom": {
+            "type": "string",
+            "description": "Start date of the training period (inclusive). ISO-8601 format (yyyy-MM-dd).",
+            "format": "date",
+            "example": "2024-01-01"
+          },
+          "periodTo": {
+            "type": "string",
+            "description": "End date of the training period (inclusive). ISO-8601 format (yyyy-MM-dd).",
+            "format": "date",
+            "example": "2024-12-31"
+          },
+          "traineeName": {
+            "type": "string",
+            "description": "Full name of the trainee used to filter training sessions.",
+            "example": "John Doe"
+          }
+        },
+        "description": "Query parameters used to filter a trainer's training sessions by date range and trainee name."
+      },
+      "TraineeTrainingFilterRequest": {
+        "type": "object",
+        "properties": {
+          "periodFrom": {
+            "type": "string",
+            "description": "Start date of the training period (inclusive). ISO-8601 format (yyyy-MM-dd).",
+            "format": "date",
+            "example": "2024-01-01"
+          },
+          "periodTo": {
+            "type": "string",
+            "description": "End date of the training period (inclusive). ISO-8601 format (yyyy-MM-dd).",
+            "format": "date",
+            "example": "2024-12-31"
+          },
+          "trainerName": {
+            "type": "string",
+            "description": "Full name of the trainer used to filter training sessions.",
+            "example": "Jane Smith"
+          },
+          "trainingType": {
+            "type": "string",
+            "description": "Training type code used to filter sessions.",
+            "example": "CARDIO"
+          }
+        },
+        "description": "Query parameters used to filter a trainee's training sessions by date range, trainer name, and training type."
+      }
+    },
+    "securitySchemes": {
+      "Bearer Authentication": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
