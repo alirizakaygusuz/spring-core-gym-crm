@@ -3,6 +3,7 @@ package com.alirizakaygusuz.gymcrm.controller;
 import com.alirizakaygusuz.gymcrm.dto.response.ApiStandardResponse;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingCreateRequest;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingTypeResponse;
+import com.alirizakaygusuz.gymcrm.security.self.SelfService;
 import com.alirizakaygusuz.gymcrm.service.training.TrainingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

@@ -9,6 +9,7 @@ import com.alirizakaygusuz.gymcrm.dto.trainee.training.TraineeTrainingFilterResp
 import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainer.profile.TrainerProfileSummaryResponse;
+import com.alirizakaygusuz.gymcrm.security.self.SelfService;
 import com.alirizakaygusuz.gymcrm.service.trainee.TraineeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.alirizakaygusuz.gymcrm.controller.ControllerAuthUtils.verifyUserAccess;
 
 @RestController
 @RequestMapping("/api/v1/trainees")
@@ -69,12 +69,12 @@ public class TraineeController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     @GetMapping("/{username}")
+    @SelfService
     public ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> getProfile(
             @Parameter(description = "Username of the trainee whose profile will be retrieved", example = "john.doe", required = true)
             @PathVariable
             @NotBlank String username
     ) {
-        verifyUserAccess(username);
         return ok(traineeService.getProfile(username));
     }
 
@@ -90,6 +90,7 @@ public class TraineeController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     @PutMapping("/{username}")
+    @SelfService
     public ResponseEntity<ApiStandardResponse<TraineeProfileUpdateResponse>> updateProfile(
 
             @Parameter(description = "Username of the trainee whose profile will be updated", example = "john.doe", required = true)
@@ -99,7 +100,6 @@ public class TraineeController extends BaseController {
             @Valid @RequestBody TraineeProfileUpdateRequest request
     ) {
 
-        verifyUserAccess(username);
         return ok(traineeService.updateProfile(username, request));
     }
 
@@ -115,6 +115,7 @@ public class TraineeController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     @DeleteMapping("/{username}")
+    @SelfService
     public ResponseEntity<ApiStandardResponse<Void>> deleteProfile(
 
             @Parameter(description = "Username of the trainee whose profile will be deleted", example = "john.doe", required = true)
@@ -122,7 +123,6 @@ public class TraineeController extends BaseController {
             @NotBlank String username
     ) {
 
-        verifyUserAccess(username);
         traineeService.deleteProfile(username);
         return ok();
     }
@@ -139,6 +139,7 @@ public class TraineeController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     @GetMapping("/{username}/trainers/not-assigned")
+    @SelfService
     public ResponseEntity<ApiStandardResponse<List<TrainerProfileSummaryResponse>>> getNotAssignedActiveTrainers(
 
             @Parameter(description = "Username of the trainee", example = "john.doe", required = true)
@@ -146,7 +147,6 @@ public class TraineeController extends BaseController {
             @NotBlank String username
     ) {
 
-        verifyUserAccess(username);
         return ok(traineeService.getNotAssignedActiveTrainers(username));
     }
 
@@ -162,6 +162,7 @@ public class TraineeController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     @PutMapping("/{username}/trainers")
+    @SelfService
     public ResponseEntity<ApiStandardResponse<List<TrainerProfileSummaryResponse>>> updateTrainerList(
             @Parameter(description = "Username of the trainee", example = "john.doe", required = true)
             @PathVariable
@@ -176,7 +177,6 @@ public class TraineeController extends BaseController {
             @NotNull List<@NotBlank String> trainerUsernames
     ) {
 
-        verifyUserAccess(username);
         return ok(traineeService.updateTrainerList(username, trainerUsernames));
     }
 
@@ -192,6 +192,7 @@ public class TraineeController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     @GetMapping("/{username}/trainings")
+    @SelfService
     public ResponseEntity<ApiStandardResponse<List<TraineeTrainingFilterResponse>>> getTrainings(
 
             @Parameter(description = "Username of the trainee", example = "john.doe", required = true)
@@ -201,7 +202,6 @@ public class TraineeController extends BaseController {
             TraineeTrainingFilterRequest filters
     ) {
 
-        verifyUserAccess(username);
         return ok(traineeService.getTrainings(username, filters));
     }
 
@@ -217,6 +217,7 @@ public class TraineeController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainee not found")
     })
     @PatchMapping("/{username}/active-status")
+    @SelfService
     public ResponseEntity<ApiStandardResponse<Void>> setActiveStatus(
 
             @Parameter(description = "Username of the trainee", example = "john.doe", required = true)
@@ -227,7 +228,6 @@ public class TraineeController extends BaseController {
             @RequestParam(value = "isActive") boolean isActive
     ) {
 
-        verifyUserAccess(username);
         traineeService.setActiveStatus(username, isActive);
         return ok();
     }
