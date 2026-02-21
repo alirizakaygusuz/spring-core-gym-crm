@@ -20,6 +20,7 @@ import com.alirizakaygusuz.gymcrm.mapper.TraineeMapper;
 import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
 import com.alirizakaygusuz.gymcrm.mapper.TrainingMapper;
 import com.alirizakaygusuz.gymcrm.model.*;
+import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
 import com.alirizakaygusuz.gymcrm.service.validator.ValidationUtils;
 import lombok.RequiredArgsConstructor;
@@ -51,11 +52,17 @@ public class TraineeServiceImpl implements TraineeService {
 
     private final ValidationUtils validationUtils;
 
+    private final AppMetrics appMetrics;
+
+
 
     @Override
     @Transactional
     public TraineeRegisterResponse register(TraineeRegisterRequest request) {
         log.info("Starting trainee registration ");
+
+        appMetrics.incrementTraineeRegistrationAttempts();
+
         User savedUser = userService.createUserWithCredentials(request);
 
         log.info("User profile created with username={}", savedUser.getUsername());
@@ -66,6 +73,7 @@ public class TraineeServiceImpl implements TraineeService {
         log.info("Trainee profile created. traineeId={}, username={}",
                 savedTrainee.getId(), savedUser.getUsername());
 
+        appMetrics.incrementTraineeRegistrationSuccess();
 
         return traineeMapper.toRegisterResponse(savedTrainee.getUser());
     }
