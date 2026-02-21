@@ -9,7 +9,7 @@ import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
+@Component("jwtServiceHealth")
 @RequiredArgsConstructor
 public class JwtServiceHealthIndicator implements HealthIndicator {
 

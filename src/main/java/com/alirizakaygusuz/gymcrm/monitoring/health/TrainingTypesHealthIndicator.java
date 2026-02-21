@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 
 @Slf4j
-@Component
+@Component("trainingTypesHealth")
 @RequiredArgsConstructor
 public class TrainingTypesHealthIndicator implements HealthIndicator {
 

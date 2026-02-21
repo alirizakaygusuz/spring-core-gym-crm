@@ -56,7 +56,7 @@ public class TrainerServiceImpl implements TrainerService {
     public TrainerRegisterResponse register(TrainerRegisterRequest request) {
         log.info("Starting trainer profile creation");
 
-        appMetrics.incrementTraineeRegistrationAttempts();
+        appMetrics.incrementTrainerRegistrationAttempts();
 
 
         User savedUser = userService.createUserWithCredentials(request);

@@ -8,10 +8,10 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: validate
+
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}
-
 
 management:
   info:
@@ -23,9 +23,20 @@ management:
         include: health,info,prometheus
   endpoint:
     health:
-      show-details: always
+      default:
+        exclude: db ,jwtServiceHealth, trainingTypesHealth
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState, db, jwtServiceHealth, trainingTypesHealth
+          show-details: always
+        liveness:
+          include: livenessState
+          show-details: always
     info:
       enabled: true
+
 
 info:
   app:

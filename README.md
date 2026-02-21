@@ -107,6 +107,8 @@ Wait for: `Started Application in X seconds`
 #### **Step 4: Access Services**
 - **Swagger UI:** http://localhost:8080/swagger-ui/index.html
 - **Actuator Health:** http://localhost:8080/actuator/health
+- - **Actuator Health:** http://localhost:8080/actuator/health/readiness
+- - **Actuator Health:** http://localhost:8080/actuator/health/liveness
 - **Actuator Info:** http://localhost:8080/actuator/info
 - **Prometheus Metrics:** http://localhost:8080/actuator/prometheus
 
@@ -118,6 +120,9 @@ Wait for: `Started Application in X seconds`
 
 #### **1. Health Check**
 **Endpoint:** http://localhost:8080/actuator/health
+**Endpoint:** http://localhost:8080/actuator/health/readiness
+**Endpoint:** http://localhost:8080/actuator/health/liveness
+
 
 **Custom Health Indicators:**
 - **Database:** PostgreSQL connection status
@@ -126,40 +131,9 @@ Wait for: `Started Application in X seconds`
 
 ![Actuator Health](docs/images/actuator-health.png)
 
-**Example Response:**
-```json
-{
-  "status": "UP",
-  "components": {
-    "database": {
-      "status": "UP",
-      "details": {
-        "database": "PostgreSQL",
-        "status": "Connected",
-        "url": "jdbc:postgresql://localhost:5432/gymcrm-local"
-      }
-    },
-    "jwtService": {
-      "status": "UP",
-      "details": {
-        "service": "JWT Authentication",
-        "status": "Operational",
-        "testTokenGeneration": "Success",
-        "testTokenValidation": "Success"
-      }
-    },
-    "trainingTypes": {
-      "status": "UP",
-      "details": {
-        "service": "Training Types",
-        "status": "All training types are present",
-        "expectedCount": 11,
-        "actualCount": 11
-      }
-    }
-  }
-}
-```
+![Actuator Health Readiness](docs/images/actuator-health-readiness.png)
+
+![Actuator Health Readiness](docs/images/actuator-health-liveness.png)
 
 ---
 
