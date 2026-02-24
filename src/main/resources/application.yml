@@ -1,0 +1,50 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
+
+management:
+  info:
+    env:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      default:
+        exclude: db ,jwtServiceHealth, trainingTypesHealth
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState, db, jwtServiceHealth, trainingTypesHealth
+          show-details: always
+        liveness:
+          include: livenessState
+          show-details: always
+    info:
+      enabled: true
+
+
+info:
+  app:
+    name: Gym CRM System
+    description: Spring Boot Gym CRM project developed by Ali Riza Kaygusuz
+    version: 1.0-SNAPSHOT
+  build:
+    artifact: gymcrm
+    group: com.alirizakaygusuz.gymcrm
+  contact:
+    name: Ali Riza Kaygusuz

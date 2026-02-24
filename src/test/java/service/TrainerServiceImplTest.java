@@ -16,6 +16,7 @@ import com.alirizakaygusuz.gymcrm.model.Trainer;
 import com.alirizakaygusuz.gymcrm.model.TrainingType;
 import com.alirizakaygusuz.gymcrm.model.TrainingTypeCode;
 import com.alirizakaygusuz.gymcrm.model.User;
+import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.service.trainer.TrainerServiceImpl;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
@@ -42,8 +43,6 @@ class TrainerServiceImplTest {
     @Mock
     private TrainingTypeDao trainingTypeDao;
 
-    @Mock
-    private TrainingDao trainingDao;
 
     @Mock
     private UserService userService;
@@ -52,16 +51,15 @@ class TrainerServiceImplTest {
     private TrainerMapper trainerMapper;
 
     @Mock
-    private TrainingMapper trainingMapper;
-
-    @Mock
     private CommonValidator commonValidator;
 
     @Mock
-    private ValidationUtils validationUtils;
+    private AppMetrics appMetrics;
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
+
+
 
     @Test
     @DisplayName("register should create trainer and return response")

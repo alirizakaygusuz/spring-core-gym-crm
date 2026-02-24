@@ -108,7 +108,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || isMatch(method, uri, "GET", "/api/v1/trainings/types")
                 || uri.startsWith("/v3/api-docs")
                 || uri.startsWith("/swagger-ui")
-                || uri.startsWith("/webjars");
+                || uri.startsWith("/webjars")
+                || uri.startsWith("/actuator");
+
     }
 
 

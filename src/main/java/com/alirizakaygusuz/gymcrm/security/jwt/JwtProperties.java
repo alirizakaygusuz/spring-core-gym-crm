@@ -1,5 +1,6 @@
 package com.alirizakaygusuz.gymcrm.security.jwt;
 
+
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;

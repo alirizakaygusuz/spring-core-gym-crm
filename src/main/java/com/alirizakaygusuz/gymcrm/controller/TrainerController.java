@@ -8,6 +8,7 @@ import com.alirizakaygusuz.gymcrm.dto.trainer.training.TrainerTrainingFilterRequ
 import com.alirizakaygusuz.gymcrm.dto.trainer.training.TrainerTrainingFilterResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateResponse;
+import com.alirizakaygusuz.gymcrm.security.self.SelfService;
 import com.alirizakaygusuz.gymcrm.service.trainer.TrainerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.alirizakaygusuz.gymcrm.controller.ControllerAuthUtils.verifyUserAccess;
 
 @RestController
 @RequestMapping("/api/v1/trainers")
@@ -67,6 +67,7 @@ public class TrainerController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainer not found")
     })
     @GetMapping("/{username}")
+    @SelfService
     public ResponseEntity<ApiStandardResponse<TrainerProfileResponse>> getProfile(
 
             @Parameter(description = "Username of the trainer whose profile will be retrieved", example = "trainer.jane", required = true)
@@ -74,7 +75,6 @@ public class TrainerController extends BaseController {
             @NotBlank String username
     ) {
 
-        verifyUserAccess(username);
         return ok(trainerService.getProfile(username));
     }
 
@@ -90,6 +90,7 @@ public class TrainerController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainer not found")
     })
     @PutMapping("/{username}")
+    @SelfService
     public ResponseEntity<ApiStandardResponse<TrainerProfileUpdateResponse>> updateProfile(
 
             @Parameter(description = "Username of the trainer whose profile will be updated", example = "trainer.jane", required = true)
@@ -97,7 +98,6 @@ public class TrainerController extends BaseController {
 
             @Valid @RequestBody TrainerProfileUpdateRequest request
     ) {
-        verifyUserAccess(username);
         return ok(trainerService.updateProfile(username, request));
     }
 
@@ -113,6 +113,7 @@ public class TrainerController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainer not found")
     })
     @GetMapping("/{username}/trainings")
+    @SelfService
     public ResponseEntity<ApiStandardResponse<List<TrainerTrainingFilterResponse>>> getTrainings(
 
             @Parameter(description = "Username of the trainer", example = "trainer.jane", required = true)
@@ -120,7 +121,6 @@ public class TrainerController extends BaseController {
 
             TrainerTrainingFilterRequest filters
     ) {
-        verifyUserAccess(username);
         return ok(trainerService.getTrainings(username, filters));
     }
 
@@ -136,6 +136,7 @@ public class TrainerController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainer not found")
     })
     @PatchMapping("/{username}/active-status")
+    @SelfService
     public ResponseEntity<ApiStandardResponse<Void>> setActiveStatus(
 
             @Parameter(description = "Username of the trainer", example = "trainer.jane", required = true)
@@ -145,7 +146,6 @@ public class TrainerController extends BaseController {
             @RequestParam boolean isActive
     ) {
 
-        verifyUserAccess(username);
         trainerService.setActiveStatus(username, isActive);
         return ok();
     }

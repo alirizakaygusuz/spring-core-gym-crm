@@ -4,6 +4,7 @@ import com.alirizakaygusuz.gymcrm.dto.auth.ChangePasswordRequest;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginResponse;
 import com.alirizakaygusuz.gymcrm.dto.response.ApiStandardResponse;
+import com.alirizakaygusuz.gymcrm.security.self.SelfService;
 import com.alirizakaygusuz.gymcrm.service.auth.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -15,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.alirizakaygusuz.gymcrm.controller.ControllerAuthUtils.verifyUserAccess;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -58,12 +58,12 @@ public class AuthController extends BaseController {
     })
     @SecurityRequirement(name = "customAuth")
     @PatchMapping("/change-password")
+    @SelfService
     public ResponseEntity<ApiStandardResponse<Void>> changePassword(
             @Valid @RequestBody ChangePasswordRequest request
 
 
     ) {
-        verifyUserAccess(request.username());
         authService.changePassword(request);
         return ok();
     }

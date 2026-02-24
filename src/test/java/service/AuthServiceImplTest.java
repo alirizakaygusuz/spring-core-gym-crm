@@ -8,6 +8,7 @@ import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginResponse;
 import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
 import com.alirizakaygusuz.gymcrm.model.User;
+import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.security.jwt.JwtService;
 import com.alirizakaygusuz.gymcrm.service.auth.AuthServiceImpl;
 import org.junit.jupiter.api.DisplayName;
@@ -41,8 +42,13 @@ class AuthServiceImplTest {
     @Mock
     private JwtService jwtService;
 
+    @Mock
+    private AppMetrics appMetrics;
+
+
     @InjectMocks
     private AuthServiceImpl authService;
+
 
     @Test
     @DisplayName("login should succeed when credentials are valid")
