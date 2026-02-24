@@ -1,4 +1,12 @@
--- 1) USERS
+--1) ROLES
+CREATE TABLE IF NOT EXISTS roles (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255)
+);
+
+
+-- 2) USERS
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     first_name   VARCHAR(100) NOT NULL,
@@ -8,13 +16,33 @@ CREATE TABLE IF NOT EXISTS users (
     is_active    BOOLEAN      NOT NULL
 );
 
--- 2) TRAINING TYPES
+-- 3) USERS <-> ROLES (M2M)
+CREATE TABLE IF NOT EXISTS user_roles (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT NOW(),
+
+    CONSTRAINT fk_user_roles_user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_user_roles_role
+        FOREIGN KEY (role_id) REFERENCES roles(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT unique_user_role UNIQUE (user_id, role_id)
+);
+
+
+
+-- 4) TRAINING TYPES
 CREATE TABLE IF NOT EXISTS training_types (
     id BIGSERIAL PRIMARY KEY,
     training_type_name VARCHAR(100) NOT NULL UNIQUE
 );
 
--- 3) TRAINEES <-> USERS (O2O)
+-- 5) TRAINEES <-> USERS (O2O)
 CREATE TABLE IF NOT EXISTS trainees (
     id BIGSERIAL PRIMARY KEY,
     user_id       BIGINT NOT NULL UNIQUE,
@@ -25,7 +53,7 @@ CREATE TABLE IF NOT EXISTS trainees (
         FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- 4) TRAINERS <-> USERS (O2O)
+-- 6) TRAINERS <-> USERS (O2O)
 CREATE TABLE IF NOT EXISTS trainers (
     id BIGSERIAL PRIMARY KEY,
     user_id           BIGINT NOT NULL UNIQUE,
@@ -38,7 +66,7 @@ CREATE TABLE IF NOT EXISTS trainers (
         FOREIGN KEY (specialization_id) REFERENCES training_types(id)
 );
 
--- 5) TRAINEES <-> TRAINERS (M2M)
+-- 7) TRAINEES <-> TRAINERS (M2M)
 CREATE TABLE IF NOT EXISTS trainee_trainer (
     trainee_id BIGINT NOT NULL,
     trainer_id BIGINT NOT NULL,
@@ -53,7 +81,7 @@ CREATE TABLE IF NOT EXISTS trainee_trainer (
         FOREIGN KEY (trainer_id) REFERENCES trainers(id)
 );
 
--- 6) TRAININGS
+-- 8) TRAININGS
 CREATE TABLE IF NOT EXISTS trainings (
     id BIGSERIAL PRIMARY KEY,
     trainee_id        BIGINT       NOT NULL,

@@ -3,6 +3,9 @@ package com.alirizakaygusuz.gymcrm.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -32,5 +35,8 @@ public class User {
 
     @Column(name = "is_active", nullable = false)
     private boolean active;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserRole> userRoles = new HashSet<>();
 
 }

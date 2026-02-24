@@ -4,7 +4,9 @@ import com.alirizakaygusuz.gymcrm.dto.common.UserRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.common.UserUpdateRequest;
 import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
+import com.alirizakaygusuz.gymcrm.model.RoleType;
 import com.alirizakaygusuz.gymcrm.model.User;
+import com.alirizakaygusuz.gymcrm.service.role.RoleService;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
 import com.alirizakaygusuz.gymcrm.util.CredentialsGenerator;
@@ -20,10 +22,10 @@ public class UserDomainService {
 
     private final PasswordEncoder passwordEncoder;
     private final CredentialsGenerator credentialsGenerator;
-    private final UserValidator userValidator;
+    private final RoleService roleService;
     private final CommonValidator commonValidator;
 
-    public User createWithCredentials(UserRegisterRequest request) {
+    public User createWithCredentials(UserRegisterRequest request , RoleType role) {
         log.info("Creating user profile with provided data: firstName={}, lastName={}",
                 request.firstName(), request.lastName());
 
@@ -34,8 +36,11 @@ public class UserDomainService {
 
         log.info("Generating credentials for username={}", username);
 
+        User user = buildUser(request, username, rawPassword);
 
-        return buildUser(request, username, rawPassword);
+        roleService.assignRoleToUser(user, role);
+
+        return user;
     }
 
     private User buildUser(UserRegisterRequest request, String username, String rawPassword) {

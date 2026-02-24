@@ -15,10 +15,7 @@ import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
 import com.alirizakaygusuz.gymcrm.mapper.TrainingMapper;
-import com.alirizakaygusuz.gymcrm.model.Trainer;
-import com.alirizakaygusuz.gymcrm.model.Training;
-import com.alirizakaygusuz.gymcrm.model.TrainingType;
-import com.alirizakaygusuz.gymcrm.model.User;
+import com.alirizakaygusuz.gymcrm.model.*;
 import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
@@ -59,7 +56,7 @@ public class TrainerServiceImpl implements TrainerService {
         appMetrics.incrementTrainerRegistrationAttempts();
 
 
-        User savedUser = userService.createUserWithCredentials(request);
+        User savedUser = userService.createUserWithCredentials(request, RoleType.TRAINER);
 
         log.info("User profile created with username={}", savedUser.getUsername());
 
