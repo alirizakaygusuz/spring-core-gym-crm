@@ -4,6 +4,7 @@ import com.alirizakaygusuz.gymcrm.dao.UserDao;
 import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateRequest;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
+import com.alirizakaygusuz.gymcrm.model.RoleType;
 import com.alirizakaygusuz.gymcrm.model.User;
 import com.alirizakaygusuz.gymcrm.service.user.UserDomainService;
 import com.alirizakaygusuz.gymcrm.service.user.UserServiceImpl;
@@ -54,10 +55,10 @@ class UserServiceImplTest {
         savedUser.setUsername("John.Doe");
         savedUser.setActive(true);
 
-        when(userDomainService.createWithCredentials(request)).thenReturn(builtUser);
+        when(userDomainService.createWithCredentials(request, RoleType.TRAINER)).thenReturn(builtUser);
         when(userDao.save(builtUser)).thenReturn(savedUser);
 
-        User result = userService.createUserWithCredentials(request);
+        User result = userService.createUserWithCredentials(request , RoleType.TRAINER);
 
         assertNotNull(result);
         assertEquals(1L, result.getId());
@@ -66,7 +67,7 @@ class UserServiceImplTest {
         assertEquals("John.Doe", result.getUsername());
         assertTrue(result.isActive());
 
-        verify(userDomainService).createWithCredentials(request);
+        verify(userDomainService).createWithCredentials(request,RoleType.TRAINER);
         verify(userDao).save(builtUser);
         verifyNoMoreInteractions(userDomainService, userDao);
     }

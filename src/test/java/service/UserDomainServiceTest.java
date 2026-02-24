@@ -3,7 +3,9 @@ package service;
 import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateRequest;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
+import com.alirizakaygusuz.gymcrm.model.RoleType;
 import com.alirizakaygusuz.gymcrm.model.User;
+import com.alirizakaygusuz.gymcrm.service.role.RoleService;
 import com.alirizakaygusuz.gymcrm.service.user.UserDomainService;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
 import com.alirizakaygusuz.gymcrm.service.validator.UserValidator;
@@ -36,6 +38,9 @@ class UserDomainServiceTest {
     @Mock
     private CommonValidator commonValidator;
 
+    @Mock
+    private RoleService roleService;
+
     @InjectMocks
     private UserDomainService userDomainService;
 
@@ -56,7 +61,7 @@ class UserDomainServiceTest {
         when(passwordEncoder.encode("rawPassword123"))
                 .thenReturn("encodedPassword123");
 
-        User result = userDomainService.createWithCredentials(request);
+        User result = userDomainService.createWithCredentials(request , RoleType.TRAINER);
 
         assertNotNull(result);
         assertEquals("John", result.getFirstName());
@@ -68,6 +73,7 @@ class UserDomainServiceTest {
         verify(credentialsGenerator).generateUniqueUsername("John", "Doe");
         verify(credentialsGenerator).generateRandomPassword();
         verify(passwordEncoder).encode("rawPassword123");
+        verify(roleService).assignRoleToUser(result, RoleType.TRAINER);
         verifyNoMoreInteractions(credentialsGenerator, passwordEncoder);
         verifyNoInteractions(commonValidator, userValidator);
     }

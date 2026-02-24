@@ -1,7 +1,6 @@
 package service;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
-import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingTypeDao;
 import com.alirizakaygusuz.gymcrm.dto.trainer.profile.TrainerProfileResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainer.register.TrainerRegisterRequest;
@@ -11,16 +10,11 @@ import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateRespons
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
-import com.alirizakaygusuz.gymcrm.mapper.TrainingMapper;
-import com.alirizakaygusuz.gymcrm.model.Trainer;
-import com.alirizakaygusuz.gymcrm.model.TrainingType;
-import com.alirizakaygusuz.gymcrm.model.TrainingTypeCode;
-import com.alirizakaygusuz.gymcrm.model.User;
+import com.alirizakaygusuz.gymcrm.model.*;
 import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.service.trainer.TrainerServiceImpl;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
 import com.alirizakaygusuz.gymcrm.service.validator.CommonValidator;
-import com.alirizakaygusuz.gymcrm.service.validator.ValidationUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,7 +54,6 @@ class TrainerServiceImplTest {
     private TrainerServiceImpl trainerService;
 
 
-
     @Test
     @DisplayName("register should create trainer and return response")
     void register_shouldCreateTrainerAndReturnResponse() {
@@ -86,7 +79,7 @@ class TrainerServiceImplTest {
 
         TrainerRegisterResponse response = new TrainerRegisterResponse("Jane.Smith", "password");
 
-        when(userService.createUserWithCredentials(request)).thenReturn(savedUser);
+        when(userService.createUserWithCredentials(request, RoleType.TRAINER)).thenReturn(savedUser);
         when(trainingTypeDao.findById(1L)).thenReturn(Optional.of(specialization));
         when(trainerDao.save(any(Trainer.class))).thenReturn(savedTrainer);
         when(trainerMapper.toRegisterResponse(savedTrainer.getUser())).thenReturn(response);
@@ -96,7 +89,7 @@ class TrainerServiceImplTest {
         assertNotNull(result);
         assertEquals("Jane.Smith", result.username());
 
-        verify(userService).createUserWithCredentials(request);
+        verify(userService).createUserWithCredentials(request, RoleType.TRAINER);
         verify(commonValidator).validateNotNull(1L, "Specialization ID");
         verify(trainingTypeDao).findById(1L);
         verify(trainerDao).save(any(Trainer.class));
@@ -117,7 +110,7 @@ class TrainerServiceImplTest {
         savedUser.setId(1L);
         savedUser.setUsername("Jane.Smith");
 
-        when(userService.createUserWithCredentials(request)).thenReturn(savedUser);
+        when(userService.createUserWithCredentials(request, RoleType.TRAINER)).thenReturn(savedUser);
         when(trainingTypeDao.findById(999L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
@@ -127,7 +120,7 @@ class TrainerServiceImplTest {
 
         assertTrue(exception.getMessage().contains("TrainingType"));
 
-        verify(userService).createUserWithCredentials(request);
+        verify(userService).createUserWithCredentials(request, RoleType.TRAINER);
         verify(commonValidator).validateNotNull(999L, "Specialization ID");
         verify(trainingTypeDao).findById(999L);
         verifyNoMoreInteractions(userService, commonValidator, trainingTypeDao);
@@ -147,7 +140,7 @@ class TrainerServiceImplTest {
         savedUser.setId(1L);
         savedUser.setUsername("Jane.Smith");
 
-        when(userService.createUserWithCredentials(request)).thenReturn(savedUser);
+        when(userService.createUserWithCredentials(request, RoleType.TRAINER)).thenReturn(savedUser);
         doThrow(new ValidationException("Specialization ID cannot be null"))
                 .when(commonValidator).validateNotNull(null, "Specialization ID");
 
@@ -158,7 +151,7 @@ class TrainerServiceImplTest {
 
         assertEquals("Specialization ID cannot be null", exception.getMessage());
 
-        verify(userService).createUserWithCredentials(request);
+        verify(userService).createUserWithCredentials(request, RoleType.TRAINER);
         verify(commonValidator).validateNotNull(null, "Specialization ID");
         verifyNoMoreInteractions(userService, commonValidator);
         verifyNoInteractions(trainingTypeDao, trainerDao, trainerMapper);
