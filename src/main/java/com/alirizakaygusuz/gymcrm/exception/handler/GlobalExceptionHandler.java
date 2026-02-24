@@ -3,8 +3,8 @@ package com.alirizakaygusuz.gymcrm.exception.handler;
 import com.alirizakaygusuz.gymcrm.dto.response.ApiError;
 import com.alirizakaygusuz.gymcrm.dto.response.ApiStandardResponse;
 import com.alirizakaygusuz.gymcrm.dto.response.FieldError;
-import com.alirizakaygusuz.gymcrm.exception.AuthorizationFailedException;
 import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
+import com.alirizakaygusuz.gymcrm.exception.AuthorizationFailedException;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -29,6 +31,25 @@ import java.util.UUID;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+
+    @ExceptionHandler({
+            AuthorizationDeniedException.class,
+            AccessDeniedException.class
+    })
+    public ResponseEntity<ApiStandardResponse<Void>> handleSpringSecurityAuthorizationDenied(Exception ex) {
+        log.warn("Spring Security authorization denied: {}", ex.getMessage());
+
+        ApiError apiError = ApiError.simple(
+                getRequestId(),
+                buildDynamicUrn(),
+                "AUTHORIZATION_FAILED",
+                "You do not have permission to access this resource"
+        );
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiStandardResponse.error(apiError));
+    }
 
     @ExceptionHandler(AuthenticationFailedException.class)
     public ResponseEntity<ApiStandardResponse<Void>> handleAuth(AuthenticationFailedException ex) {

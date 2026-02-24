@@ -4,7 +4,7 @@ import com.alirizakaygusuz.gymcrm.dto.auth.ChangePasswordRequest;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginResponse;
 import com.alirizakaygusuz.gymcrm.dto.response.ApiStandardResponse;
-import com.alirizakaygusuz.gymcrm.security.self.SelfService;
+import com.alirizakaygusuz.gymcrm.security.authorization.self.SelfService;
 import com.alirizakaygusuz.gymcrm.service.auth.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

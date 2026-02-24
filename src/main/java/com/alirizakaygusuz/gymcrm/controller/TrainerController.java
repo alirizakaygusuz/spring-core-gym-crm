@@ -8,7 +8,7 @@ import com.alirizakaygusuz.gymcrm.dto.trainer.training.TrainerTrainingFilterRequ
 import com.alirizakaygusuz.gymcrm.dto.trainer.training.TrainerTrainingFilterResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainer.update.TrainerProfileUpdateResponse;
-import com.alirizakaygusuz.gymcrm.security.self.SelfService;
+import com.alirizakaygusuz.gymcrm.security.authorization.self.SelfTrainerService;
 import com.alirizakaygusuz.gymcrm.service.trainer.TrainerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,7 +19,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +37,7 @@ import java.util.List;
         description = "Operations for managing trainer profiles and training sessions"
 )
 @SecurityRequirement(name = "customAuth")
+@Slf4j
 public class TrainerController extends BaseController {
 
     private final TrainerService trainerService;
@@ -67,13 +70,16 @@ public class TrainerController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainer not found")
     })
     @GetMapping("/{username}")
-    @SelfService
+    @SelfTrainerService
     public ResponseEntity<ApiStandardResponse<TrainerProfileResponse>> getProfile(
 
             @Parameter(description = "Username of the trainer whose profile will be retrieved", example = "trainer.jane", required = true)
             @PathVariable
             @NotBlank String username
     ) {
+
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        log.info("AUTH name={}, authorities={}", auth.getName(), auth.getAuthorities());
 
         return ok(trainerService.getProfile(username));
     }
@@ -90,7 +96,7 @@ public class TrainerController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainer not found")
     })
     @PutMapping("/{username}")
-    @SelfService
+    @SelfTrainerService
     public ResponseEntity<ApiStandardResponse<TrainerProfileUpdateResponse>> updateProfile(
 
             @Parameter(description = "Username of the trainer whose profile will be updated", example = "trainer.jane", required = true)
@@ -113,7 +119,7 @@ public class TrainerController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainer not found")
     })
     @GetMapping("/{username}/trainings")
-    @SelfService
+    @SelfTrainerService
     public ResponseEntity<ApiStandardResponse<List<TrainerTrainingFilterResponse>>> getTrainings(
 
             @Parameter(description = "Username of the trainer", example = "trainer.jane", required = true)
@@ -136,7 +142,7 @@ public class TrainerController extends BaseController {
             @ApiResponse(responseCode = "404", description = "Trainer not found")
     })
     @PatchMapping("/{username}/active-status")
-    @SelfService
+    @SelfTrainerService
     public ResponseEntity<ApiStandardResponse<Void>> setActiveStatus(
 
             @Parameter(description = "Username of the trainer", example = "trainer.jane", required = true)

@@ -300,7 +300,7 @@ Each user can only access their own resources. This is enforced via the `@SelfSe
 ```
 
 **Code Location:**
-- `com.alirizakaygusuz.gymcrm.security.self.SelfService` - Annotation
+- `com.alirizakaygusuz.gymcrm.security.self.SelfTraineeService` - Annotation
 - `com.alirizakaygusuz.gymcrm.security.self.SelfServiceAnnotationBeanPostProcessor` - Proxy creation
 - `com.alirizakaygusuz.gymcrm.security.self.SelfServiceAuthenticationInterceptor` - Authorization logic
 

@@ -1,6 +1,6 @@
 package com.alirizakaygusuz.gymcrm.monitoring.health;
 
-import com.alirizakaygusuz.gymcrm.security.jwt.JwtService;
+import com.alirizakaygusuz.gymcrm.security.authentication.jwt.JwtService;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ public class JwtServiceHealthIndicator implements HealthIndicator {
 
         try {
             String testToken = jwtService.generateToken("health-check");
-            boolean isValid = jwtService.validateToken(testToken);
+            boolean isValid = jwtService.isTokenValid(testToken);
 
             if (isValid) {
                 return Health.up()

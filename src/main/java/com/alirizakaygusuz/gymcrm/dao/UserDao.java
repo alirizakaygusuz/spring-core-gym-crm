@@ -3,6 +3,7 @@ package com.alirizakaygusuz.gymcrm.dao;
 import com.alirizakaygusuz.gymcrm.model.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -30,6 +31,22 @@ public class UserDao {
                 .setMaxResults(1)
                 .getResultList();
 
+        return result.stream().findFirst();
+    }
+
+    public Optional<User> findByUsernameWithDetails(String username) {
+        String jpql = """
+            SELECT DISTINCT u 
+            FROM User u 
+            LEFT JOIN FETCH u.userRoles ur 
+            LEFT JOIN FETCH ur.role 
+            WHERE u.username = :username
+            """;
+
+        TypedQuery<User> query = entityManager.createQuery(jpql, User.class);
+        query.setParameter("username", username);
+
+        List<User> result = query.getResultList();
         return result.stream().findFirst();
     }
 

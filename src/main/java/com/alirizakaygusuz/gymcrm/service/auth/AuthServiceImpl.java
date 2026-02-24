@@ -1,7 +1,5 @@
 package com.alirizakaygusuz.gymcrm.service.auth;
 
-import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
-import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.UserDao;
 import com.alirizakaygusuz.gymcrm.dto.auth.ChangePasswordRequest;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
@@ -9,12 +7,17 @@ import com.alirizakaygusuz.gymcrm.dto.auth.LoginResponse;
 import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
 import com.alirizakaygusuz.gymcrm.model.User;
 import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
-import com.alirizakaygusuz.gymcrm.security.jwt.JwtService;
+import com.alirizakaygusuz.gymcrm.security.authentication.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -35,7 +38,7 @@ public class AuthServiceImpl implements AuthService {
 
         appMetrics.incrementLoginAttempts();
 
-        User user = findUserByUsernameOrThrow(request.username());
+        User user = findUserByUsernameWithDetailsOrThrow(request.username());
 
         if (!checkPassword(request.password(), user.getPassword())) {
             log.warn("Authentication failed for user with username: {}", request.username());
@@ -49,12 +52,20 @@ public class AuthServiceImpl implements AuthService {
 
         appMetrics.incrementLoginSuccess();
 
-        String accessToken = jwtService.generateToken(user.getUsername());
+
+        String accessToken = jwtService.generateToken(user.getUsername(),user.getAuthorities());
         long expirationTime = jwtService.getExpirationTime();
 
 
         return new LoginResponse(accessToken,"Bearer", expirationTime);
 
+    }
+
+    private User findUserByUsernameWithDetailsOrThrow(String username) {
+        return userDao.findByUsernameWithDetails(username).orElseThrow(() -> {
+            log.warn("User with username {} not found", username);
+            return new AuthenticationFailedException("Invalid username or password");
+        });
     }
 
 
@@ -86,6 +97,8 @@ public class AuthServiceImpl implements AuthService {
         }
         return isAuthenticated;
     }
+
+
 
 
     private User findUserByUsernameOrThrow(String username) {

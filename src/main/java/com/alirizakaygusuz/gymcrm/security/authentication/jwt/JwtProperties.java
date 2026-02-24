@@ -1,4 +1,4 @@
-package com.alirizakaygusuz.gymcrm.security.jwt;
+package com.alirizakaygusuz.gymcrm.security.authentication.jwt;
 
 
 import lombok.Getter;
