@@ -8,6 +8,7 @@ import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
 import com.alirizakaygusuz.gymcrm.model.User;
 import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.security.authentication.jwt.JwtService;
+import com.alirizakaygusuz.gymcrm.security.blacklist.TokenBlacklistService;
 import com.alirizakaygusuz.gymcrm.security.ratelimit.LoginRateLimitService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AppMetrics appMetrics;
     private final LoginRateLimitService loginRateLimitService;
+    private final TokenBlacklistService tokenBlacklistService;
 
 
 
@@ -99,8 +101,6 @@ public class AuthServiceImpl implements AuthService {
         }
         return isAuthenticated;
     }
-
-
 
 
     private User findUserByUsernameOrThrow(String username) {

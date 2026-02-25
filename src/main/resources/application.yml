@@ -32,6 +32,9 @@ security:
       max-attempts: ${LOGIN_RATE_MAX_ATTEMPTS}
       block-duration: ${LOGIN_RATE_BLOCK_DURATION}
       redis-key-prefix: ${LOGIN_RATE_REDIS_KEY_PREFIX}
+  blacklist:
+    redis-key-prefix: ${TOKEN_BLACKLIST_REDIS_KEY_PREFIX}
+    enabled: ${TOKEN_BLACKLIST_ENABLE}
 
 management:
   info:
