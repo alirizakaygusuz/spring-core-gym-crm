@@ -1,20 +1,24 @@
 package com.alirizakaygusuz.gymcrm.security.authentication.jwt;
 
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-@Component
+import java.time.Duration;
+
+@ConfigurationProperties(prefix = "security.jwt")
 @Getter
 @Setter
 public class JwtProperties {
 
-    @Value("${jwt.secret}")
+    @NotBlank
     private String secret;
 
-    @Value("${jwt.expiration}")
-    private long expiration;
+    @Min(1)
+    private Duration expiration;
 
 }

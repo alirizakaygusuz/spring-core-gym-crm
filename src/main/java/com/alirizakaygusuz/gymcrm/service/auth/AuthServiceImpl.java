@@ -8,16 +8,12 @@ import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
 import com.alirizakaygusuz.gymcrm.model.User;
 import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.security.authentication.jwt.JwtService;
+import com.alirizakaygusuz.gymcrm.security.ratelimit.LoginRateLimitService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -28,6 +24,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AppMetrics appMetrics;
+    private final LoginRateLimitService loginRateLimitService;
 
 
 
@@ -38,6 +35,8 @@ public class AuthServiceImpl implements AuthService {
 
         appMetrics.incrementLoginAttempts();
 
+
+
         User user = findUserByUsernameWithDetailsOrThrow(request.username());
 
         if (!checkPassword(request.password(), user.getPassword())) {
@@ -45,12 +44,15 @@ public class AuthServiceImpl implements AuthService {
 
             appMetrics.incrementLoginFailure();
 
+            loginRateLimitService.recordFailedAttempt(request.username());
+
             throw new AuthenticationFailedException("Invalid username or password");
         }
         log.info("User with username: {} authenticated successfully", request.username());
 
-
         appMetrics.incrementLoginSuccess();
+
+        loginRateLimitService.resetAttempts(request.username());
 
 
         String accessToken = jwtService.generateToken(user.getUsername(),user.getAuthorities());

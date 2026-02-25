@@ -3,10 +3,7 @@ package com.alirizakaygusuz.gymcrm.exception.handler;
 import com.alirizakaygusuz.gymcrm.dto.response.ApiError;
 import com.alirizakaygusuz.gymcrm.dto.response.ApiStandardResponse;
 import com.alirizakaygusuz.gymcrm.dto.response.FieldError;
-import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
-import com.alirizakaygusuz.gymcrm.exception.AuthorizationFailedException;
-import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
-import com.alirizakaygusuz.gymcrm.exception.ValidationException;
+import com.alirizakaygusuz.gymcrm.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +45,21 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiStandardResponse.error(apiError));
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ApiStandardResponse<Void>> handleRateLimitExceeded(RateLimitExceededException ex) {
+        log.warn("Rate limit exceeded: {}", ex.getMessage());
+
+        ApiError apiError = ApiError.simple(
+                getRequestId(),
+                buildDynamicUrn(),
+                "RATE_LIMIT_EXCEEDED",
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(ApiStandardResponse.error(apiError));
     }
 

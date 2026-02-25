@@ -3,6 +3,11 @@ spring:
     url: jdbc:postgresql://${DOCKER_DB_HOST}:${DOCKER_DB_PORT}/${DOCKER_DB_NAME}
     username: ${DOCKER_DB_USER}
     password: ${DOCKER_DB_PASSWORD}
+  data:
+    redis:
+      host: ${DOCKER_REDIS_HOST}
+      port: ${DOCKER_REDIS_PORT}
+      password: ${DOCKER_REDIS_PASSWORD:}
 
 logging:
   level:

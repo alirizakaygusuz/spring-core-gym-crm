@@ -25,18 +25,18 @@ public class JwtService {
         this.jwtProperties = jwtProperties;
 
         validateSecret(jwtProperties.getSecret());
-        validateTokenExpiration(jwtProperties.getExpiration());
+        validateTokenExpiration(jwtProperties.getExpiration().toMillis());
 
         this.signingKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
 
         log.info("JWT Service initialized with secret length {} and expiration {} ms",
                 jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8).length,
-                jwtProperties.getExpiration());
+                jwtProperties.getExpiration().toMillis());
     }
 
     public String generateToken(String username, Collection<? extends GrantedAuthority> authorities) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtProperties.getExpiration());
+        Date expiryDate = new Date(now.getTime() + jwtProperties.getExpiration().toMillis());
 
         List<String> roles = authorities.stream()
                 .map(GrantedAuthority::getAuthority)
@@ -86,7 +86,7 @@ public class JwtService {
     }
 
     public long getExpirationTime() {
-        return jwtProperties.getExpiration();
+        return jwtProperties.getExpiration().toMillis();
     }
 
     private void validateTokenExpiration(long expiration) {
