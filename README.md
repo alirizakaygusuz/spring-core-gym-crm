@@ -1,6 +1,6 @@
 # **GymCRM - Spring Boot REST API**
 
-A production-ready gym customer relationship management system built with Spring Boot, featuring JWT authentication, comprehensive monitoring, and multi-environment support.
+A production-ready gym customer relationship management system built with Spring Boot, featuring JWT authentication, Redis-based rate limiting and token blacklist, comprehensive monitoring, and multi-environment support.
 
 ---
 
@@ -8,13 +8,34 @@ A production-ready gym customer relationship management system built with Spring
 
 ### **Authentication & Authorization**
 - **JWT-based authentication** with Bearer token
+- **Redis-backed token blacklist** for logout functionality
+- **Login rate limiting** (3 failed attempts → 5-minute lockout)
 - Login endpoint returns JWT token with expiration time
 - Protected endpoints require `Authorization: Bearer <token>` header
-- **Self-service access control** via `@SelfService` annotation
+- **Role-based authorization** (TRAINER, TRAINEE roles)
+- **Self-service access control** via Spring Security `@PreAuthorize`
   - Users can only access their own resources (username match enforcement)
-  - Implemented using Spring AOP (BeanPostProcessor + MethodInterceptor)
+  - Composed security annotations: `@SelfTraineeService`, `@SelfTrainerService`
 - **BCrypt password encryption**
 - **Public endpoints:** trainee/trainer registration, login, training types
+
+### **Security Features**
+- **Login Rate Limiting**
+  - Brute force protection via `LoginRateLimitInterceptor`
+  - Redis-based attempt tracking: 3 failed attempts → 5-minute block
+  - Externalized config: `security.rate-limit.login` (max-attempts, block-duration)
+
+![Login Rate Limit](docs/images/login-rate-limit.png)
+
+- **JWT Token Blacklist**
+  - Logout invalidates tokens via Redis blacklist
+  - `LogoutInterceptor` automatically extracts and blacklists tokens
+  - Blacklist TTL matches token's remaining expiration time
+  - Externalized config: `security.token-blacklist` (enabled, redis-key-prefix)
+
+![Redis Blacklist Token](docs/images/redis-blacklist-token.png)
+
+![Redis Login Rate Limit](docs/images/redis-login-rate-limit.png)
 
 ### **Monitoring & Observability**
 - **Spring Boot Actuator** endpoints for health checks and metrics
@@ -28,7 +49,7 @@ A production-ready gym customer relationship management system built with Spring
 - **Multi-environment profile support** (local, dev, docker, stg, prod)
 
 ### **API Endpoints**
-- **Authentication:** Login (POST), change password (PATCH)
+- **Authentication:** Login (POST), Logout (POST), change password (PATCH)
 - **Trainee Management:** Register, get profile, update, delete, activate/deactivate
 - **Trainer Management:** Register, get profile, update, activate/deactivate
 - **Training Management:** Add training (trainer only), get training types
@@ -46,17 +67,30 @@ A production-ready gym customer relationship management system built with Spring
 ### **Self-Service Authorization System**
 
 **Implementation:**
-- `@SelfService` annotation on controller methods (e.g., `@GetMapping("/{username}")`)
-- `SelfServiceAnnotationBeanPostProcessor` scans beans and creates CGLIB proxies
-- `SelfServiceAuthenticationInterceptor` validates `authenticatedUsername == pathVariable(username)`
-- Throws `AuthorizationFailedException` (403) on mismatch
+- Spring Security `@PreAuthorize` with custom composed annotations
+- `@SelfTraineeService`: TRAINEE role + username validation
+- `@SelfTrainerService`: TRAINER role + username validation
+- `AccessPolicy` bean provides reusable `isSelf()` authorization logic
+- JWT tokens include role claims for stateless authentication
 
 **Flow:**
-1. User authenticates → JWT filter sets `AuthContext.username`
+1. User authenticates → JWT filter sets Authentication with roles
 2. Request: `GET /api/v1/trainees/john.doe`
-3. `@SelfService` interceptor extracts `username` from `@PathVariable`
-4. Compares with `AuthContext.username`
-5. Match → Allow | Mismatch → 403 Forbidden
+3. `@SelfTraineeService` checks: `hasRole('TRAINEE') and @accessPolicy.isSelf(authentication, #username)`
+4. Match → Allow (200 OK) | Mismatch → 403 Forbidden
+
+### **Rate Limiting & Token Blacklist Architecture**
+
+**Login Rate Limiting:**
+- `LoginRateLimitInterceptor` intercepts `/api/v1/login` requests
+- Redis key: `rate-limit:login:{username}` with TTL
+- Blocks user after 3 failed attempts for 5 minutes
+
+**Token Blacklist:**
+- `LogoutInterceptor` intercepts `/api/v1/logout` requests
+- Extracts token from `Authorization` header automatically
+- Redis key: `token:blacklist:{jwt_token}` with TTL = remaining token expiration
+- `JwtAuthenticationFilter` checks blacklist before authentication
 
 ### **Environment Profiles**
 
@@ -74,6 +108,7 @@ A production-ready gym customer relationship management system built with Spring
 - Distinct exception types:
   - `AuthenticationFailedException` - Invalid credentials (401)
   - `AuthorizationFailedException` - Forbidden access (403)
+  - `RateLimitExceededException` - Too many requests (429)
   - `ResourceNotFoundException` - Entity not found (404)
   - `ValidationException` - Invalid input (400)
 
@@ -92,14 +127,9 @@ A production-ready gym customer relationship management system built with Spring
 mvn clean package -DskipTests
 ```
 
-#### **Step 2: Start Containers**
+#### **Step 2: Start Containers and Check logs**
 ```bash
-docker compose up -d --build
-```
-
-#### **Step 3: Check Logs**
-```bash
-docker logs -f ali-gymcrm-app
+docker compose up --build
 ```
 
 Wait for: `Started Application in X seconds`
@@ -107,8 +137,8 @@ Wait for: `Started Application in X seconds`
 #### **Step 4: Access Services**
 - **Swagger UI:** http://localhost:8080/swagger-ui/index.html
 - **Actuator Health:** http://localhost:8080/actuator/health
-- - **Actuator Health:** http://localhost:8080/actuator/health/readiness
-- - **Actuator Health:** http://localhost:8080/actuator/health/liveness
+- **Actuator Health Readiness:** http://localhost:8080/actuator/health/readiness
+- **Actuator Health Liveness:** http://localhost:8080/actuator/health/liveness
 - **Actuator Info:** http://localhost:8080/actuator/info
 - **Prometheus Metrics:** http://localhost:8080/actuator/prometheus
 
@@ -119,10 +149,10 @@ Wait for: `Started Application in X seconds`
 ### **Actuator Endpoints**
 
 #### **1. Health Check**
-**Endpoint:** http://localhost:8080/actuator/health
-**Endpoint:** http://localhost:8080/actuator/health/readiness
-**Endpoint:** http://localhost:8080/actuator/health/liveness
-
+**Endpoints:**
+- http://localhost:8080/actuator/health
+- http://localhost:8080/actuator/health/readiness
+- http://localhost:8080/actuator/health/liveness
 
 **Custom Health Indicators:**
 - **Database:** PostgreSQL connection status
@@ -130,10 +160,8 @@ Wait for: `Started Application in X seconds`
 - **Training Types:** Validates 11 training types are present
 
 ![Actuator Health](docs/images/actuator-health.png)
-
 ![Actuator Health Readiness](docs/images/actuator-health-readiness.png)
-
-![Actuator Health Readiness](docs/images/actuator-health-liveness.png)
+![Actuator Health Liveness](docs/images/actuator-health-liveness.png)
 
 ---
 
@@ -238,7 +266,18 @@ All subsequent requests will include the token automatically.
 
 ---
 
-#### **4. Test Examples**
+#### **4. Test Logout**
+```http
+POST /api/v1/logout
+Authorization: Bearer <token>
+→ 200 OK (token blacklisted)
+```
+
+Subsequent requests with the same token will return **401 Unauthorized**.
+
+---
+
+#### **5. Test Examples**
 
 **Example 1: Get Trainee Profile (requires auth)**
 ```http
@@ -275,37 +314,90 @@ Response: {
 ![Register Trainee DB](docs/images/register_trainee_db.png)
 ![Register User DB](docs/images/register_user_db.png)
 
+---
+
+## **Security Features in Detail**
+
+### **Login Rate Limiting**
+
+**Configuration (`application.yml`):**
+```yaml
+security:
+  rate-limit:
+    login:
+      max-attempts: 3
+      block-duration: 5m
+      redis-key-prefix: "rate-limit:login:"
+```
+
+**Behavior:**
+- 3 failed login attempts → Account locked for 5 minutes
+- Redis tracks attempts per username
+- Automatic counter reset on successful login
+
+![Login Rate Limit Response](docs/images/login-rate-limit.png)
+
+**Redis Keys:**
+```
+rate-limit:login:john.doe → "3" (TTL: 300s)
+```
 
 ---
+
+### **JWT Token Blacklist**
+
+**Configuration (`application.yml`):**
+```yaml
+security:
+  token-blacklist:
+    enabled: true
+    redis-key-prefix: "token:blacklist:"
+```
+
+**Behavior:**
+- Logout adds token to Redis blacklist
+- TTL = token's remaining expiration time
+- Blacklisted tokens rejected with 401 Unauthorized
+- Token auto-expires from blacklist when original expiration reached
+
+![Redis Blacklist](docs/images/redis-blacklist-token.png)
+
+**Redis Keys:**
+```
+token:blacklist:eyJhbGc... → "BLACKLISTED" (TTL: remaining token lifetime)
+```
+
+![Redis Rate Limit Keys](docs/images/redis-login-rate-limit.png)
+
+---
+
 ## **Self-Service Access Control**
 
 ### **What It Means**
-Each user can only access their own resources. This is enforced via the `@SelfService` annotation using Spring AOP.
+Each user can only access their own resources. This is enforced via Spring Security `@PreAuthorize` annotations.
 
 ### **Implementation Details**
 
-**Architecture:**
-1. **Annotation:** `@SelfService(usernameParam = "username")`
-2. **BeanPostProcessor:** Scans controller methods, creates CGLIB proxies
-3. **MethodInterceptor:** Intercepts method calls, validates username match
+**Composed Annotations:**
+- `@SelfTraineeService`: TRAINEE role + username validation
+- `@SelfTrainerService`: TRAINER role + username validation
+- `AccessPolicy` bean: Reusable `isSelf()` authorization method
 
 **Authorization Flow:**
 ```
-1. User authenticates → JWT filter extracts username → stores in AuthContext
+1. User authenticates → JWT filter extracts username and roles
 2. User requests GET /api/v1/trainees/john.doe
-3. @SelfService interceptor triggers BEFORE controller method
-4. Extracts @PathVariable("username") → "john.doe"
-5. Compares with AuthContext.username → "john.doe"
-6. Match? → Allow (200 OK) | Mismatch? → Throw 403 Forbidden
+3. @SelfTraineeService checks:
+   - hasRole('TRAINEE')?
+   - @accessPolicy.isSelf(authentication, #username)?
+4. Match? → Allow (200 OK) | Mismatch? → Throw 403 Forbidden
 ```
 
 **Code Location:**
-- `com.alirizakaygusuz.gymcrm.security.self.SelfTraineeService` - Annotation
-- `com.alirizakaygusuz.gymcrm.security.self.SelfServiceAnnotationBeanPostProcessor` - Proxy creation
-- `com.alirizakaygusuz.gymcrm.security.self.SelfServiceAuthenticationInterceptor` - Authorization logic
+- `com.alirizakaygusuz.gymcrm.security.authorization.self.*` - Composed annotations
+- `com.alirizakaygusuz.gymcrm.security.authorization.policy.AccessPolicy` - Authorization logic
 
 ---
-
 
 ✅ **Public Endpoints (No Authorization Required):**
 - `POST /api/v1/login`
@@ -324,18 +416,18 @@ All error responses include structured metadata for better traceability:
 - **URN:** Unique resource identifier for the error type
 - **Request ID:** Correlation ID for tracking across logs
 - **Timestamp:** ISO-8601 formatted error occurrence time
-- **Status:** HTTP status code
+- **Code:** Error code (e.g., RATE_LIMIT_EXCEEDED, AUTHORIZATION_FAILED)
 - **Message:** Human-readable error description
 
 **Example:**
 ```json
 {
   "error": {
-    "requestId": "a7f3c2e1-4b9d-8e2f-1a3c-5d6e7f8g9h0i",
-    "urn": "urn:com.alirizakaygusuz.gymcrm:api:GET:trainees:john.doe",
-    "timestamp": "2026-02-18T14:32:15.234Z",
-    "code": "AUTHORIZATION_FAILED",
-    "message": "User is not authorized to access this resource",
+    "requestId": "cdff1859-3a0b-4aef-8a5c-bf26a696add6",
+    "urn": "urn:com.alirizakaygusuz.gymcrm:api:POST:v1:login",
+    "timestamp": "2026-02-25T11:21:09.679505011Z",
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Too many login attempts for user 'john.doe'. Account temporarily locked. Try again in 294 seconds.",
     "fieldErrors": null
   }
 }
@@ -346,7 +438,7 @@ All error responses include structured metadata for better traceability:
 ## **Test Coverage**
 
 Unit tests cover:
-- **Service layer:** 91% line coverage
+- **Service layer:** 91% method coverage
 - **Utility classes:** 100% coverage
 
 ![Test Coverage](docs/images/test_coverage.png)
@@ -356,6 +448,7 @@ Unit tests cover:
 mvn test
 ```
 
+---
 
 ## **Database**
 
@@ -389,4 +482,5 @@ Full API documentation is available at:
 - JWT Bearer token authentication configured
 - Example payloads matching seed data
 - Try-it-out functionality with live API calls
+
 ---
