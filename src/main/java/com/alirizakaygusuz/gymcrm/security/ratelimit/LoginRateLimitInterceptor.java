@@ -2,6 +2,7 @@ package com.alirizakaygusuz.gymcrm.security.ratelimit;
 
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
 import com.alirizakaygusuz.gymcrm.exception.RateLimitExceededException;
+import com.alirizakaygusuz.gymcrm.security.web.MultiReadHttpServletRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,20 +43,17 @@ public class LoginRateLimitInterceptor implements HandlerInterceptor {
     }
 
     private String extractUsername(HttpServletRequest request) {
-        if (!(request instanceof ContentCachingRequestWrapper wrapper)) {
+        Object cached = request.getAttribute("cachedAuthRequest");
+
+        if (!(cached instanceof MultiReadHttpServletRequest wrapper)) {
             return null;
         }
 
         try {
-            byte[] body = wrapper.getContentAsByteArray();
-
-            if (body.length == 0) {
-                return null;
-            }
-
+            byte[] body = wrapper.getCachedBody();
+            if (body.length == 0) return null;
             LoginRequest loginRequest = objectMapper.readValue(body, LoginRequest.class);
             return loginRequest.username();
-
         } catch (Exception e) {
             log.debug("Could not extract username from request body", e);
             return null;
