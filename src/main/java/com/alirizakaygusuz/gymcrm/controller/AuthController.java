@@ -4,7 +4,7 @@ import com.alirizakaygusuz.gymcrm.dto.auth.ChangePasswordRequest;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginResponse;
 import com.alirizakaygusuz.gymcrm.dto.response.ApiStandardResponse;
-import com.alirizakaygusuz.gymcrm.security.self.SelfService;
+import com.alirizakaygusuz.gymcrm.security.authorization.self.SelfService;
 import com.alirizakaygusuz.gymcrm.service.auth.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -34,7 +35,7 @@ public class AuthController extends BaseController {
             description = "Authenticates a user and returns a JWT token"
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Login successful" ),
+            @ApiResponse(responseCode = "200", description = "Login successful"),
             @ApiResponse(responseCode = "400", description = "Invalid login request"),
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
@@ -44,6 +45,11 @@ public class AuthController extends BaseController {
     ) {
 
         return ok(authService.login(loginRequest));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiStandardResponse<Void>> logout() {
+        return ok();
     }
 
     @Operation(
@@ -58,7 +64,7 @@ public class AuthController extends BaseController {
     })
     @SecurityRequirement(name = "customAuth")
     @PatchMapping("/change-password")
-    @SelfService
+    @PreAuthorize("authentication.name == #request.username")
     public ResponseEntity<ApiStandardResponse<Void>> changePassword(
             @Valid @RequestBody ChangePasswordRequest request
 

@@ -5,6 +5,7 @@ public class GymCrmException extends RuntimeException{
         super(message);
     }
 
+
     protected GymCrmException(String message, Throwable cause) {
         super(message, cause);
     }

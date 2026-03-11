@@ -63,7 +63,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         appMetrics.incrementTraineeRegistrationAttempts();
 
-        User savedUser = userService.createUserWithCredentials(request);
+        User savedUser = userService.createUserWithCredentials(request , RoleType.TRAINEE);
 
         log.info("User profile created with username={}", savedUser.getUsername());
 

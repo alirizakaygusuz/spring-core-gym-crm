@@ -1,9 +1,6 @@
 package service;
 
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
-import com.alirizakaygusuz.gymcrm.dao.TraineeTrainerDao;
-import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
-import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
 import com.alirizakaygusuz.gymcrm.dto.trainee.profile.TraineeProfileResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterResponse;
@@ -11,14 +8,12 @@ import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateRequest
 import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateResponse;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.mapper.TraineeMapper;
-import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
-import com.alirizakaygusuz.gymcrm.mapper.TrainingMapper;
+import com.alirizakaygusuz.gymcrm.model.RoleType;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.model.User;
 import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.service.trainee.TraineeServiceImpl;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
-import com.alirizakaygusuz.gymcrm.service.validator.ValidationUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,14 +34,6 @@ class TraineeServiceImplTest {
     @Mock
     private TraineeDao traineeDao;
 
-    @Mock
-    private TraineeTrainerDao traineeTrainerDao;
-
-    @Mock
-    private TrainerDao trainerDao;
-
-    @Mock
-    private TrainingDao trainingDao;
 
     @Mock
     private UserService userService;
@@ -83,7 +70,7 @@ class TraineeServiceImplTest {
 
         TraineeRegisterResponse response = new TraineeRegisterResponse("John.Doe", "password");
 
-        when(userService.createUserWithCredentials(request)).thenReturn(savedUser);
+        when(userService.createUserWithCredentials(request, RoleType.TRAINEE)).thenReturn(savedUser);
         when(traineeDao.save(any(Trainee.class))).thenReturn(savedTrainee);
         when(traineeMapper.toRegisterResponse(savedUser)).thenReturn(response);
 
@@ -92,7 +79,7 @@ class TraineeServiceImplTest {
         assertNotNull(result);
         assertEquals("John.Doe", result.username());
 
-        verify(userService).createUserWithCredentials(request);
+        verify(userService).createUserWithCredentials(request , RoleType.TRAINEE);
         verify(traineeDao).save(any(Trainee.class));
         verify(traineeMapper).toRegisterResponse(savedUser);
         verifyNoMoreInteractions(userService, traineeDao, traineeMapper);

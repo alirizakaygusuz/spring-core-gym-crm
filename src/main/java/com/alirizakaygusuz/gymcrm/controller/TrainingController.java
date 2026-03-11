@@ -3,7 +3,7 @@ package com.alirizakaygusuz.gymcrm.controller;
 import com.alirizakaygusuz.gymcrm.dto.response.ApiStandardResponse;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingCreateRequest;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingTypeResponse;
-import com.alirizakaygusuz.gymcrm.security.self.SelfService;
+import com.alirizakaygusuz.gymcrm.security.authorization.self.SelfTrainingService;
 import com.alirizakaygusuz.gymcrm.service.training.TrainingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,8 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import static com.alirizakaygusuz.gymcrm.controller.ControllerAuthUtils.verifyUserAccess;
 
 @RestController
 @RequestMapping("/api/v1/trainings")
@@ -42,11 +40,12 @@ public class TrainingController extends BaseController {
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @PostMapping
+    @SelfTrainingService
     public ResponseEntity<ApiStandardResponse<Void>> addTraining(
             @Valid @RequestBody TrainingCreateRequest request
     ) {
 
-        verifyUserAccess(request.trainerUsername());
+
         trainingService.addTraining(request);
         return ok();
     }

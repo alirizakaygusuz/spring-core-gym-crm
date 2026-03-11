@@ -11,4 +11,5 @@ public interface AuthService {
     void changePassword(ChangePasswordRequest request);
 
     boolean authenticate(String username, String password);
+
 }

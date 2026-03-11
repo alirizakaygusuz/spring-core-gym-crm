@@ -3,6 +3,7 @@ package com.alirizakaygusuz.gymcrm.service.user;
 import com.alirizakaygusuz.gymcrm.dao.UserDao;
 import com.alirizakaygusuz.gymcrm.dto.common.UserRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.common.UserUpdateRequest;
+import com.alirizakaygusuz.gymcrm.model.RoleType;
 import com.alirizakaygusuz.gymcrm.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +19,8 @@ public class UserServiceImpl implements UserService {
     private final UserDomainService userDomainService;
 
     @Transactional
-    public User createUserWithCredentials(UserRegisterRequest request) {
-        User user = userDomainService.createWithCredentials(request);
+    public User createUserWithCredentials(UserRegisterRequest request , RoleType role) {
+        User user = userDomainService.createWithCredentials(request , role);
         return userDao.save(user);
     }
 

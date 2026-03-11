@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - ali-gymcrm_pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -17,6 +17,26 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    networks:
+      - gymcrm-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ali-gymcrm-redis
+    env_file:
+      - .env
+    ports:
+      - "${DOCKER_REDIS_PORT}:6379"
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    volumes:
+      - ali-gymcrm_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - gymcrm-network
 
   app:
     image: eclipse-temurin:17-jre
@@ -24,22 +44,37 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
+
       DOCKER_DB_HOST: ${DOCKER_DB_HOST}
       DOCKER_DB_PORT: ${DOCKER_DB_PORT}
       DOCKER_DB_NAME: ${DOCKER_DB_NAME}
       DOCKER_DB_USER: ${DOCKER_DB_USER}
       DOCKER_DB_PASSWORD: ${DOCKER_DB_PASSWORD}
+
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
+
+      REDIS_HOST: ${DOCKER_REDIS_HOST}
+      REDIS_PORT: ${DOCKER_REDIS_PORT}
+      REDIS_PASSWORD: ${DOCKER_REDIS_PASSWORD}
     ports:
       - "8080:8080"
     volumes:
       - ./target/gymcrm.jar:/app/gymcrm.jar
-    command: java -jar /app/gymcrm.jar
+    command: ["java", "-jar", "/app/gymcrm.jar"]
+    networks:
+      - gymcrm-network
+
+networks:
+  gymcrm-network:
+    driver: bridge
 
 volumes:
   ali-gymcrm_pgdata:
+  ali-gymcrm_redis:

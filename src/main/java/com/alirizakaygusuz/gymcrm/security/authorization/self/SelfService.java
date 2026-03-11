@@ -1,4 +1,6 @@
-package com.alirizakaygusuz.gymcrm.security.self;
+package com.alirizakaygusuz.gymcrm.security.authorization.self;
+
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +9,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
+@PreAuthorize("@accessPolicy.isSelf(authentication, #username)")
 public @interface SelfService {
-    String usernameParam() default "username";
 }

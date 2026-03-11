@@ -1,15 +1,17 @@
 package service;
 
-import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
-import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.UserDao;
 import com.alirizakaygusuz.gymcrm.dto.auth.ChangePasswordRequest;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginResponse;
 import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
+import com.alirizakaygusuz.gymcrm.model.Role;
+import com.alirizakaygusuz.gymcrm.model.RoleType;
 import com.alirizakaygusuz.gymcrm.model.User;
+import com.alirizakaygusuz.gymcrm.model.UserRole;
 import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
-import com.alirizakaygusuz.gymcrm.security.jwt.JwtService;
+import com.alirizakaygusuz.gymcrm.security.authentication.jwt.JwtService;
+import com.alirizakaygusuz.gymcrm.security.ratelimit.LoginRateLimitService;
 import com.alirizakaygusuz.gymcrm.service.auth.AuthServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,12 +33,6 @@ class AuthServiceImplTest {
     private UserDao userDao;
 
     @Mock
-    private TraineeDao traineeDao;
-
-    @Mock
-    private TrainerDao trainerDao;
-
-    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -45,10 +41,11 @@ class AuthServiceImplTest {
     @Mock
     private AppMetrics appMetrics;
 
+    @Mock
+    private LoginRateLimitService loginRateLimitService;
 
     @InjectMocks
     private AuthServiceImpl authService;
-
 
     @Test
     @DisplayName("login should succeed when credentials are valid")
@@ -58,13 +55,11 @@ class AuthServiceImplTest {
 
         LoginRequest request = new LoginRequest(username, password);
 
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword("encodedPassword");
+        User user = createUserWithRole(username, "encodedPassword", RoleType.TRAINEE);
 
-        when(userDao.findByUsername(username)).thenReturn(Optional.of(user));
+        when(userDao.findByUsernameWithDetails(username)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, "encodedPassword")).thenReturn(true);
-        when(jwtService.generateToken(username)).thenReturn("token123");
+        when(jwtService.generateToken(eq(username), anyCollection())).thenReturn("token123");
         when(jwtService.getExpirationTime()).thenReturn(3600000L);
 
         LoginResponse response = authService.login(request);
@@ -74,12 +69,14 @@ class AuthServiceImplTest {
         assertEquals("Bearer", response.tokenType());
         assertEquals(3600000L, response.expiresIn());
 
-        verify(userDao).findByUsername(username);
+        verify(userDao).findByUsernameWithDetails(username);
         verify(passwordEncoder).matches(password, "encodedPassword");
-        verify(jwtService).generateToken(username);
+        verify(jwtService).generateToken(eq(username), anyCollection());
         verify(jwtService).getExpirationTime();
-        verifyNoMoreInteractions(userDao, passwordEncoder, jwtService);
-        verifyNoInteractions(traineeDao, trainerDao);
+        verify(appMetrics).incrementLoginAttempts();
+        verify(appMetrics).incrementLoginSuccess();
+        verify(loginRateLimitService).resetAttempts(username);
+        verifyNoMoreInteractions(userDao, passwordEncoder, jwtService, appMetrics, loginRateLimitService);
     }
 
     @Test
@@ -90,7 +87,7 @@ class AuthServiceImplTest {
 
         LoginRequest request = new LoginRequest(username, password);
 
-        when(userDao.findByUsername(username)).thenReturn(Optional.empty());
+        when(userDao.findByUsernameWithDetails(username)).thenReturn(Optional.empty());
 
         AuthenticationFailedException exception = assertThrows(
                 AuthenticationFailedException.class,
@@ -99,9 +96,10 @@ class AuthServiceImplTest {
 
         assertEquals("Invalid username or password", exception.getMessage());
 
-        verify(userDao).findByUsername(username);
-        verifyNoMoreInteractions(userDao);
-        verifyNoInteractions(passwordEncoder, jwtService, traineeDao, trainerDao);
+        verify(userDao).findByUsernameWithDetails(username);
+        verify(appMetrics).incrementLoginAttempts();
+        verifyNoMoreInteractions(userDao, appMetrics);
+        verifyNoInteractions(passwordEncoder, jwtService, loginRateLimitService);
     }
 
     @Test
@@ -112,11 +110,9 @@ class AuthServiceImplTest {
 
         LoginRequest request = new LoginRequest(username, password);
 
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword("encodedPassword");
+        User user = createUserWithRole(username, "encodedPassword", RoleType.TRAINEE);
 
-        when(userDao.findByUsername(username)).thenReturn(Optional.of(user));
+        when(userDao.findByUsernameWithDetails(username)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, "encodedPassword")).thenReturn(false);
 
         AuthenticationFailedException exception = assertThrows(
@@ -126,10 +122,13 @@ class AuthServiceImplTest {
 
         assertEquals("Invalid username or password", exception.getMessage());
 
-        verify(userDao).findByUsername(username);
+        verify(userDao).findByUsernameWithDetails(username);
         verify(passwordEncoder).matches(password, "encodedPassword");
-        verifyNoMoreInteractions(userDao, passwordEncoder);
-        verifyNoInteractions(jwtService, traineeDao, trainerDao);
+        verify(appMetrics).incrementLoginAttempts();
+        verify(appMetrics).incrementLoginFailure();
+        verify(loginRateLimitService).recordFailedAttempt(username);
+        verifyNoMoreInteractions(userDao, passwordEncoder, appMetrics, loginRateLimitService);
+        verifyNoInteractions(jwtService);
     }
 
     @Test
@@ -156,7 +155,7 @@ class AuthServiceImplTest {
         verify(passwordEncoder).encode(request.newPassword());
         verify(userDao).update(user);
         verifyNoMoreInteractions(userDao, passwordEncoder);
-        verifyNoInteractions(jwtService, traineeDao, trainerDao);
+        verifyNoInteractions(jwtService, appMetrics, loginRateLimitService);
     }
 
     @Test
@@ -179,7 +178,7 @@ class AuthServiceImplTest {
 
         verify(userDao).findByUsername(request.username());
         verifyNoMoreInteractions(userDao);
-        verifyNoInteractions(passwordEncoder, jwtService, traineeDao, trainerDao);
+        verifyNoInteractions(passwordEncoder, jwtService, appMetrics, loginRateLimitService);
     }
 
     @Test
@@ -202,7 +201,7 @@ class AuthServiceImplTest {
         verify(userDao).findByUsername(username);
         verify(passwordEncoder).matches(password, "encodedPassword");
         verifyNoMoreInteractions(userDao, passwordEncoder);
-        verifyNoInteractions(jwtService, traineeDao, trainerDao);
+        verifyNoInteractions(jwtService, appMetrics, loginRateLimitService);
     }
 
     @Test
@@ -225,7 +224,7 @@ class AuthServiceImplTest {
         verify(userDao).findByUsername(username);
         verify(passwordEncoder).matches(password, "encodedPassword");
         verifyNoMoreInteractions(userDao, passwordEncoder);
-        verifyNoInteractions(jwtService, traineeDao, trainerDao);
+        verifyNoInteractions(jwtService, appMetrics, loginRateLimitService);
     }
 
     @Test
@@ -245,6 +244,24 @@ class AuthServiceImplTest {
 
         verify(userDao).findByUsername(username);
         verifyNoMoreInteractions(userDao);
-        verifyNoInteractions(passwordEncoder, jwtService, traineeDao, trainerDao);
+        verifyNoInteractions(passwordEncoder, jwtService, appMetrics, loginRateLimitService);
+    }
+
+
+    private User createUserWithRole(String username, String password, RoleType roleType) {
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(password);
+
+        Role role = new Role();
+        role.setName(roleType);
+
+        UserRole userRole = new UserRole();
+        userRole.setUser(user);
+        userRole.setRole(role);
+
+        user.getUserRoles().add(userRole);
+
+        return user;
     }
 }
