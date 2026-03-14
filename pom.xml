@@ -17,6 +17,7 @@
 
     <modules>
         <module>gym-crm</module>
+        <module>eureka-server</module>
     </modules>
 
     <properties>
