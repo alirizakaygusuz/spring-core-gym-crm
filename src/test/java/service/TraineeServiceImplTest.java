@@ -1,6 +1,7 @@
 package service;
 
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
+import com.alirizakaygusuz.gymcrm.dto.common.UserCreationResult;
 import com.alirizakaygusuz.gymcrm.dto.trainee.profile.TraineeProfileResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterResponse;
@@ -64,15 +65,17 @@ class TraineeServiceImplTest {
         savedUser.setUsername("John.Doe");
         savedUser.setPassword("encodedPassword");
 
+        UserCreationResult userCreationResult = new UserCreationResult(savedUser, "rawPassword");
+
         Trainee savedTrainee = new Trainee();
         savedTrainee.setId(1L);
         savedTrainee.setUser(savedUser);
 
         TraineeRegisterResponse response = new TraineeRegisterResponse("John.Doe", "password");
 
-        when(userService.createUserWithCredentials(request, RoleType.TRAINEE)).thenReturn(savedUser);
+        when(userService.createUserWithCredentials(request, RoleType.TRAINEE)).thenReturn(userCreationResult);
         when(traineeDao.save(any(Trainee.class))).thenReturn(savedTrainee);
-        when(traineeMapper.toRegisterResponse(savedUser)).thenReturn(response);
+        when(traineeMapper.toRegisterResponse(savedUser, userCreationResult.rawPassword())).thenReturn(response);
 
         TraineeRegisterResponse result = traineeService.register(request);
 
@@ -81,7 +84,7 @@ class TraineeServiceImplTest {
 
         verify(userService).createUserWithCredentials(request , RoleType.TRAINEE);
         verify(traineeDao).save(any(Trainee.class));
-        verify(traineeMapper).toRegisterResponse(savedUser);
+        verify(traineeMapper).toRegisterResponse(savedUser,userCreationResult.rawPassword());
         verifyNoMoreInteractions(userService, traineeDao, traineeMapper);
     }
 

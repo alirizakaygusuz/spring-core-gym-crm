@@ -22,9 +22,9 @@ public interface TraineeMapper extends BaseMapper<User, Trainee, TraineeRegister
 
 
 
-    @Mapping(target = "username", source = "username")
-    @Mapping(target = "password", source = "password")
-    TraineeRegisterResponse toRegisterResponse(User user);
+    @Mapping(target = "username", source = "user.username")
+    @Mapping(target = "password", source = "rawPassword")
+    TraineeRegisterResponse toRegisterResponse(User user , String rawPassword);
 
     @Mapping(target = "firstName", source = "user.firstName")
     @Mapping(target = "lastName", source = "user.lastName")

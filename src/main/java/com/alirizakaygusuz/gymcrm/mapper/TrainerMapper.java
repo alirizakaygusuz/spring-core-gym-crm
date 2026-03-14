@@ -23,9 +23,9 @@ import java.util.Set;
 public interface TrainerMapper extends BaseMapper<User, Trainer, TrainerRegisterResponse, TrainerProfileResponse, TrainerProfileUpdateResponse> {
 
 
-    @Mapping(target = "username", source = "username")
-    @Mapping(target = "password", source = "password")
-    TrainerRegisterResponse toRegisterResponse(User user);
+    @Mapping(target = "username", source = "user.username")
+    @Mapping(target = "password", source = "rawPassword")
+    TrainerRegisterResponse toRegisterResponse(User user , String rawPassword);
 
     @Mapping(target = "firstName", source = "user.firstName")
     @Mapping(target = "lastName", source = "user.lastName")

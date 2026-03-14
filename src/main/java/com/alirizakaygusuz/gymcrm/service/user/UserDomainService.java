@@ -1,5 +1,6 @@
 package com.alirizakaygusuz.gymcrm.service.user;
 
+import com.alirizakaygusuz.gymcrm.dto.common.UserCreationResult;
 import com.alirizakaygusuz.gymcrm.dto.common.UserRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.common.UserUpdateRequest;
 import com.alirizakaygusuz.gymcrm.exception.AuthenticationFailedException;
@@ -25,7 +26,7 @@ public class UserDomainService {
     private final RoleService roleService;
     private final CommonValidator commonValidator;
 
-    public User createWithCredentials(UserRegisterRequest request , RoleType role) {
+    public UserCreationResult createWithCredentials(UserRegisterRequest request , RoleType role) {
         log.info("Creating user profile with provided data: firstName={}, lastName={}",
                 request.firstName(), request.lastName());
 
@@ -40,7 +41,7 @@ public class UserDomainService {
 
         roleService.assignRoleToUser(user, role);
 
-        return user;
+        return new UserCreationResult(user, rawPassword);
     }
 
     private User buildUser(UserRegisterRequest request, String username, String rawPassword) {
