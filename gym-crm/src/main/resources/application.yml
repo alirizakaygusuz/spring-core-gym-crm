@@ -1,4 +1,6 @@
 spring:
+  application:
+     name: gym-crm
   config:
     import: optional:file:.env[.properties]
   flyway:
@@ -21,6 +23,11 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL}
 
 
 security:
