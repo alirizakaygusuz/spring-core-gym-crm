@@ -14,7 +14,7 @@ public record TraineeTrainingFilterRequest(
         @Schema(
                 description = "Start date of the training period (inclusive). ISO-8601 format (yyyy-MM-dd).",
                 example = "2024-01-01",
-                required = false
+                requiredMode= Schema.RequiredMode.REQUIRED
         )
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate periodFrom,
