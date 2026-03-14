@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: workload-service
+  datasource:
+    url: jdbc:h2:mem:workloaddb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+  config:
+    import: optional:file:.env[.properties]
+
+server:
+  port: ${WORKLOAD_SERVICE_PORT}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL}
