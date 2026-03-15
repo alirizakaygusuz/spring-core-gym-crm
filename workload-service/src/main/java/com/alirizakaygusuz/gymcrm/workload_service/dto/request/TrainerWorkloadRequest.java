@@ -1,4 +1,4 @@
-package com.alirizakaygusuz.gymcrm.workload_service.dto;
+package com.alirizakaygusuz.gymcrm.workload_service.dto.request;
 
 import com.alirizakaygusuz.gymcrm.workload_service.enums.ActionType;
 import jakarta.validation.constraints.NotBlank;
