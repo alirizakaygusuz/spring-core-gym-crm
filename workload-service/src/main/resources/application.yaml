@@ -22,6 +22,10 @@ logging:
   level:
     com.alirizakaygusuz.gymcrm.workload_service: DEBUG
 
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+
 server:
   port: ${WORKLOAD_SERVICE_PORT}
 
