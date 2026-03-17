@@ -5,14 +5,40 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.alirizakaygusuz.gymcrm</groupId>
-		<artifactId>spring-gym-crm</artifactId>
-		<version>1.0-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.0.1</version>
+		<relativePath/>
 	</parent>
 
 	<artifactId>eureka-server</artifactId>
 	<packaging>jar</packaging>
+
+	<properties>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+		<mapstruct.version>1.5.5.Final</mapstruct.version>
+		<springdoc-openapi-ui.version>2.7.0</springdoc-openapi-ui.version>
+		<jwt.version>0.13.0</jwt.version>
+		<spring-cloud.version>2025.1.1</spring-cloud.version>
+	</properties>
+
+
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<dependencies>
 		<dependency>
