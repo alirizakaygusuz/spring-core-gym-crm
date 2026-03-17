@@ -14,8 +14,13 @@ spring:
   h2:
     console:
       enabled: true
+      path: /h2-console
   config:
     import: optional:file:.env[.properties]
+
+logging:
+  level:
+    com.alirizakaygusuz.gymcrm.workload_service: DEBUG
 
 server:
   port: ${WORKLOAD_SERVICE_PORT}

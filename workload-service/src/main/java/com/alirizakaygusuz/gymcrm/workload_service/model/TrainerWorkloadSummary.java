@@ -6,8 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 
 @Entity
 @Table(name = "trainer_workload_summary")
@@ -28,7 +30,8 @@ public class TrainerWorkloadSummary {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true ,fetch = FetchType.LAZY)
     @JoinColumn(name = "trainer_workload_summary_id")
-    private List<TrainerWorkloadYearlySummary> yearlySummaries;
+    @OrderColumn(name= "yearly_order")
+    private List<TrainerWorkloadYearlySummary> yearlySummaries = new ArrayList<>();
 
 
     @Override

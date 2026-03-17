@@ -6,8 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 
 @Entity
 @Table(name = "trainer_workload_yearly_summary")
@@ -20,11 +22,13 @@ public class TrainerWorkloadYearlySummary {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "workload_year")
     private Integer year;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true ,fetch = FetchType.LAZY)
     @JoinColumn(name = "trainer_workload_yearly_summary_id")
-    private List<TrainerWorkloadMonthlySummary> monthlySummaries;
+    @OrderColumn(name= "monthly_order")
+    private List<TrainerWorkloadMonthlySummary> monthlySummaries = new ArrayList<>();
 
 
     @Override

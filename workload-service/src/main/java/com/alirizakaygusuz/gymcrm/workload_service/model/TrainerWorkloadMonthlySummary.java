@@ -18,7 +18,9 @@ public class TrainerWorkloadMonthlySummary {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "workload_month")
     private Integer month;
+
     private Integer totalTrainingDuration;
 
 
