@@ -40,5 +40,5 @@ build/
 .DS_Store
 
 # Env files
-gym-crm/.env
+.env
 
