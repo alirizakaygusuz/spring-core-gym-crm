@@ -30,6 +30,9 @@ server:
   port: ${WORKLOAD_SERVICE_PORT}
 
 management:
+  info:
+    env:
+      enabled: true
   endpoints:
     web:
       exposure:
@@ -54,3 +57,13 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_SERVER_URL}
+
+
+
+info:
+  app:
+    name: Workload Service
+    description: Trainer workload microservice developed by Ali Riza Kaygusuz
+    version: 1.0-SNAPSHOT
+  contact:
+    name: Ali Riza Kaygusuz
