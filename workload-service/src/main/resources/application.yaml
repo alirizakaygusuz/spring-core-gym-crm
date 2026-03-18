@@ -10,7 +10,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
-    show-sql: true
+    show-sql: false
   h2:
     console:
       enabled: true
@@ -28,6 +28,27 @@ security:
 
 server:
   port: ${WORKLOAD_SERVICE_PORT}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      default:
+        exclude: db, discoveryComposite
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState, db
+          show-details: always
+        liveness:
+          include: livenessState
+          show-details: always
+    info:
+      enabled: true
 
 eureka:
   client:

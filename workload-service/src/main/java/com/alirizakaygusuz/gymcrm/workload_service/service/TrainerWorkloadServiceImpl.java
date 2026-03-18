@@ -9,6 +9,7 @@ import com.alirizakaygusuz.gymcrm.workload_service.mapper.TrainerWorkloadMapper;
 import com.alirizakaygusuz.gymcrm.workload_service.model.TrainerWorkloadMonthlySummary;
 import com.alirizakaygusuz.gymcrm.workload_service.model.TrainerWorkloadSummary;
 import com.alirizakaygusuz.gymcrm.workload_service.model.TrainerWorkloadYearlySummary;
+import com.alirizakaygusuz.gymcrm.workload_service.monitoring.AppMetrics;
 import com.alirizakaygusuz.gymcrm.workload_service.repository.TrainerWorkloadSummaryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,8 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     private final TrainerWorkloadMapper trainerWorkloadMapper;
 
+    private final AppMetrics appMetrics;
+
 
     @Override
     @Transactional
@@ -44,6 +47,8 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     //Add TrainerWorkloadSummary
     private void addTrainerWorkloadSummary(TrainerWorkloadRequest request) {
 
+        appMetrics.incrementTrainerWorkloadAddAttempts();
+
         log.info("Processing workload for trainer: {}, action: {}, date: {}, duration: {}",
                 request.username(), request.actionType(), request.trainingDate(), request.trainingDuration());
 
@@ -58,7 +63,9 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         TrainerWorkloadMonthlySummary monthlySummary = findTrainerWorkloadMonthlySummaryOrCreate(yearlySummary, month);
 
         monthlySummary.setTotalTrainingDuration(monthlySummary.getTotalTrainingDuration() + request.trainingDuration());
+
         trainerWorkloadSummaryRepository.save(trainerSummary);
+        appMetrics.incrementTrainerWorkloadAdd();
 
         log.info("Updated workload for trainer: {}, year: {}, month: {}, new total duration: {}",
                 request.username(), year, month, monthlySummary.getTotalTrainingDuration());
@@ -111,6 +118,8 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     //Delete TrainerWorkloadSummary
     private void deleteTrainerWorkloadSummary(TrainerWorkloadRequest request) {
 
+        appMetrics.incrementTrainerWorkloadDeleteAttempts();
+
         log.info("Processing workload deletion for trainer: {}, action: {}, date: {}, duration: {}",
                 request.username(), request.actionType(), request.trainingDate(), request.trainingDuration());
 
@@ -133,7 +142,9 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         } else {
             monthlySummary.setTotalTrainingDuration(currentDuration);
         }
+
         trainerWorkloadSummaryRepository.save(trainerWorkloadSummary);
+        appMetrics.incrementTrainerWorkloadDelete();
 
         log.info("Updated workload after deletion for trainer: {}, year: {}, month: {}, new total duration: {}",
                 request.username(), year, month, monthlySummary.getTotalTrainingDuration());
@@ -164,6 +175,9 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     @Override
     @Transactional(readOnly = true)
     public TrainerWorkloadSummaryResponse getTrainerWorkloadSummary(String username, Integer year, Integer month) {
+
+        appMetrics.incrementTrainerWorkloadGetAttempts();
+
         log.info("Retrieving workload summary for trainer: {}, year: {}, month: {}", username, year, month);
 
 
@@ -178,6 +192,8 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
         trainerWorkloadYearlySummary.setMonthlySummaries(List.of(trainerWorkloadMonthlySummary));
         trainerWorkloadSummary.setYearlySummaries(List.of(trainerWorkloadYearlySummary));
+
+        appMetrics.incrementTrainerWorkloadGet();
 
         log.info("Retrieved workload summary for trainer: {}, year: {}, month: {}, total duration: {}",
                 username, year, month, trainerWorkloadMonthlySummary.getTotalTrainingDuration());
