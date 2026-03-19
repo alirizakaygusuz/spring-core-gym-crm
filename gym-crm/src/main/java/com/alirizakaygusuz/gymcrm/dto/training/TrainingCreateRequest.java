@@ -31,7 +31,7 @@ public record TrainingCreateRequest(
 
         @Schema(
                 description = "Name/title of the training session.",
-                example = "Morning Cardio",
+                example = "YOGA",
                 required = true
         )
         @NotBlank(message = "Training name is required")

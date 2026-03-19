@@ -1,5 +1,7 @@
 package com.alirizakaygusuz.gymcrm.service.trainee;
 
+import com.alirizakaygusuz.gymcrm.client.WorkloadServiceClient;
+import com.alirizakaygusuz.gymcrm.client.dto.ActionType;
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TraineeTrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
@@ -24,6 +26,7 @@ import com.alirizakaygusuz.gymcrm.model.*;
 import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
 import com.alirizakaygusuz.gymcrm.service.validator.ValidationUtils;
+import com.alirizakaygusuz.gymcrm.util.WorkloadRequestBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -56,6 +59,8 @@ public class TraineeServiceImpl implements TraineeService {
     private final AppMetrics appMetrics;
 
 
+    private final WorkloadServiceClient workloadServiceClient;
+
 
     @Override
     @Transactional
@@ -64,7 +69,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         appMetrics.incrementTraineeRegistrationAttempts();
 
-        UserCreationResult userCreationResult = userService.createUserWithCredentials(request , RoleType.TRAINEE);
+        UserCreationResult userCreationResult = userService.createUserWithCredentials(request, RoleType.TRAINEE);
         User savedUser = userCreationResult.user();
 
 
@@ -78,7 +83,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         appMetrics.incrementTraineeRegistrationSuccess();
 
-        return traineeMapper.toRegisterResponse(savedTrainee.getUser() , userCreationResult.rawPassword());
+        return traineeMapper.toRegisterResponse(savedTrainee.getUser(), userCreationResult.rawPassword());
     }
 
     private Trainee buildTraineeForCreate(TraineeRegisterRequest data, User user) {
@@ -134,6 +139,12 @@ public class TraineeServiceImpl implements TraineeService {
 
         log.info("Deleting trainee profile. traineeId={}, username={}",
                 trainee.getId(), trainee.getUser().getUsername());
+
+        trainingDao.findByTraineeUsername(username)
+                .forEach(training -> {
+                    log.info("Deleted training with id={} due to trainee profile deletion. traineeId={}", training.getId(), trainee.getId());
+                    workloadServiceClient.processTrainerWorkload(WorkloadRequestBuilder.from(training, ActionType.DELETE));
+                });
 
         traineeDao.delete(trainee);
 
@@ -203,7 +214,7 @@ public class TraineeServiceImpl implements TraineeService {
     ) {
 
         boolean isDateValid = validationUtils.validateDateRange(filters.periodFrom(), filters.periodTo());
-        if(!isDateValid){
+        if (!isDateValid) {
             throw new ValidationException("'from' date must be less than or equal to 'to' date");
         }
 
