@@ -1,5 +1,6 @@
 package service;
 
+import com.alirizakaygusuz.gymcrm.client.WorkloadServiceClient;
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
@@ -10,6 +11,7 @@ import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.model.*;
 import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.service.training.TrainingServiceImpl;
+import org.checkerframework.checker.units.qual.N;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,6 +45,10 @@ class TrainingServiceImplTest {
     @Mock
     private AppMetrics appMetrics;
 
+    @Mock
+    private WorkloadServiceClient workloadServiceClient;
+
+
     @InjectMocks
     private TrainingServiceImpl trainingService;
 
@@ -60,8 +66,16 @@ class TrainingServiceImplTest {
         Trainee trainee = new Trainee();
         trainee.setId(1L);
 
+
+        User trainerUser = new User();
+        trainerUser.setUsername("trainer.jane");
+        trainerUser.setFirstName("Jane");
+        trainerUser.setLastName("Smith");
+
         Trainer trainer = new Trainer();
         trainer.setId(2L);
+        trainer.setUser(trainerUser);
+
 
         TrainingType trainingType = new TrainingType();
         trainingType.setId(3L);
@@ -72,15 +86,16 @@ class TrainingServiceImplTest {
 
         when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
         when(trainerDao.findByUsername("trainer.jane")).thenReturn(Optional.of(trainer));
-        when(trainingTypeDao.findByName("CARDIO")).thenReturn(Optional.of(trainingType));
+        when(trainingTypeDao.findByCode(TrainingTypeCode.CARDIO)).thenReturn(Optional.of(trainingType));
         when(trainingDao.save(any(Training.class))).thenReturn(savedTraining);
 
         assertDoesNotThrow(() -> trainingService.addTraining(request));
 
         verify(traineeDao).findByUsername("john.doe");
         verify(trainerDao).findByUsername("trainer.jane");
-        verify(trainingTypeDao).findByName("CARDIO");
+        verify(trainingTypeDao).findByCode(TrainingTypeCode.CARDIO);
         verify(trainingDao).save(any(Training.class));
+        verify(workloadServiceClient).processTrainerWorkload(any());
         verifyNoMoreInteractions(traineeDao, trainerDao, trainingTypeDao, trainingDao);
     }
 
@@ -160,7 +175,7 @@ class TrainingServiceImplTest {
 
         when(traineeDao.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
         when(trainerDao.findByUsername("trainer.jane")).thenReturn(Optional.of(trainer));
-        when(trainingTypeDao.findByName("CARDIO")).thenReturn(Optional.empty());
+        when(trainingTypeDao.findByCode(TrainingTypeCode.CARDIO)).thenReturn(Optional.empty());
 
         ResourceNotFoundException ex = assertThrows(
                 ResourceNotFoundException.class,
@@ -172,8 +187,8 @@ class TrainingServiceImplTest {
 
         verify(traineeDao).findByUsername("john.doe");
         verify(trainerDao).findByUsername("trainer.jane");
-        verify(trainingTypeDao).findByName("CARDIO");
-        verifyNoMoreInteractions(traineeDao, trainerDao, trainingTypeDao);
+        verify(trainingTypeDao).findByCode(TrainingTypeCode.CARDIO);
+        verifyNoMoreInteractions(traineeDao, trainerDao, trainingTypeDao ,workloadServiceClient);
         verifyNoInteractions(trainingDao);
     }
 

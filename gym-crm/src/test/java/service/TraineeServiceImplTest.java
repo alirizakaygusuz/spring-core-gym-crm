@@ -1,6 +1,8 @@
 package service;
 
+import com.alirizakaygusuz.gymcrm.client.WorkloadServiceClient;
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
+import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
 import com.alirizakaygusuz.gymcrm.dto.common.UserCreationResult;
 import com.alirizakaygusuz.gymcrm.dto.trainee.profile.TraineeProfileResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterRequest;
@@ -23,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,6 +38,9 @@ class TraineeServiceImplTest {
     @Mock
     private TraineeDao traineeDao;
 
+    @Mock
+    private TrainingDao trainingDao;
+
 
     @Mock
     private UserService userService;
@@ -45,9 +51,11 @@ class TraineeServiceImplTest {
     @Mock
     private AppMetrics appMetrics;
 
+    @Mock
+    private WorkloadServiceClient workloadServiceClient;
+
     @InjectMocks
     private TraineeServiceImpl traineeService;
-
 
 
     @Test
@@ -82,9 +90,9 @@ class TraineeServiceImplTest {
         assertNotNull(result);
         assertEquals("John.Doe", result.username());
 
-        verify(userService).createUserWithCredentials(request , RoleType.TRAINEE);
+        verify(userService).createUserWithCredentials(request, RoleType.TRAINEE);
         verify(traineeDao).save(any(Trainee.class));
-        verify(traineeMapper).toRegisterResponse(savedUser,userCreationResult.rawPassword());
+        verify(traineeMapper).toRegisterResponse(savedUser, userCreationResult.rawPassword());
         verifyNoMoreInteractions(userService, traineeDao, traineeMapper);
     }
 
@@ -190,8 +198,8 @@ class TraineeServiceImplTest {
     }
 
     @Test
-    @DisplayName("deleteProfile should delete trainee when trainee exists")
-    void deleteProfile_shouldDeleteTraineeWhenTraineeExists() {
+    @DisplayName("deleteProfile should notify workload service and delete trainee when trainee exists")
+    void deleteProfile_shouldNotifyWorkloadServiceAndDeleteTraineeWhenTraineeExists() {
         String username = "John.Doe";
 
         User user = new User();
@@ -202,11 +210,13 @@ class TraineeServiceImplTest {
         trainee.setUser(user);
 
         when(traineeDao.findByUsername(username)).thenReturn(Optional.of(trainee));
+        when(trainingDao.findByTraineeUsername(username)).thenReturn(List.of());
 
         assertDoesNotThrow(() -> traineeService.deleteProfile(username));
 
         verify(traineeDao).findByUsername(username);
         verify(traineeDao).delete(trainee);
+        verify(trainingDao).findByTraineeUsername(username);
         verifyNoMoreInteractions(traineeDao);
     }
 
