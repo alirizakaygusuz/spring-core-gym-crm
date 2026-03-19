@@ -139,6 +139,16 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         if (currentDuration < 0) {
             throw new InsufficientTrainerWorkloadDurationException("Cannot delete training session. Current total duration for month " +
                     month + " in year " + year + " is less than the duration of the session being deleted.");
+        }
+
+        if (currentDuration == 0) {
+            yearlySummary.getMonthlySummaries().remove(monthlySummary);
+            log.info("Removed monthly summary for month: {}, year: {} as total duration is now zero", month, year);
+
+            if (yearlySummary.getMonthlySummaries().isEmpty()) {
+                trainerWorkloadSummary.getYearlySummaries().remove(yearlySummary);
+                log.info("Removed yearly summary for year: {} as it has no more monthly summaries", year);
+            }
         } else {
             monthlySummary.setTotalTrainingDuration(currentDuration);
         }
@@ -147,7 +157,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         appMetrics.incrementTrainerWorkloadDelete();
 
         log.info("Updated workload after deletion for trainer: {}, year: {}, month: {}, new total duration: {}",
-                request.username(), year, month, monthlySummary.getTotalTrainingDuration());
+                request.username(), year, month, currentDuration);
 
     }
 
@@ -186,7 +196,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 ));
 
 
-        TrainerWorkloadYearlySummary trainerWorkloadYearlySummary  = findTrainerWorkloadYearlyOrThrow(trainerWorkloadSummary, year);
+        TrainerWorkloadYearlySummary trainerWorkloadYearlySummary = findTrainerWorkloadYearlyOrThrow(trainerWorkloadSummary, year);
 
         TrainerWorkloadMonthlySummary trainerWorkloadMonthlySummary = findTrainerWorkloadMonthlyOrThrow(trainerWorkloadYearlySummary, month);
 

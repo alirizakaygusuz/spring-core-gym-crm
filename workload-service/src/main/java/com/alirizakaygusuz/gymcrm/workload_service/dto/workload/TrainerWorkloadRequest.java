@@ -16,7 +16,7 @@ public record TrainerWorkloadRequest(
 
         @Schema(
                 description = "Username of the trainer whose workload entry is being added or deleted.",
-                example = "jane.smith"
+                example = "trainer.jane"
         )
         @NotBlank(message = "Username is required")
         String username,
@@ -45,7 +45,7 @@ public record TrainerWorkloadRequest(
 
         @Schema(
                 description = "Date of the training session (ISO-8601 format, yyyy-MM-dd).",
-                example = "2024-07-01"
+                example = "2024-06-01"
         )
         @NotNull
         LocalDate trainingDate,
@@ -60,7 +60,7 @@ public record TrainerWorkloadRequest(
 
         @Schema(
                 description = "Type of action to perform on the workload entry. Allowed values: ADD, DELETE.",
-                example = "ADD"
+                example = "DELETE"
         )
         @NotNull(message = "Action type is required")
         ActionType actionType

@@ -60,7 +60,7 @@ public class TrainerWorkloadController extends BaseController {
     @GetMapping("/{username}/summary")
     public ResponseEntity<ApiStandardResponse<TrainerWorkloadSummaryResponse>> getTrainerWorkloadSummary(
 
-            @Parameter(description = "The username of the trainer for whom the workload summary is being requested.", example = "jane.smith")
+            @Parameter(description = "The username of the trainer for whom the workload summary is being requested.", example = "trainer.jane")
             @PathVariable
             String username,
 
@@ -69,7 +69,7 @@ public class TrainerWorkloadController extends BaseController {
             @Positive
             Integer year,
 
-            @Parameter(description = "The month for which the workload summary is being requested. Must be a positive integer between 1 and 12.", example = "07")
+            @Parameter(description = "The month for which the workload summary is being requested. Must be a positive integer between 1 and 12.", example = "06")
             @RequestParam
             @Positive
             Integer month
