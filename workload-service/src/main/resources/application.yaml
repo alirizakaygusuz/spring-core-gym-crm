@@ -16,7 +16,7 @@ spring:
       enabled: true
       path: /h2-console
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:workload-service/.env[.properties]
 
 logging:
   level:
