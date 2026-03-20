@@ -80,6 +80,17 @@ public class TrainingDao {
     }
 
 
+    public List<Training> findByTraineeUsername(String traineeUsername){
+        TrainingQueryCtx ctx  = baseQuery();
+        ctx.predicates.add(
+                ctx.cb.equal(ctx.traineeUser.get("username"), traineeUsername)
+        );
+
+        finalizeQuery(ctx);
+        return  entityManager.createQuery(ctx.cq).getResultList();
+    }
+
+
     private TrainingQueryCtx baseQuery() {
         TrainingQueryCtx ctx = new TrainingQueryCtx();
 

@@ -9,6 +9,12 @@ spring:
       port: ${DOCKER_REDIS_PORT}
       password: ${DOCKER_REDIS_PASSWORD:}
 
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DOCKER_EUREKA_SERVER_URL}
+
 logging:
   level:
     com.alirizakaygusuz.gymcrm: INFO

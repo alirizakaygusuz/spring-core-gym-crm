@@ -1,0 +1,69 @@
+spring:
+  application:
+    name: workload-service
+  datasource:
+    url: jdbc:h2:mem:workloaddb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  config:
+    import: optional:file:.env[.properties]
+
+logging:
+  level:
+    com.alirizakaygusuz.gymcrm.workload_service: DEBUG
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+
+server:
+  port: ${WORKLOAD_SERVICE_PORT}
+
+management:
+  info:
+    env:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      default:
+        exclude: db, discoveryComposite
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState, db
+          show-details: always
+        liveness:
+          include: livenessState
+          show-details: always
+    info:
+      enabled: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL}
+
+
+
+info:
+  app:
+    name: Workload Service
+    description: Trainer workload microservice developed by Ali Riza Kaygusuz
+    version: 1.0-SNAPSHOT
+  contact:
+    name: Ali Riza Kaygusuz

@@ -1,5 +1,8 @@
 package com.alirizakaygusuz.gymcrm.service.training;
 
+import com.alirizakaygusuz.gymcrm.client.WorkloadServiceClient;
+import com.alirizakaygusuz.gymcrm.client.dto.ActionType;
+import com.alirizakaygusuz.gymcrm.client.dto.TrainerWorkloadRequest;
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
@@ -7,10 +10,8 @@ import com.alirizakaygusuz.gymcrm.dao.TrainingTypeDao;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingCreateRequest;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingTypeResponse;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
-import com.alirizakaygusuz.gymcrm.model.Trainee;
-import com.alirizakaygusuz.gymcrm.model.Trainer;
-import com.alirizakaygusuz.gymcrm.model.Training;
-import com.alirizakaygusuz.gymcrm.model.TrainingType;
+import com.alirizakaygusuz.gymcrm.model.*;
+import com.alirizakaygusuz.gymcrm.util.WorkloadRequestBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,9 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainingTypeDao trainingTypeDao;
     private final TrainingDao trainingDao;
 
+    private final WorkloadServiceClient workloadServiceClient;
+
+
 
     @Override
     @Transactional
@@ -45,7 +49,7 @@ public class TrainingServiceImpl implements TrainingService {
         Trainer trainer = trainerDao.findByUsername(request.trainerUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Trainer", "username", request.trainerUsername()));
 
-        TrainingType trainingType = trainingTypeDao.findByName(request.trainingName())
+        TrainingType trainingType = trainingTypeDao.findByCode(TrainingTypeCode.fromString(request.trainingName()))
                 .orElseThrow(() -> new ResourceNotFoundException("TrainingType", "name", request.trainingName()));
 
         Training training = buildTrainingForCreate(request, trainee, trainer, trainingType);
@@ -55,7 +59,12 @@ public class TrainingServiceImpl implements TrainingService {
         log.info("Training created. id={}, traineeId={}, trainerId={}, typeId={}",
                 savedTraining.getId(), trainee.getId(), trainer.getId(), trainingType.getId());
 
+
+        workloadServiceClient.processTrainerWorkload(WorkloadRequestBuilder.from(training , ActionType.ADD));
+
+
     }
+
 
     private Training buildTrainingForCreate(
             TrainingCreateRequest request,
