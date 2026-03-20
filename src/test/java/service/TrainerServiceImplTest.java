@@ -2,6 +2,7 @@ package service;
 
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingTypeDao;
+import com.alirizakaygusuz.gymcrm.dto.common.UserCreationResult;
 import com.alirizakaygusuz.gymcrm.dto.trainer.profile.TrainerProfileResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainer.register.TrainerRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainer.register.TrainerRegisterResponse;
@@ -77,12 +78,15 @@ class TrainerServiceImplTest {
         savedTrainer.setUser(savedUser);
         savedTrainer.setSpecialization(specialization);
 
+        UserCreationResult userCreationResult = new UserCreationResult(savedUser, "rawPassword");
+
+
         TrainerRegisterResponse response = new TrainerRegisterResponse("Jane.Smith", "password");
 
-        when(userService.createUserWithCredentials(request, RoleType.TRAINER)).thenReturn(savedUser);
+        when(userService.createUserWithCredentials(request, RoleType.TRAINER)).thenReturn(userCreationResult);
         when(trainingTypeDao.findById(1L)).thenReturn(Optional.of(specialization));
         when(trainerDao.save(any(Trainer.class))).thenReturn(savedTrainer);
-        when(trainerMapper.toRegisterResponse(savedTrainer.getUser())).thenReturn(response);
+        when(trainerMapper.toRegisterResponse(savedTrainer.getUser() , userCreationResult.rawPassword())).thenReturn(response);
 
         TrainerRegisterResponse result = trainerService.register(request);
 
@@ -93,7 +97,7 @@ class TrainerServiceImplTest {
         verify(commonValidator).validateNotNull(1L, "Specialization ID");
         verify(trainingTypeDao).findById(1L);
         verify(trainerDao).save(any(Trainer.class));
-        verify(trainerMapper).toRegisterResponse(savedTrainer.getUser());
+        verify(trainerMapper).toRegisterResponse(savedTrainer.getUser(),userCreationResult.rawPassword());
         verifyNoMoreInteractions(userService, commonValidator, trainingTypeDao, trainerDao, trainerMapper);
     }
 
@@ -110,7 +114,9 @@ class TrainerServiceImplTest {
         savedUser.setId(1L);
         savedUser.setUsername("Jane.Smith");
 
-        when(userService.createUserWithCredentials(request, RoleType.TRAINER)).thenReturn(savedUser);
+        UserCreationResult userCreationResult = new UserCreationResult(savedUser, "rawPassword");
+
+        when(userService.createUserWithCredentials(request, RoleType.TRAINER)).thenReturn(userCreationResult);
         when(trainingTypeDao.findById(999L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
@@ -140,7 +146,10 @@ class TrainerServiceImplTest {
         savedUser.setId(1L);
         savedUser.setUsername("Jane.Smith");
 
-        when(userService.createUserWithCredentials(request, RoleType.TRAINER)).thenReturn(savedUser);
+        UserCreationResult userCreationResult = new UserCreationResult(savedUser, "rawPassword");
+
+
+        when(userService.createUserWithCredentials(request, RoleType.TRAINER)).thenReturn(userCreationResult);
         doThrow(new ValidationException("Specialization ID cannot be null"))
                 .when(commonValidator).validateNotNull(null, "Specialization ID");
 

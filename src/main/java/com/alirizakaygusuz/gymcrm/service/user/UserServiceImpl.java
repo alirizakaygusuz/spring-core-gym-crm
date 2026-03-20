@@ -1,6 +1,7 @@
 package com.alirizakaygusuz.gymcrm.service.user;
 
 import com.alirizakaygusuz.gymcrm.dao.UserDao;
+import com.alirizakaygusuz.gymcrm.dto.common.UserCreationResult;
 import com.alirizakaygusuz.gymcrm.dto.common.UserRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.common.UserUpdateRequest;
 import com.alirizakaygusuz.gymcrm.model.RoleType;
@@ -19,9 +20,11 @@ public class UserServiceImpl implements UserService {
     private final UserDomainService userDomainService;
 
     @Transactional
-    public User createUserWithCredentials(UserRegisterRequest request , RoleType role) {
-        User user = userDomainService.createWithCredentials(request , role);
-        return userDao.save(user);
+    public UserCreationResult createUserWithCredentials(UserRegisterRequest request , RoleType role) {
+        UserCreationResult userCreationResult = userDomainService.createWithCredentials(request , role);
+        User savedUser = userDao.save(userCreationResult.user());
+
+        return new UserCreationResult(savedUser, userCreationResult.rawPassword());
     }
 
     @Transactional

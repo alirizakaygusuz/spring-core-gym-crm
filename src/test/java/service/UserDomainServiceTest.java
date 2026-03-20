@@ -1,5 +1,6 @@
 package service;
 
+import com.alirizakaygusuz.gymcrm.dto.common.UserCreationResult;
 import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateRequest;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
@@ -61,7 +62,8 @@ class UserDomainServiceTest {
         when(passwordEncoder.encode("rawPassword123"))
                 .thenReturn("encodedPassword123");
 
-        User result = userDomainService.createWithCredentials(request , RoleType.TRAINER);
+        UserCreationResult userCreationResult = userDomainService.createWithCredentials(request , RoleType.TRAINER);
+        User result = userCreationResult.user();
 
         assertNotNull(result);
         assertEquals("John", result.getFirstName());

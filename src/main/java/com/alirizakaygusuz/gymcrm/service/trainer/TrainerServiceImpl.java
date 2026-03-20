@@ -3,6 +3,7 @@ package com.alirizakaygusuz.gymcrm.service.trainer;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingTypeDao;
+import com.alirizakaygusuz.gymcrm.dto.common.UserCreationResult;
 import com.alirizakaygusuz.gymcrm.dto.trainer.profile.TrainerProfileResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainer.register.TrainerRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainer.register.TrainerRegisterResponse;
@@ -56,7 +57,8 @@ public class TrainerServiceImpl implements TrainerService {
         appMetrics.incrementTrainerRegistrationAttempts();
 
 
-        User savedUser = userService.createUserWithCredentials(request, RoleType.TRAINER);
+        UserCreationResult userCreationResult = userService.createUserWithCredentials(request, RoleType.TRAINER);
+        User savedUser = userCreationResult.user();
 
         log.info("User profile created with username={}", savedUser.getUsername());
 
@@ -69,7 +71,7 @@ public class TrainerServiceImpl implements TrainerService {
                 saved.getId(), savedUser.getUsername());
 
         appMetrics.incrementTrainerRegistrationSuccess();
-        return trainerMapper.toRegisterResponse(saved.getUser());
+        return trainerMapper.toRegisterResponse(saved.getUser() , userCreationResult.rawPassword());
     }
 
     private Trainer buildTrainerForCreate(User user, TrainingType specialization) {

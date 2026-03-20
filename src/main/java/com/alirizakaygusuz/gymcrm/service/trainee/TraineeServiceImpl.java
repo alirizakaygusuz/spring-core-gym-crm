@@ -4,6 +4,7 @@ import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TraineeTrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
+import com.alirizakaygusuz.gymcrm.dto.common.UserCreationResult;
 import com.alirizakaygusuz.gymcrm.dto.trainee.profile.TraineeProfileRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainee.profile.TraineeProfileResponse;
 import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterRequest;
@@ -63,7 +64,9 @@ public class TraineeServiceImpl implements TraineeService {
 
         appMetrics.incrementTraineeRegistrationAttempts();
 
-        User savedUser = userService.createUserWithCredentials(request , RoleType.TRAINEE);
+        UserCreationResult userCreationResult = userService.createUserWithCredentials(request , RoleType.TRAINEE);
+        User savedUser = userCreationResult.user();
+
 
         log.info("User profile created with username={}", savedUser.getUsername());
 
@@ -75,7 +78,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         appMetrics.incrementTraineeRegistrationSuccess();
 
-        return traineeMapper.toRegisterResponse(savedTrainee.getUser());
+        return traineeMapper.toRegisterResponse(savedTrainee.getUser() , userCreationResult.rawPassword());
     }
 
     private Trainee buildTraineeForCreate(TraineeRegisterRequest data, User user) {

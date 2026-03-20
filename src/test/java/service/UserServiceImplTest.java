@@ -1,6 +1,7 @@
 package service;
 
 import com.alirizakaygusuz.gymcrm.dao.UserDao;
+import com.alirizakaygusuz.gymcrm.dto.common.UserCreationResult;
 import com.alirizakaygusuz.gymcrm.dto.trainee.register.TraineeRegisterRequest;
 import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateRequest;
 import com.alirizakaygusuz.gymcrm.exception.ValidationException;
@@ -48,6 +49,9 @@ class UserServiceImplTest {
         builtUser.setUsername("John.Doe");
         builtUser.setActive(true);
 
+        UserCreationResult creationResult = new UserCreationResult(builtUser, "rawPassword");
+
+
         User savedUser = new User();
         savedUser.setId(1L);
         savedUser.setFirstName("John");
@@ -55,17 +59,17 @@ class UserServiceImplTest {
         savedUser.setUsername("John.Doe");
         savedUser.setActive(true);
 
-        when(userDomainService.createWithCredentials(request, RoleType.TRAINER)).thenReturn(builtUser);
+        when(userDomainService.createWithCredentials(request, RoleType.TRAINER)).thenReturn(creationResult);
         when(userDao.save(builtUser)).thenReturn(savedUser);
 
-        User result = userService.createUserWithCredentials(request , RoleType.TRAINER);
+        UserCreationResult result = userService.createUserWithCredentials(request , RoleType.TRAINER);
 
         assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals("John", result.getFirstName());
-        assertEquals("Doe", result.getLastName());
-        assertEquals("John.Doe", result.getUsername());
-        assertTrue(result.isActive());
+        assertEquals(1L, result.user().getId());
+        assertEquals("John", result.user().getFirstName());
+        assertEquals("Doe", result.user().getLastName());
+        assertEquals("John.Doe", result.user().getUsername());
+        assertTrue(result.user().isActive());
 
         verify(userDomainService).createWithCredentials(request,RoleType.TRAINER);
         verify(userDao).save(builtUser);
