@@ -38,6 +38,23 @@ services:
     networks:
       - gymcrm-network
 
+  artemis:
+    image: apache/activemq-artemis:latest
+    container_name: ali-gymcrm-artemis
+    ports:
+      - "${ARTEMIS_CONSOLE_PORT}:61616"
+      - "${ARTEMIS_PORT}:8161"
+    environment:
+      ARTEMIS_USER: ${ARTEMIS_USER}
+      ARTEMIS_PASSWORD: ${ARTEMIS_PASSWORD}
+    networks:
+      - gymcrm-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8161 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
   app:
     image: eclipse-temurin:17-jre
     container_name: ali-gymcrm-app
@@ -45,6 +62,8 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      artemis:
         condition: service_healthy
     env_file:
       - .env
@@ -62,7 +81,12 @@ services:
 
       REDIS_HOST: ${DOCKER_REDIS_HOST}
       REDIS_PORT: ${DOCKER_REDIS_PORT}
-      REDIS_PASSWORD: ${DOCKER_REDIS_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      ARTEMIS_HOST: ${ARTEMIS_HOST}
+      ARTEMIS_PORT: ${ARTEMIS_PORT}
+      ARTEMIS_USER: ${ARTEMIS_USER}
+      ARTEMIS_PASSWORD: ${ARTEMIS_PASSWORD}
     ports:
       - "8080:8080"
     volumes:
