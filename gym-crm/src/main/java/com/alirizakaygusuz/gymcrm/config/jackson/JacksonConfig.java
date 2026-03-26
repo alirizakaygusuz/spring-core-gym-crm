@@ -1,14 +1,16 @@
 package com.alirizakaygusuz.gymcrm.config.jackson;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 public class JacksonConfig {
 
     @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper().findAndRegisterModules();
+    public JsonMapper objectMapper() {
+        return JsonMapper.builder()
+                .findAndAddModules()
+                .build();
     }
 }
