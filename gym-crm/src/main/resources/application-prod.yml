@@ -9,6 +9,11 @@ spring:
       hibernate:
         format_sql: false
 
+  artemis:
+    broker-url: ${PROD_ARTEMIS_BROKER_URL}
+    user: ${PROD_ARTEMIS_USER}
+    password: ${PROD_ARTEMIS_PASSWORD}
+
 logging:
   level:
     com.alirizakaygusuz.gymcrm: WARN

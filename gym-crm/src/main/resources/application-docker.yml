@@ -9,6 +9,11 @@ spring:
       port: ${DOCKER_REDIS_PORT}
       password: ${DOCKER_REDIS_PASSWORD:}
 
+  artemis:
+    broker-url: ${DOCKER_ARTEMIS_BROKER_URL}
+    user: ${DOCKER_ARTEMIS_USER}
+    password: ${DOCKER_ARTEMIS_PASSWORD}
+
 
 eureka:
   client:

@@ -32,6 +32,16 @@ spring:
             connect-timeout: 5000
             read-timeout: 10000
 
+  artemis:
+    broker-url: ${ARTEMIS_BROKER_URL}
+    user: ${ARTEMIS_USER}
+    password: ${ARTEMIS_PASSWORD}
+  jms:
+    pub-sub-domain: false
+messaging:
+  queues:
+    workload: workload.queue
+
 resilience4j:
   circuitbreaker:
     instances:
