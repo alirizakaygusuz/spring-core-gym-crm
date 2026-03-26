@@ -239,6 +239,15 @@
             <scope>compile</scope>
         </dependency>
 
+
+
+        <!--============ Apache Artemis Dependencies ============= -->
+        <!-- Source: https://mvnrepository.com/artifact/org.apache.artemis/apache-artemis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-artemis</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

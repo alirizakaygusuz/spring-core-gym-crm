@@ -41,19 +41,21 @@ services:
   artemis:
     image: apache/activemq-artemis:latest
     container_name: ali-gymcrm-artemis
+    env_file:
+      - .env
     ports:
-      - "${ARTEMIS_CONSOLE_PORT}:61616"
-      - "${ARTEMIS_PORT}:8161"
+      - "${DOCKER_ARTEMIS_PORT}:61616"
+      - "${DOCKER_ARTEMIS_CONSOLE_PORT}:8161"
     environment:
-      ARTEMIS_USER: ${ARTEMIS_USER}
-      ARTEMIS_PASSWORD: ${ARTEMIS_PASSWORD}
-    networks:
-      - gymcrm-network
+      ARTEMIS_USER: ${DOCKER_ARTEMIS_USER}
+      ARTEMIS_PASSWORD: ${DOCKER_ARTEMIS_PASSWORD}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8161 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 20
+    networks:
+      - gymcrm-network
 
   app:
     image: eclipse-temurin:17-jre
@@ -81,12 +83,11 @@ services:
 
       REDIS_HOST: ${DOCKER_REDIS_HOST}
       REDIS_PORT: ${DOCKER_REDIS_PORT}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PASSWORD: ${DOCKER_REDIS_PASSWORD}
 
-      ARTEMIS_HOST: ${ARTEMIS_HOST}
-      ARTEMIS_PORT: ${ARTEMIS_PORT}
-      ARTEMIS_USER: ${ARTEMIS_USER}
-      ARTEMIS_PASSWORD: ${ARTEMIS_PASSWORD}
+      ARTEMIS_BROKER_URL: ${DOCKER_ARTEMIS_BROKER_URL}
+      ARTEMIS_USER: ${DOCKER_ARTEMIS_USER}
+      ARTEMIS_PASSWORD: ${DOCKER_ARTEMIS_PASSWORD}
     ports:
       - "8080:8080"
     volumes:
