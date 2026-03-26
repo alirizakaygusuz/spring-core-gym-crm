@@ -1,9 +1,0 @@
-spring:
-  datasource:
-    url: jdbc:postgresql://${DOCKER_DB_HOST}:${DOCKER_DB_PORT}/${DOCKER_DB_NAME}
-    username: ${DOCKER_DB_USER}
-    password: ${DOCKER_DB_PASSWORD}
-
-logging:
-  level:
-    com.alirizakaygusuz.gymcrm: INFO

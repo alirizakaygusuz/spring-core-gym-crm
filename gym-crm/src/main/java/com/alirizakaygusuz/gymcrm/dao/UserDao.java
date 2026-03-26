@@ -1,0 +1,62 @@
+package com.alirizakaygusuz.gymcrm.dao;
+
+import com.alirizakaygusuz.gymcrm.model.User;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public class UserDao {
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    public User save(User user) {
+        entityManager.persist(user);
+        return user;
+    }
+
+    public Optional<User> findById(Long id) {
+        return Optional.ofNullable(entityManager.find(User.class, id));
+    }
+
+    public Optional<User> findByUsername(String username) {
+        List<User> result = entityManager.createQuery(
+                        "SELECT u FROM User u WHERE u.username = :username", User.class)
+                .setParameter("username", username)
+                .setMaxResults(1)
+                .getResultList();
+
+        return result.stream().findFirst();
+    }
+
+    public Optional<User> findByUsernameWithDetails(String username) {
+        String jpql = """
+            SELECT DISTINCT u 
+            FROM User u 
+            LEFT JOIN FETCH u.userRoles ur 
+            LEFT JOIN FETCH ur.role 
+            WHERE u.username = :username
+            """;
+
+        TypedQuery<User> query = entityManager.createQuery(jpql, User.class);
+        query.setParameter("username", username);
+
+        List<User> result = query.getResultList();
+        return result.stream().findFirst();
+    }
+
+
+    public User update(User user) {
+        return entityManager.merge(user);
+    }
+
+    public void delete(User user) {
+        entityManager.remove(user);
+    }
+
+}
