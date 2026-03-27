@@ -222,24 +222,6 @@
         </dependency>
 
 
-        <!--============ OpenFeign Dependencies ============= -->
-        <!-- Source: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-openfeign -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-
-        <!--============ Resilience4j Circuit Breaker Dependencies ============= -->
-        <!-- Source: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-circuitbreaker-resilience4j -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-circuitbreaker-resilience4j</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-
 
         <!--============ Apache Artemis Dependencies ============= -->
         <!-- Source: https://mvnrepository.com/artifact/org.apache.artemis/apache-artemis -->

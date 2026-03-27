@@ -1,7 +1,7 @@
 package com.alirizakaygusuz.gymcrm.config.jms;
 
 
-import com.alirizakaygusuz.gymcrm.client.dto.TrainerWorkloadRequest;
+import com.alirizakaygusuz.gymcrm.messaging.dto.TrainerWorkloadRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;

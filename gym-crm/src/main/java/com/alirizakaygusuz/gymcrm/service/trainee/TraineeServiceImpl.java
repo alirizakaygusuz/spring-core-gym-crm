@@ -1,7 +1,6 @@
 package com.alirizakaygusuz.gymcrm.service.trainee;
 
-import com.alirizakaygusuz.gymcrm.client.WorkloadServiceClient;
-import com.alirizakaygusuz.gymcrm.client.dto.ActionType;
+import com.alirizakaygusuz.gymcrm.messaging.dto.ActionType;
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TraineeTrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
@@ -22,6 +21,7 @@ import com.alirizakaygusuz.gymcrm.exception.ValidationException;
 import com.alirizakaygusuz.gymcrm.mapper.TraineeMapper;
 import com.alirizakaygusuz.gymcrm.mapper.TrainerMapper;
 import com.alirizakaygusuz.gymcrm.mapper.TrainingMapper;
+import com.alirizakaygusuz.gymcrm.messaging.TrainerWorkloadMessageProducer;
 import com.alirizakaygusuz.gymcrm.model.*;
 import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.service.user.UserService;
@@ -59,7 +59,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final AppMetrics appMetrics;
 
 
-    private final WorkloadServiceClient workloadServiceClient;
+    private final TrainerWorkloadMessageProducer trainerWorkloadMessageProducer;
 
 
     @Override
@@ -143,7 +143,7 @@ public class TraineeServiceImpl implements TraineeService {
         trainingDao.findByTraineeUsername(username)
                 .forEach(training -> {
                     log.info("Deleted training with id={} due to trainee profile deletion. traineeId={}", training.getId(), trainee.getId());
-                    workloadServiceClient.processTrainerWorkload(WorkloadRequestBuilder.from(training, ActionType.DELETE));
+                    trainerWorkloadMessageProducer.sendTrainerWorkloadEvent(WorkloadRequestBuilder.from(training, ActionType.DELETE));
                 });
 
         traineeDao.delete(trainee);
