@@ -1,6 +1,5 @@
 package service;
 
-import com.alirizakaygusuz.gymcrm.client.WorkloadServiceClient;
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
 import com.alirizakaygusuz.gymcrm.dto.common.UserCreationResult;
@@ -11,6 +10,7 @@ import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateRequest
 import com.alirizakaygusuz.gymcrm.dto.trainee.update.TraineeProfileUpdateResponse;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
 import com.alirizakaygusuz.gymcrm.mapper.TraineeMapper;
+import com.alirizakaygusuz.gymcrm.messaging.TrainerWorkloadMessageProducer;
 import com.alirizakaygusuz.gymcrm.model.RoleType;
 import com.alirizakaygusuz.gymcrm.model.Trainee;
 import com.alirizakaygusuz.gymcrm.model.User;
@@ -52,7 +52,8 @@ class TraineeServiceImplTest {
     private AppMetrics appMetrics;
 
     @Mock
-    private WorkloadServiceClient workloadServiceClient;
+    private TrainerWorkloadMessageProducer trainerWorkloadMessageProducer;
+
 
     @InjectMocks
     private TraineeServiceImpl traineeService;
