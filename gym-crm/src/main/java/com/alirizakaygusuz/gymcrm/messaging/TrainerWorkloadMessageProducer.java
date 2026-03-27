@@ -17,6 +17,9 @@ public class TrainerWorkloadMessageProducer {
 
     private final JmsTemplate jmsTemplate;
 
+    private static final  String TRANSACTION_ID = "transactionId";
+
+
     @Value("${messaging.queues.workload}")
     private String destination;
 
@@ -25,13 +28,11 @@ public class TrainerWorkloadMessageProducer {
         log.info("Sending Trainer Workload Event  queue={} |  trainer={}  | action={}", destination, request.username()
                 , request.actionType());
 
-
-
         jmsTemplate.convertAndSend(destination , request , message -> {
-            String transactionId = MDC.get("transactionId");
+            String transactionId = MDC.get(TRANSACTION_ID);
 
             if (transactionId != null) {
-                message.setStringProperty("X-Transaction-Id", transactionId);
+                message.setStringProperty(TRANSACTION_ID, transactionId);
             }
 
             return message;
