@@ -24,13 +24,6 @@ spring:
           min-idle: 0
           max-wait: -1ms
 
-  cloud:
-    openfeign:
-      client:
-        config:
-          workload-service:
-            connect-timeout: 5000
-            read-timeout: 10000
 
   artemis:
     broker-url: ${ARTEMIS_BROKER_URL}
@@ -41,20 +34,6 @@ spring:
 messaging:
   queues:
     workload: workload.queue
-
-resilience4j:
-  circuitbreaker:
-    instances:
-      workloadService:
-        registerHealthIndicator: true
-        sliding-window-size: 5
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL}
 
 
 security:

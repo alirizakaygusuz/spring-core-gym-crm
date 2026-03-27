@@ -14,12 +14,6 @@ spring:
     user: ${DOCKER_ARTEMIS_USER}
     password: ${DOCKER_ARTEMIS_PASSWORD}
 
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${DOCKER_EUREKA_SERVER_URL}
-
 logging:
   level:
     com.alirizakaygusuz.gymcrm: INFO

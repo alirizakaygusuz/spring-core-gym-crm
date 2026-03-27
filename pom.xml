@@ -12,7 +12,6 @@
 
     <modules>
         <module>gym-crm</module>
-        <module>eureka-server</module>
         <module>workload-service</module>
     </modules>
 

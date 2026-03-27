@@ -50,7 +50,7 @@ management:
   endpoint:
     health:
       default:
-        exclude: db, discoveryComposite
+        exclude: db
       probes:
         enabled: true
       group:
@@ -62,11 +62,6 @@ management:
           show-details: always
     info:
       enabled: true
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL}
 
 
 

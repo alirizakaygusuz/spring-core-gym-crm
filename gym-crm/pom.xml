@@ -214,14 +214,6 @@
         </dependency>
 
 
-        <!--============ Eureka Client Dependencies ============= -->
-        <!-- Source: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-netflix-eureka-client -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-        </dependency>
-
-
 
         <!--============ Apache Artemis Dependencies ============= -->
         <!-- Source: https://mvnrepository.com/artifact/org.apache.artemis/apache-artemis -->
