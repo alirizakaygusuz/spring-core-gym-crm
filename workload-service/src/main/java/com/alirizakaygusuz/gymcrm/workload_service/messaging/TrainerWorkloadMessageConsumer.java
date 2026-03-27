@@ -19,6 +19,8 @@ public class TrainerWorkloadMessageConsumer {
 
     private static final  String TRANSACTION_ID = "transactionId";
 
+    private final JmsMessageValidator jmsMessageValidator;
+
 
     @JmsListener(destination = "${messaging.queues.workload}")
     public void handleTrainerWorkloadEvent(TrainerWorkloadRequest request , @Header(name = TRANSACTION_ID, required = false) String transactionId) {
@@ -29,6 +31,7 @@ public class TrainerWorkloadMessageConsumer {
         log.info("Received Trainer Workload Event with Transaction ID: {} for trainer={} | action={}", transactionId, request.username(), request.actionType());
 
         try{
+            jmsMessageValidator.validate(request);
 
             trainerWorkloadService.processTrainerWorkload(request);
 
@@ -38,4 +41,7 @@ public class TrainerWorkloadMessageConsumer {
         }
 
     }
+
+
+
 }
