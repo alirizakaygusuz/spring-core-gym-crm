@@ -18,6 +18,16 @@ spring:
   config:
     import: optional:file:workload-service/.env[.properties]
 
+  artemis:
+    broker-url: ${ARTEMIS_BROKER_URL}
+    user: ${ARTEMIS_USER}
+    password: ${ARTEMIS_PASSWORD}
+  jms:
+    pub-sub-domain: false
+messaging:
+  queues:
+    workload: workload.queue
+
 logging:
   level:
     com.alirizakaygusuz.gymcrm.workload_service: DEBUG
@@ -40,7 +50,7 @@ management:
   endpoint:
     health:
       default:
-        exclude: db, discoveryComposite
+        exclude: db
       probes:
         enabled: true
       group:
@@ -52,11 +62,6 @@ management:
           show-details: always
     info:
       enabled: true
-
-eureka:
-  client:
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL}
 
 
 

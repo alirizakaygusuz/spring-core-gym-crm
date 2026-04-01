@@ -1,4 +1,4 @@
-package com.alirizakaygusuz.gymcrm.client.dto;
+package com.alirizakaygusuz.gymcrm.messaging.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

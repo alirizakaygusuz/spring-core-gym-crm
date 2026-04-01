@@ -1,8 +1,6 @@
 package com.alirizakaygusuz.gymcrm.service.training;
 
-import com.alirizakaygusuz.gymcrm.client.WorkloadServiceClient;
-import com.alirizakaygusuz.gymcrm.client.dto.ActionType;
-import com.alirizakaygusuz.gymcrm.client.dto.TrainerWorkloadRequest;
+import com.alirizakaygusuz.gymcrm.messaging.dto.ActionType;
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
@@ -10,6 +8,7 @@ import com.alirizakaygusuz.gymcrm.dao.TrainingTypeDao;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingCreateRequest;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingTypeResponse;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
+import com.alirizakaygusuz.gymcrm.messaging.TrainerWorkloadMessageProducer;
 import com.alirizakaygusuz.gymcrm.model.*;
 import com.alirizakaygusuz.gymcrm.util.WorkloadRequestBuilder;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainingTypeDao trainingTypeDao;
     private final TrainingDao trainingDao;
 
-    private final WorkloadServiceClient workloadServiceClient;
+    private final TrainerWorkloadMessageProducer trainerWorkloadMessageProducer;
 
 
 
@@ -60,8 +59,7 @@ public class TrainingServiceImpl implements TrainingService {
                 savedTraining.getId(), trainee.getId(), trainer.getId(), trainingType.getId());
 
 
-        workloadServiceClient.processTrainerWorkload(WorkloadRequestBuilder.from(training , ActionType.ADD));
-
+        trainerWorkloadMessageProducer.sendTrainerWorkloadEvent(WorkloadRequestBuilder.from(training , ActionType.ADD));
 
     }
 

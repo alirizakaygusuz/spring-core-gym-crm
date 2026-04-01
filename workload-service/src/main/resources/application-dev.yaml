@@ -1,0 +1,9 @@
+spring:
+  artemis:
+    broker-url: ${DEV_ARTEMIS_BROKER_URL}
+    user: ${DEV_ARTEMIS_USER}
+    password: ${DEV_ARTEMIS_PASSWORD}
+
+logging:
+  level:
+    com.alirizakaygusuz.gymcrm.workload_service: DEBUG

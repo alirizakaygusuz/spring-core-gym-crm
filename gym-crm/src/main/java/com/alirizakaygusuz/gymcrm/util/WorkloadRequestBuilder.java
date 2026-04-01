@@ -1,7 +1,7 @@
 package com.alirizakaygusuz.gymcrm.util;
 
-import com.alirizakaygusuz.gymcrm.client.dto.ActionType;
-import com.alirizakaygusuz.gymcrm.client.dto.TrainerWorkloadRequest;
+import com.alirizakaygusuz.gymcrm.messaging.dto.ActionType;
+import com.alirizakaygusuz.gymcrm.messaging.dto.TrainerWorkloadRequest;
 import com.alirizakaygusuz.gymcrm.model.Training;
 import com.alirizakaygusuz.gymcrm.model.User;
 

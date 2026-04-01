@@ -71,11 +71,6 @@
 		</dependency>
 
 
-		<!-- Eureka Client -->
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-		</dependency>
 
 		<!-- H2 Database-->
 		<dependency>
@@ -149,6 +144,15 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+
+		<!--============ Apache Artemis Dependencies ============= -->
+		<!-- Source: https://mvnrepository.com/artifact/org.apache.artemis/apache-artemis -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-artemis</artifactId>
+		</dependency>
+
 
 
 	</dependencies>
