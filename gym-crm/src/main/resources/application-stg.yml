@@ -4,6 +4,11 @@ spring:
     username: ${STG_DB_USER}
     password: ${STG_DB_PASSWORD}
 
+  artemis:
+    broker-url: ${STG_ARTEMIS_BROKER_URL}
+    user: ${STG_ARTEMIS_USER}
+    password: ${STG_ARTEMIS_PASSWORD}
+
 logging:
   level:
     com.alirizakaygusuz.gymcrm: INFO

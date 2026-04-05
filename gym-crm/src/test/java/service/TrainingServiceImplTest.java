@@ -1,6 +1,5 @@
 package service;
 
-import com.alirizakaygusuz.gymcrm.client.WorkloadServiceClient;
 import com.alirizakaygusuz.gymcrm.dao.TraineeDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainerDao;
 import com.alirizakaygusuz.gymcrm.dao.TrainingDao;
@@ -8,10 +7,10 @@ import com.alirizakaygusuz.gymcrm.dao.TrainingTypeDao;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingCreateRequest;
 import com.alirizakaygusuz.gymcrm.dto.training.TrainingTypeResponse;
 import com.alirizakaygusuz.gymcrm.exception.ResourceNotFoundException;
+import com.alirizakaygusuz.gymcrm.messaging.TrainerWorkloadMessageProducer;
 import com.alirizakaygusuz.gymcrm.model.*;
 import com.alirizakaygusuz.gymcrm.monitoring.metrics.AppMetrics;
 import com.alirizakaygusuz.gymcrm.service.training.TrainingServiceImpl;
-import org.checkerframework.checker.units.qual.N;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,9 +44,9 @@ class TrainingServiceImplTest {
     @Mock
     private AppMetrics appMetrics;
 
-    @Mock
-    private WorkloadServiceClient workloadServiceClient;
 
+    @Mock
+    private TrainerWorkloadMessageProducer trainerWorkloadMessageProducer;
 
     @InjectMocks
     private TrainingServiceImpl trainingService;
@@ -95,7 +94,7 @@ class TrainingServiceImplTest {
         verify(trainerDao).findByUsername("trainer.jane");
         verify(trainingTypeDao).findByCode(TrainingTypeCode.CARDIO);
         verify(trainingDao).save(any(Training.class));
-        verify(workloadServiceClient).processTrainerWorkload(any());
+        verify(trainerWorkloadMessageProducer).sendTrainerWorkloadEvent(any());
         verifyNoMoreInteractions(traineeDao, trainerDao, trainingTypeDao, trainingDao);
     }
 
@@ -188,7 +187,7 @@ class TrainingServiceImplTest {
         verify(traineeDao).findByUsername("john.doe");
         verify(trainerDao).findByUsername("trainer.jane");
         verify(trainingTypeDao).findByCode(TrainingTypeCode.CARDIO);
-        verifyNoMoreInteractions(traineeDao, trainerDao, trainingTypeDao ,workloadServiceClient);
+        verifyNoMoreInteractions(traineeDao, trainerDao, trainingTypeDao ,trainerWorkloadMessageProducer);
         verifyNoInteractions(trainingDao);
     }
 

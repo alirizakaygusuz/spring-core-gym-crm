@@ -13,7 +13,7 @@ services:
     volumes:
       - ali-gymcrm_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -27,13 +27,34 @@ services:
       - .env
     ports:
       - "${DOCKER_REDIS_PORT}:6379"
-    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    command: [ "redis-server", "--appendonly", "yes", "--appendfsync", "everysec" ]
     volumes:
       - ali-gymcrm_redis:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
+      retries: 20
+    networks:
+      - gymcrm-network
+
+  artemis:
+    image: apache/activemq-artemis:latest
+    container_name: ali-gymcrm-artemis
+    env_file:
+      - .env
+    ports:
+      - "${DOCKER_ARTEMIS_PORT}:61616"
+      - "${DOCKER_ARTEMIS_CONSOLE_PORT}:8161"
+    volumes:
+      - ali-gymcrm_artemis:/var/lib/artemis/data
+    environment:
+      ARTEMIS_USER: ${DOCKER_ARTEMIS_USER}
+      ARTEMIS_PASSWORD: ${DOCKER_ARTEMIS_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8161 || exit 1" ]
+      interval: 10s
+      timeout: 5s
       retries: 20
     networks:
       - gymcrm-network
@@ -45,6 +66,8 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      artemis:
         condition: service_healthy
     env_file:
       - .env
@@ -63,11 +86,15 @@ services:
       REDIS_HOST: ${DOCKER_REDIS_HOST}
       REDIS_PORT: ${DOCKER_REDIS_PORT}
       REDIS_PASSWORD: ${DOCKER_REDIS_PASSWORD}
+
+      ARTEMIS_BROKER_URL: ${DOCKER_ARTEMIS_BROKER_URL}
+      ARTEMIS_USER: ${DOCKER_ARTEMIS_USER}
+      ARTEMIS_PASSWORD: ${DOCKER_ARTEMIS_PASSWORD}
     ports:
       - "8080:8080"
     volumes:
       - ./target/gymcrm.jar:/app/gymcrm.jar
-    command: ["java", "-jar", "/app/gymcrm.jar"]
+    command: [ "java", "-jar", "/app/gymcrm.jar" ]
     networks:
       - gymcrm-network
 
@@ -78,3 +105,4 @@ networks:
 volumes:
   ali-gymcrm_pgdata:
   ali-gymcrm_redis:
+  ali-gymcrm_artemis:

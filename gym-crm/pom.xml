@@ -214,29 +214,12 @@
         </dependency>
 
 
-        <!--============ Eureka Client Dependencies ============= -->
-        <!-- Source: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-netflix-eureka-client -->
+
+        <!--============ Apache Artemis Dependencies ============= -->
+        <!-- Source: https://mvnrepository.com/artifact/org.apache.artemis/apache-artemis -->
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-        </dependency>
-
-
-        <!--============ OpenFeign Dependencies ============= -->
-        <!-- Source: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-openfeign -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-
-        <!--============ Resilience4j Circuit Breaker Dependencies ============= -->
-        <!-- Source: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-circuitbreaker-resilience4j -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-circuitbreaker-resilience4j</artifactId>
-            <scope>compile</scope>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-artemis</artifactId>
         </dependency>
 
     </dependencies>

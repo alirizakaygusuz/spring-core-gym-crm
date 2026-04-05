@@ -3,14 +3,13 @@ package com.alirizakaygusuz.gymcrm.security.ratelimit;
 import com.alirizakaygusuz.gymcrm.dto.auth.LoginRequest;
 import com.alirizakaygusuz.gymcrm.exception.RateLimitExceededException;
 import com.alirizakaygusuz.gymcrm.security.web.MultiReadHttpServletRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.util.ContentCachingRequestWrapper;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @RequiredArgsConstructor

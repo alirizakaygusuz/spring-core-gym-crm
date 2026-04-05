@@ -1,6 +1,6 @@
 # **GymCRM - Spring Boot REST API**
 
-A production-ready gym customer relationship management system built with Spring Boot, featuring JWT authentication, Redis-based rate limiting and token blacklist, comprehensive monitoring, and multi-environment support.
+A production-ready gym customer relationship management system built with Spring Boot, featuring JWT authentication, Redis-based rate limiting and token blacklist, asynchronous messaging via ActiveMQ Artemis, comprehensive monitoring, and multi-environment support.
 
 ---
 
@@ -37,6 +37,13 @@ A production-ready gym customer relationship management system built with Spring
 
 ![Redis Login Rate Limit](docs/images/redis-login-rate-limit.png)
 
+### **Asynchronous Messaging**
+- **ActiveMQ Artemis** as message broker
+- Training events published asynchronously to `workload-service`
+- **Dead Letter Queue** handling for invalid messages
+- **Profile-based broker configuration** (local, dev, docker, stg, prod)
+- **MDC transaction ID propagation** across services for end-to-end tracing
+
 ### **Monitoring & Observability**
 - **Spring Boot Actuator** endpoints for health checks and metrics
 - **Custom health indicators:**
@@ -63,6 +70,51 @@ A production-ready gym customer relationship management system built with Spring
 ---
 
 ## **Architecture & Design**
+
+
+### **Asynchronous Messaging with ActiveMQ Artemis**
+
+Training events are published asynchronously to `workload-service` via **ActiveMQ Artemis** using Spring JMS.
+
+**Message Flow:**
+```
+gym-crm (Producer)
+    ↓ TrainerWorkloadMessageProducer
+    ↓ JmsTemplate.convertAndSend("workload.queue", request)
+ActiveMQ Artemis Broker
+    ↓ workload.queue
+workload-service (Consumer)
+    ↓ @JmsListener
+TrainerWorkloadService.processTrainerWorkload()
+```
+
+**Key Implementation Details:**
+- **`JmsTemplate`** — Spring-managed producer, no raw JMS API
+- **`@JmsListener`** — Spring-managed consumer, auto-connects to broker
+- **`JacksonJsonMessageConverter`** — JSON serialization via Jackson
+- **`setSessionTransacted(true)`** — retry on failure, messages never lost
+- **`setConcurrency("1-5")`** — horizontal scaling, 1–5 consumer threads
+- **MDC transaction ID** propagated via message property for cross-service log tracing
+
+**Dead Letter Queue:**
+- Invalid messages (missing required fields) → validation exception → retry 10 times → `DLQ`
+- `TrainerWorkloadDeadLetterHandler` listens on `DLQ` and logs failed messages with transaction ID
+- `JmsMessageValidator` validates incoming messages using Jakarta Bean Validation
+
+**Profile-Based Broker Configuration:**
+
+Profiles: `local`, `dev`, `docker`, `stg`, `prod`
+Local default broker: `tcp://localhost:61616`
+Broker URL externalized via `.env` per environment.
+
+**Artemis Services:**
+| Service | URL |
+|---------|-----|
+| Messaging | `tcp://localhost:61616` |
+| Web Console | `http://localhost:8161` |
+
+> Credentials configured via `.env`
+---
 
 ### **Self-Service Authorization System**
 
@@ -113,7 +165,7 @@ A production-ready gym customer relationship management system built with Spring
   - `ValidationException` - Invalid input (400)
 
 ### **Code Quality**
-- Service layer fully covered with unit tests (88% coverage)
+- Service layer fully covered with unit tests (80% coverage)
 - Swagger schemas aligned with seed data for easier manual testing
 
 ---
@@ -141,6 +193,8 @@ Wait for: `Started Application in X seconds`
 - **Actuator Health Liveness:** http://localhost:8080/actuator/health/liveness
 - **Actuator Info:** http://localhost:8080/actuator/info
 - **Prometheus Metrics:** http://localhost:8080/actuator/prometheus
+- **Artemis Web Console:** http://localhost:8161
+
 
 ---
 
