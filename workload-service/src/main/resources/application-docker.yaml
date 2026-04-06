@@ -1,0 +1,17 @@
+spring:
+  data:
+    mongodb:
+      username: ${DOCKER_MONGO_USER}
+      password: ${DOCKER_MONGO_PASSWORD}
+      host: ${DOCKER_MONGO_HOST}
+      port: ${DOCKER_MONGO_PORT}
+      database: ${DOCKER_MONGO_DB}
+
+  artemis:
+    broker-url: ${DOCKER_ARTEMIS_BROKER_URL}
+    user: ${DOCKER_ARTEMIS_USER}
+    password: ${DOCKER_ARTEMIS_PASSWORD}
+
+logging:
+  level:
+    com.alirizakaygusuz.gymcrm.workload_service: INFO

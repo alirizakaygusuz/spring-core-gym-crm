@@ -101,6 +101,8 @@ services:
 networks:
   gymcrm-network:
     driver: bridge
+    name: gymcrm-network
+
 
 volumes:
   ali-gymcrm_pgdata:

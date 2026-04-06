@@ -1,20 +1,16 @@
 spring:
   application:
     name: workload-service
-  datasource:
-    url: jdbc:h2:mem:workloaddb
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
 
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: false
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+  data:
+    mongodb:
+        authentication-database: admin
+        username: ${MONGO_USER}
+        password: ${MONGO_PASSWORD}
+        host: ${MONGO_HOST}
+        port: ${MONGO_PORT}
+        database: ${MONGO_DB}
+        auto-index-creation: true
   config:
     import: optional:file:workload-service/.env[.properties]
 

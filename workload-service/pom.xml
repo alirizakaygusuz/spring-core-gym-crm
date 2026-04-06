@@ -72,16 +72,11 @@
 
 
 
-		<!-- H2 Database-->
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<!-- H2 Console -->
+        <!-- Mongodb -->
+		<!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-mongodb -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-h2console</artifactId>
+			<artifactId>spring-boot-starter-data-mongodb</artifactId>
 		</dependency>
 
 		<!--- Lombok -->
