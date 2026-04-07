@@ -14,7 +14,6 @@ import com.alirizakaygusuz.gymcrm.workload_service.repository.TrainerWorkloadSum
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +31,6 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
 
     @Override
-    @Transactional
     public void processTrainerWorkload(TrainerWorkloadRequest request) {
         ActionType actionType = request.actionType();
 
@@ -74,7 +72,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     private TrainerWorkloadSummary findTrainerWorkloadSummaryOrCreate(TrainerWorkloadRequest request) {
         return trainerWorkloadSummaryRepository
-                .findByUsernameWithSummaries(request.username())
+                .findByUsername(request.username())
                 .orElseGet(() -> {
                     TrainerWorkloadSummary newTrainer = new TrainerWorkloadSummary();
                     newTrainer.setUsername(request.username());
@@ -89,7 +87,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     private TrainerWorkloadYearlySummary findTrainerWorkloadYearlySummaryOrCreate(TrainerWorkloadSummary trainerSummary, int year) {
         return trainerSummary.getYearlySummaries()
                 .stream()
-                .filter(y -> y.getYear() == year)
+                .filter(y -> y.getYear().equals(year))
                 .findFirst()
                 .orElseGet(() -> {
                     TrainerWorkloadYearlySummary newYearlySummary = new TrainerWorkloadYearlySummary();
@@ -103,7 +101,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     private TrainerWorkloadMonthlySummary findTrainerWorkloadMonthlySummaryOrCreate(TrainerWorkloadYearlySummary yearlySummary, int month) {
         return yearlySummary.getMonthlySummaries()
                 .stream()
-                .filter(m -> m.getMonth() == month)
+                .filter(m -> m.getMonth().equals(month))
                 .findFirst()
                 .orElseGet(() -> {
                     TrainerWorkloadMonthlySummary newMonthlySummary = new TrainerWorkloadMonthlySummary();
@@ -124,7 +122,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 request.username(), request.actionType(), request.trainingDate(), request.trainingDuration());
 
         TrainerWorkloadSummary trainerWorkloadSummary = trainerWorkloadSummaryRepository
-                .findByUsernameWithSummaries(request.username())
+                .findByUsername(request.username())
                 .orElseThrow(() -> new TrainerWorkloadNotFoundException("Trainer with username " + request.username() + " not found"));
 
         int year = request.trainingDate().getYear();
@@ -165,7 +163,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     private TrainerWorkloadYearlySummary findTrainerWorkloadYearlyOrThrow(TrainerWorkloadSummary trainerWorkloadSummary, int year) {
         return trainerWorkloadSummary.getYearlySummaries()
                 .stream()
-                .filter(y -> y.getYear() == year)
+                .filter(y -> y.getYear().equals(year))
                 .findFirst()
                 .orElseThrow(() -> new TrainerWorkloadNotFoundException("Yearly summary for year " + year + " not found for trainer " + trainerWorkloadSummary.getUsername()));
 
@@ -174,7 +172,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     private TrainerWorkloadMonthlySummary findTrainerWorkloadMonthlyOrThrow(TrainerWorkloadYearlySummary yearlySummary, int month) {
         return yearlySummary.getMonthlySummaries()
                 .stream()
-                .filter(m -> m.getMonth() == month)
+                .filter(m -> m.getMonth().equals(month))
                 .findFirst()
                 .orElseThrow(() -> new TrainerWorkloadNotFoundException("Monthly summary for month " + month + " not found in year " +
                         yearlySummary.getYear()));
@@ -183,7 +181,6 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     //Get TrainerWorkloadSummary
     @Override
-    @Transactional(readOnly = true)
     public TrainerWorkloadSummaryResponse getTrainerWorkloadSummary(String username, Integer year, Integer month) {
 
         appMetrics.incrementTrainerWorkloadGetAttempts();
@@ -191,7 +188,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         log.info("Retrieving workload summary for trainer: {}, year: {}, month: {}", username, year, month);
 
 
-        TrainerWorkloadSummary trainerWorkloadSummary = trainerWorkloadSummaryRepository.findByUsernameWithSummaries(username)
+        TrainerWorkloadSummary trainerWorkloadSummary = trainerWorkloadSummaryRepository.findByUsername(username)
                 .orElseThrow(() -> new TrainerWorkloadNotFoundException("Trainer with username " + username + " not found"
                 ));
 
