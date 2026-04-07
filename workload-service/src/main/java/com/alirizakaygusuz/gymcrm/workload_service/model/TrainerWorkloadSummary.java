@@ -15,7 +15,7 @@ import java.util.Objects;
 
 
 @Document(collection = "trainer_workload_summary")
-@CompoundIndex(name = "username_idx", def = "{'firstName': 1 , 'lastName':1}")
+@CompoundIndex(name = "firstname_lastname_idx", def = "{'firstName': 1 , 'lastName':1}")
 @Getter
 @Setter
 @NoArgsConstructor
