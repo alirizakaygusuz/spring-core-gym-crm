@@ -6,7 +6,7 @@ A microservice responsible for tracking and calculating trainer monthly training
 
 ## **Overview**
 
-Every time a training session is added or deleted in `gym-crm`, a `TrainerWorkloadRequest` event is published to `workload.queue`. This service consumes those events and maintains a per-trainer monthly summary of total training durations in an H2 in-memory database.
+Every time a training session is added or deleted in `gym-crm`, a `TrainerWorkloadRequest` event is published to `workload.queue`. This service consumes those events and maintains a per-trainer monthly summary of total training durations in **MongoDB**.
 
 ---
 
@@ -21,7 +21,7 @@ TrainerWorkloadMessageConsumer (@JmsListener)
     ↓ JmsMessageValidator (Jakarta Bean Validation)
 TrainerWorkloadService
     ↓ processTrainerWorkload(ActionType: ADD | DELETE)
-H2 In-Memory Database
+MongoDB (trainer_workload_summary collection)
 ```
 
 ---
@@ -55,16 +55,19 @@ H2 In-Memory Database
     - Result == 0 → removes monthly entry; if year becomes empty → removes yearly entry
     - Result > 0 → updates duration
 
-**Data Model (H2 in-memory, JPA):**
+**Data Model (MongoDB, embedded document):**
 
 ```
-TrainerWorkloadSummary
+TrainerWorkloadSummary (@Document)
 ├── username, firstName, lastName, isActive
 └── List<TrainerWorkloadYearlySummary>
     └── year
         └── List<TrainerWorkloadMonthlySummary>
             └── month, totalTrainingDuration
 ```
+
+**Indexes:**
+- Compound index on `firstName` + `lastName` for name-based search
 
 **Request Contract (`TrainerWorkloadRequest`):**
 
@@ -78,10 +81,21 @@ TrainerWorkloadSummary
 | `trainingDuration` | Integer | `@NotNull`, `@Positive` |
 | `actionType` | ActionType | `@NotNull` (ADD / DELETE) |
 
-### **Profile-Based Broker Configuration**
-Broker URL externalized via `.env` per environment.
+### **Profile-Based Configuration**
+Both broker URL and MongoDB connection externalized via `.env` per environment.
 
-Profiles: `local`, `dev`, `stg`, `prod`
+Profiles: `local`, `dev`, `docker`, `stg`, `prod`
+
+---
+
+### MongoDB Setup
+
+**Option 1 — Docker:**
+```bash
+cd workload-service
+mvn clean package -DskipTests
+docker compose up -d
+```
 
 ---
 
@@ -97,7 +111,6 @@ All API endpoints are secured with **JWT Bearer token** authentication. The toke
 **Public endpoints (no auth required):**
 - `/swagger-ui/**`, `/v3/api-docs/**`
 - `/actuator/**`
-- `/h2-console/**`
 
 ---
 
