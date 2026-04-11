@@ -1,4 +1,13 @@
 spring:
+
+  data:
+    mongodb:
+      username: ${STG_MONGO_USER}
+      password: ${STG_MONGO_PASSWORD}
+      host: ${STG_MONGO_HOST}
+      port: ${STG_MONGO_PORT}
+      database: ${STG_MONGO_DB}
+
   artemis:
     broker-url: ${STG_ARTEMIS_BROKER_URL}
     user: ${STG_ARTEMIS_USER}
