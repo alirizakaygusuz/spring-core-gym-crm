@@ -58,12 +58,12 @@ class TrainerWorkloadServiceImplTest {
                 ActionType.ADD
         );
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries("trainer.jane"))
+        when(trainerWorkloadSummaryRepository.findByUsername("trainer.jane"))
                 .thenReturn(Optional.empty());
 
         assertDoesNotThrow(() -> trainerWorkloadService.processTrainerWorkload(request));
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries("trainer.jane");
+        verify(trainerWorkloadSummaryRepository).findByUsername("trainer.jane");
         verify(trainerWorkloadSummaryRepository).save(any(TrainerWorkloadSummary.class));
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
 
@@ -96,12 +96,12 @@ class TrainerWorkloadServiceImplTest {
         existingSummary.setYearlySummaries(new ArrayList<>(List.of(existingYearlySummary)));
 
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries("trainer.jane"))
+        when(trainerWorkloadSummaryRepository.findByUsername("trainer.jane"))
                 .thenReturn(Optional.of(existingSummary));
 
         assertDoesNotThrow(() -> trainerWorkloadService.processTrainerWorkload(request));
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries("trainer.jane");
+        verify(trainerWorkloadSummaryRepository).findByUsername("trainer.jane");
         verify(trainerWorkloadSummaryRepository).save(any(TrainerWorkloadSummary.class));
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
 
@@ -135,12 +135,12 @@ class TrainerWorkloadServiceImplTest {
         existingSummary.setYearlySummaries(new ArrayList<>(List.of(existingYearlySummary)));
 
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries("trainer.jane"))
+        when(trainerWorkloadSummaryRepository.findByUsername("trainer.jane"))
                 .thenReturn(Optional.of(existingSummary));
 
         assertDoesNotThrow(() -> trainerWorkloadService.processTrainerWorkload(request));
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries("trainer.jane");
+        verify(trainerWorkloadSummaryRepository).findByUsername("trainer.jane");
         verify(trainerWorkloadSummaryRepository).save(any(TrainerWorkloadSummary.class));
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
 
@@ -173,12 +173,12 @@ class TrainerWorkloadServiceImplTest {
         existingSummary.setYearlySummaries(new ArrayList<>(List.of(existingYearlySummary)));
 
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries("trainer.jane"))
+        when(trainerWorkloadSummaryRepository.findByUsername("trainer.jane"))
                 .thenReturn(Optional.of(existingSummary));
 
         assertDoesNotThrow(() -> trainerWorkloadService.processTrainerWorkload(request));
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries("trainer.jane");
+        verify(trainerWorkloadSummaryRepository).findByUsername("trainer.jane");
         verify(trainerWorkloadSummaryRepository).save(any(TrainerWorkloadSummary.class));
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
 
@@ -206,12 +206,12 @@ class TrainerWorkloadServiceImplTest {
         existingSummary.setUsername("trainer.jane");
         existingSummary.setYearlySummaries(new ArrayList<>(List.of(existingYearlySummary)));
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries("trainer.jane"))
+        when(trainerWorkloadSummaryRepository.findByUsername("trainer.jane"))
                 .thenReturn(Optional.of(existingSummary));
 
         assertDoesNotThrow(() -> trainerWorkloadService.processTrainerWorkload(request));
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries("trainer.jane");
+        verify(trainerWorkloadSummaryRepository).findByUsername("trainer.jane");
         verify(trainerWorkloadSummaryRepository).save(any(TrainerWorkloadSummary.class));
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
     }
@@ -238,12 +238,12 @@ class TrainerWorkloadServiceImplTest {
         existingSummary.setUsername("trainer.jane");
         existingSummary.setYearlySummaries(new ArrayList<>(List.of(existingYearlySummary)));
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries("trainer.jane"))
+        when(trainerWorkloadSummaryRepository.findByUsername("trainer.jane"))
                 .thenReturn(Optional.of(existingSummary));
 
         assertDoesNotThrow(() -> trainerWorkloadService.processTrainerWorkload(request));
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries("trainer.jane");
+        verify(trainerWorkloadSummaryRepository).findByUsername("trainer.jane");
         verify(trainerWorkloadSummaryRepository).save(any(TrainerWorkloadSummary.class));
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
     }
@@ -270,7 +270,7 @@ class TrainerWorkloadServiceImplTest {
         existingSummary.setUsername("trainer.jane");
         existingSummary.setYearlySummaries(new ArrayList<>(List.of(existingYearlySummary)));
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries("trainer.jane"))
+        when(trainerWorkloadSummaryRepository.findByUsername("trainer.jane"))
                 .thenReturn(Optional.of(existingSummary));
 
         assertThrows(
@@ -278,7 +278,7 @@ class TrainerWorkloadServiceImplTest {
                 () -> trainerWorkloadService.processTrainerWorkload(request)
         );
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries("trainer.jane");
+        verify(trainerWorkloadSummaryRepository).findByUsername("trainer.jane");
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
     }
 
@@ -294,7 +294,7 @@ class TrainerWorkloadServiceImplTest {
                 LocalDate.of(2025, 3, 10), 60, ActionType.DELETE
         );
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries("trainer.jane"))
+        when(trainerWorkloadSummaryRepository.findByUsername("trainer.jane"))
                 .thenReturn(Optional.empty());
 
         assertThrows(
@@ -302,7 +302,7 @@ class TrainerWorkloadServiceImplTest {
                 () -> trainerWorkloadService.processTrainerWorkload(request)
         );
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries("trainer.jane");
+        verify(trainerWorkloadSummaryRepository).findByUsername("trainer.jane");
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
     }
 
@@ -327,7 +327,7 @@ class TrainerWorkloadServiceImplTest {
         existingSummary.setUsername("trainer.jane");
         existingSummary.setYearlySummaries(new ArrayList<>(List.of(existingYearlySummary)));
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries("trainer.jane"))
+        when(trainerWorkloadSummaryRepository.findByUsername("trainer.jane"))
                 .thenReturn(Optional.of(existingSummary));
 
         assertThrows(
@@ -335,7 +335,7 @@ class TrainerWorkloadServiceImplTest {
                 () -> trainerWorkloadService.processTrainerWorkload(request)
         );
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries("trainer.jane");
+        verify(trainerWorkloadSummaryRepository).findByUsername("trainer.jane");
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
     }
 
@@ -360,7 +360,7 @@ class TrainerWorkloadServiceImplTest {
         existingSummary.setUsername("trainer.jane");
         existingSummary.setYearlySummaries(new ArrayList<>(List.of(existingYearlySummary)));
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries("trainer.jane"))
+        when(trainerWorkloadSummaryRepository.findByUsername("trainer.jane"))
                 .thenReturn(Optional.of(existingSummary));
 
         assertThrows(
@@ -368,7 +368,7 @@ class TrainerWorkloadServiceImplTest {
                 () -> trainerWorkloadService.processTrainerWorkload(request)
         );
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries("trainer.jane");
+        verify(trainerWorkloadSummaryRepository).findByUsername("trainer.jane");
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
     }
 
@@ -400,7 +400,7 @@ class TrainerWorkloadServiceImplTest {
                 username, "Trainer", "Jane", true, null
         );
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries(username))
+        when(trainerWorkloadSummaryRepository.findByUsername(username))
                 .thenReturn(Optional.of(existingSummary));
         when(trainerWorkloadMapper.toTrainerWorkloadSummaryResponse(existingSummary))
                 .thenReturn(response);
@@ -410,7 +410,7 @@ class TrainerWorkloadServiceImplTest {
         assertNotNull(result);
         assertEquals(username, result.username());
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries(username);
+        verify(trainerWorkloadSummaryRepository).findByUsername(username);
         verify(trainerWorkloadMapper).toTrainerWorkloadSummaryResponse(existingSummary);
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository, trainerWorkloadMapper);
     }
@@ -420,7 +420,7 @@ class TrainerWorkloadServiceImplTest {
     void getTrainerWorkloadSummary_shouldThrowTrainerWorkloadNotFoundExceptionWhenTrainerDoesNotExist() {
         String username = "trainer.jane";
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries(username))
+        when(trainerWorkloadSummaryRepository.findByUsername(username))
                 .thenReturn(Optional.empty());
 
         TrainerWorkloadNotFoundException exception = assertThrows(
@@ -430,7 +430,7 @@ class TrainerWorkloadServiceImplTest {
 
         assertTrue(exception.getMessage().contains(username));
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries(username);
+        verify(trainerWorkloadSummaryRepository).findByUsername(username);
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
         verifyNoInteractions(trainerWorkloadMapper);
     }
@@ -454,7 +454,7 @@ class TrainerWorkloadServiceImplTest {
         existingSummary.setUsername(username);
         existingSummary.setYearlySummaries(new ArrayList<>(List.of(existingYearlySummary)));
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries(username))
+        when(trainerWorkloadSummaryRepository.findByUsername(username))
                 .thenReturn(Optional.of(existingSummary));
 
         assertThrows(
@@ -463,7 +463,7 @@ class TrainerWorkloadServiceImplTest {
         );
 
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries(username);
+        verify(trainerWorkloadSummaryRepository).findByUsername(username);
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
         verifyNoInteractions(trainerWorkloadMapper);
     }
@@ -486,7 +486,7 @@ class TrainerWorkloadServiceImplTest {
         existingSummary.setUsername(username);
         existingSummary.setYearlySummaries(new ArrayList<>(List.of(existingYearlySummary)));
 
-        when(trainerWorkloadSummaryRepository.findByUsernameWithSummaries(username))
+        when(trainerWorkloadSummaryRepository.findByUsername(username))
                 .thenReturn(Optional.of(existingSummary));
 
        assertThrows(
@@ -494,7 +494,7 @@ class TrainerWorkloadServiceImplTest {
                 () -> trainerWorkloadService.getTrainerWorkloadSummary(username, 2025, 12)
         );
 
-        verify(trainerWorkloadSummaryRepository).findByUsernameWithSummaries(username);
+        verify(trainerWorkloadSummaryRepository).findByUsername(username);
         verifyNoMoreInteractions(trainerWorkloadSummaryRepository);
         verifyNoInteractions(trainerWorkloadMapper);
     }
