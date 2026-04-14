@@ -1,0 +1,14 @@
+spring:
+  jms:
+    pub-sub-domain: false
+
+messaging:
+  queues:
+    workload: workload.queue
+
+security:
+  jwt:
+    secret: "test-secret-key-that-is-at-least-32-characters-long-for-hmac"
+
+server:
+  port: 0
