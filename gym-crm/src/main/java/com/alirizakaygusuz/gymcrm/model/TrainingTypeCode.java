@@ -24,7 +24,7 @@ public enum TrainingTypeCode {
     }
 
     public static TrainingTypeCode fromString(String trainingTypeName) {
-        if (trainingTypeName.isBlank()) {
+        if (trainingTypeName == null || trainingTypeName.isBlank()) {
             return null;
         }
         for (TrainingTypeCode type : TrainingTypeCode.values()) {
