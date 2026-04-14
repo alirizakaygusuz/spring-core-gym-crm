@@ -18,7 +18,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @AutoConfigureTestRestTemplate
-@ComponentScan("component.steps")
+@ComponentScan("component")
 public class CucumberSpringConfiguration {
 
     @LocalServerPort
