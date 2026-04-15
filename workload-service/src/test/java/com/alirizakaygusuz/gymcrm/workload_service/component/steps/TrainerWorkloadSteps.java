@@ -47,6 +47,10 @@ public class TrainerWorkloadSteps {
     @Given("the application is running")
     public void the_application_is_running() {
         // This step can be used to ensure that the application context is loaded and the server is running.
+        ResponseEntity<String> response =
+                restTemplate.getForEntity("/actuator/health", String.class);
+
+        assertEquals(200, response.getStatusCode().value());
     }
 
     @Given("the user is authenticated")

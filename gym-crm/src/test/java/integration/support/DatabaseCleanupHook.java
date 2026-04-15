@@ -1,4 +1,4 @@
-package integration.steps.support;
+package integration.support;
 
 import io.cucumber.java.Before;
 import org.springframework.beans.factory.annotation.Autowired;

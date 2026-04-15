@@ -1,4 +1,4 @@
-package integration.steps.support;
+package integration.support;
 
 
 import lombok.Getter;
