@@ -24,7 +24,7 @@ public class SecurityConfig {
     private final RestAccessDeniedHandler restAccessDeniedHandler;
 
 
-    private static  final String[] PUBLIC_ENDPOINTS = {
+    private static final String[] PUBLIC_ENDPOINTS = {
             "/h2-console/**",
             // Docs
             "/swagger-ui/**",
@@ -32,19 +32,24 @@ public class SecurityConfig {
             "/webjars/**",
 
             // Ops
-            "/actuator/**"
+            "/actuator/**",
+
+            // Test-only reset endpoint. Safe to expose publicly because the backing
+            // controller (@Profile("integration")) is only loaded when the
+            // "integration" profile is active
+            "/api/v1/test/reset"
 
     };
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin()))
-                .exceptionHandling(ex ->ex
+                .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(restAuthenticationEntryPoint)
                         .accessDeniedHandler(restAccessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
