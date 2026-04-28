@@ -131,6 +131,78 @@ Token is obtained from `gym-crm` via `POST /api/v1/login`.
 3. Click **Authorize** → enter `Bearer <token>`
 4. Call `GET /api/v1/workload/trainers/{username}/summary?year=2024&month=6`
 
+
+### **Code Quality**
+- Service layer fully covered with unit tests (80% coverage)
+- Swagger schemas aligned with seed data for easier manual testing
+
+## Testing
+
+### Overview
+
+The project uses **Cucumber BDD** for component testing with Testcontainers, and provides infrastructure support for gym-crm's cross-service integration tests.
+
+```
+src/test/java/.../workload_service/
+├── component/
+│   ├── steps/
+│   │   ├── TrainerWorkloadSteps.java
+│   │   └── SharedState.java
+│   ├── support/
+│   │   └── JwtFactoryTest.java
+│   ├── CucumberRunner.java
+│   └── CucumberSpringConfiguration.java
+│
+src/test/resources/
+└── features/
+    └── trainer-workload.feature
+│
+src/main/java/.../controller/test/
+└── TestResetController.java              # @Profile("integration") — MongoDB cleanup for cross-service tests
+```
+
+### Component Tests
+
+Run against an isolated Spring Boot context using **Testcontainers** (MongoDB, Artemis). No external services required. Uses `@ActiveProfiles("test")`.
+
+**Scenarios covered:**
+
+- ADD workload processing (happy path)
+- DELETE workload processing (happy path)
+- Validation failure on missing required fields (400)
+- Unauthenticated workload processing (401)
+- Workload summary retrieval (happy path)
+- Unauthenticated summary retrieval (401)
+- Summary retrieval with invalid parameters (400)
+
+**Test infrastructure:**
+
+- `JwtFactoryTest` generates valid JWT tokens for authenticated test requests using the same signing key as the application
+- `SharedState` (`@ScenarioScope`) carries response and token across steps within a single scenario
+- `@Before` hook clears MongoDB before each scenario via `summaryRepository.deleteAll()`
+
+```bash
+mvn test
+```
+
+### Integration Test Support
+
+workload-service participates in gym-crm's Cucumber integration tests, which verify JMS-based async communication between the two services.
+
+A `TestResetController` (`@Profile("integration")`) exposes `DELETE /api/v1/test/reset` to drop the `trainer_workload_summary` MongoDB collection. This endpoint is called by gym-crm's `DatabaseCleanupHook` before each integration scenario to ensure test isolation. The endpoint is permitted without authentication in `SecurityConfig` since the profile guard already prevents production exposure.
+
+**Running workload-service for integration tests:**
+
+```bash
+# Ensure both profiles are active in docker-compose.yml:
+# SPRING_PROFILES_ACTIVE: docker,integration
+
+docker compose up -d
+```
+
+The integration test scenarios themselves are defined and executed from the gym-crm module.
+
+
 ### **GET Summary — Example**
 
 ```http

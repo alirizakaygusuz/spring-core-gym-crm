@@ -168,6 +168,298 @@ Broker URL externalized via `.env` per environment.
 - Service layer fully covered with unit tests (80% coverage)
 - Swagger schemas aligned with seed data for easier manual testing
 
+## Testing
+
+### Overview
+
+The project uses **Cucumber BDD** for component testing.
+
+Component tests validate the behavior of `gym-crm` in isolation using a real Spring Boot test context and containerized infrastructure.
+
+```
+src/test/java/.../component/
+├── steps/
+│   ├── common/
+│   │   └── CommonSteps.java
+│   ├── AuthSteps.java
+│   ├── TraineeSteps.java
+│   ├── TrainerSteps.java
+│   └── TrainingSteps.java
+│
+├── support/
+│   ├── AuthenticatedUser.java
+│   └── SharedState.java
+│
+├── CucumberRunner.java
+└── CucumberSpringConfiguration.java
+
+src/test/resources/
+└── features/
+    └── component/
+        ├── auth.feature
+        ├── trainee.feature
+        ├── trainer.feature
+        └── training.feature
+```
+
+---
+
+### Component Tests
+
+Component tests run against an isolated Spring Boot context using **Testcontainers**.  
+All infrastructure dependencies are started automatically within the test environment.
+
+**Infrastructure:**
+
+- PostgreSQL
+- Redis
+- ActiveMQ Artemis
+
+Tests are executed with:
+
+```
+@ActiveProfiles("test")
+```
+
+No external services are required.
+
+---
+
+### Scenarios Covered
+
+#### Authentication (`auth.feature`)
+- Successful login
+- Login failure with invalid password
+- Login failure with unknown user
+- Brute-force protection scenarios
+
+#### Trainee (`trainee.feature`)
+- Trainee registration (happy path)
+- Validation failure on missing fields
+- Profile retrieval (authorized)
+- Profile retrieval (unauthorized)
+- Profile update (self vs others)
+- Profile deletion (self vs others)
+- Status update scenarios
+- Trainer assignment flows
+- Access control checks
+
+#### Trainer (`trainer.feature`)
+- Trainer registration
+- Profile retrieval (self vs others)
+- Profile update (valid / invalid)
+- Status update scenarios
+- Authorization checks
+- Training access control
+
+#### Training (`training.feature`)
+- Training creation (happy path)
+- Validation failure on missing fields
+- Unauthorized training creation
+- Creating training for another trainer
+- Fetching training types
+
+---
+
+### Test Infrastructure
+
+- `CucumberSpringConfiguration`
+  - Bootstraps full Spring context
+  - Starts PostgreSQL, Redis, and Artemis using Testcontainers
+
+- `SharedState` (`@ScenarioScope`)
+  - Stores response, authenticated user, and JWT token across steps
+  - Enables multi-step workflows
+
+- `AuthenticatedUser`
+  - Represents the current authenticated test user
+  - Holds username and JWT token
+
+- `TestRestTemplate`
+  - Used to perform real HTTP requests against the application
+
+- `CommonSteps`
+  - Provides reusable steps such as:
+    - Application health check
+    - Response status assertions
+
+---
+
+### Test Flow Example
+
+```
+Register → Login → Extract JWT → Call Protected Endpoint → Assert Response
+```
+
+---
+
+### Running Tests
+
+```bash
+mvn test
+```
+
+or run via:
+
+- `CucumberRunner`
+
+---
+
+### Notes
+
+- Tests are **black-box API tests** (no mocking)
+- Real infrastructure is used via Testcontainers
+- Each scenario is isolated via `@ScenarioScope`
+- JWT authentication is fully integrated into test flows
+
+## Integration Testing
+
+### Overview
+
+Integration tests validate **asynchronous communication between gym-crm and workload-service** using **Cucumber BDD**.
+
+These tests ensure that:
+
+- Events are correctly published from gym-crm
+- Messages are consumed by workload-service
+- Final state is consistent across services
+
+The tests simulate real user flows and verify **event-driven architecture behavior**.
+
+---
+
+### Test Structure
+
+```
+src/test/java/integration/
+├── steps/
+│   └── IntegrationSteps.java
+│
+├── support/
+│   ├── DatabaseCleanupHook.java
+│   ├── IntegrationSharedState.java
+│   └── TestUserSession.java
+│
+├── IntegrationCucumberRunner.java
+└── IntegrationCucumberSpringConfiguration.java
+
+src/test/resources/features/
+└── integration/
+    └── integration.feature
+```
+
+---
+
+### Integration Flow
+
+Each scenario follows:
+
+1. Register trainee and trainer
+2. Login and obtain JWT tokens
+3. Perform a domain action (create/delete training)
+4. gym-crm publishes JMS event
+5. workload-service consumes event
+6. Verify final state via workload-service API
+
+---
+
+## Scenarios Covered
+
+### 1. Training Creation → Workload Updated
+
+**What is tested:**
+- When a training is created in gym-crm
+- workload-service must increase trainer workload
+
+**How it is tested:**
+- Create training via API
+- Event is sent to Artemis
+- Awaitility polls workload-service
+- Assert totalTrainingDuration increased
+
+---
+
+### 2. Trainee Deletion → Workload Removed
+
+**What is tested:**
+- When trainee is deleted
+- related workload data should be removed
+
+**How it is tested:**
+- Create training first
+- Delete trainee
+- Awaitility polls workload-service
+- Expect 404 (data removed)
+
+---
+
+### Async Verification
+
+Because communication is asynchronous, tests use **Awaitility**:
+
+- Poll workload-service API
+- Wait until expected state is reached
+- Assert final result
+
+This ensures correct handling of **eventual consistency**.
+
+---
+
+### Test Infrastructure
+
+- `IntegrationSteps`
+  - Contains end-to-end scenarios
+  - Uses real HTTP calls
+
+- `IntegrationSharedState`
+  - Stores response and user sessions across steps
+
+- `TestUserSession`
+  - Holds username, password, and JWT token
+
+- `DatabaseCleanupHook`
+  - Cleans relational database before each test
+  - Calls workload-service reset endpoint
+
+---
+
+### Running Integration Tests
+
+Integration tests require external services to be running.
+
+You must start the following services via Docker:
+
+- PostgreSQL
+- Redis
+- ActiveMQ Artemis
+
+Run:
+
+```bash
+docker compose up -d postgres redis artemis
+```
+
+Ensure:
+
+- Ensure:
+
+- PostgreSQL, Redis, Artemis are running
+- workload-service is running
+- correct profile is active (e.g. `integration`)
+
+Then execute tests using:
+
+- `IntegrationCucumberRunner`
+
+---
+
+### Notes
+
+- Tests validate **real microservice communication**
+- No mocking is used
+- Requires running environment (not fully isolated like component tests)
+- Focuses on **event-driven correctness** and **data consistency**
+
 ---
 
 ## **Running the Application**
