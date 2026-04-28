@@ -1,6 +1,8 @@
 package com.alirizakaygusuz.gymcrm.security.config;
 
 import com.alirizakaygusuz.gymcrm.security.authentication.filter.JwtAuthenticationFilter;
+import com.alirizakaygusuz.gymcrm.security.web.RestAccessDeniedHandler;
+import com.alirizakaygusuz.gymcrm.security.web.RestAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +29,9 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final RestAccessDeniedHandler restAccessDeniedHandler;
+
     private static final String[] PUBLIC_ENDPOINTS = {
             // Auth
             "/api/v1/login",
@@ -51,6 +56,9 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex ->ex
+                        .authenticationEntryPoint(restAuthenticationEntryPoint)
+                        .accessDeniedHandler(restAccessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated()

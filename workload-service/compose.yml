@@ -29,7 +29,7 @@ services:
     env_file:
       - .env
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: docker,integration
       DOCKER_MONGO_HOST: ${DOCKER_MONGO_HOST}
       DOCKER_MONGO_USER: ${DOCKER_MONGO_USER}
       DOCKER_MONGO_PASSWORD: ${DOCKER_MONGO_PASSWORD}
