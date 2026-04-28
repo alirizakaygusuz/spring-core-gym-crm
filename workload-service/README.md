@@ -88,14 +88,32 @@ Profiles: `local`, `dev`, `docker`, `stg`, `prod`
 
 ---
 
-### MongoDB Setup
+## **Running the Application**
 
-**Option 1 — Docker:**
+### **Build & Start**
+
+#### **Step 1: Build image**
 ```bash
-cd workload-service
-mvn clean package -DskipTests
+docker build -t ali-gymcrm-workload:latest .
+```
+
+#### **Step 2: Run standalone (disabled integrations)**
+```bash
+docker run --rm -p 8082:8082 ali-gymcrm-workload:latest
+```
+
+#### **Step 3: Run with full stack (enabled integrations)**
+# With logs invisible
+```bash
 docker compose up -d
 ```
+
+# With logs visible
+```bash
+docker compose up --build
+```
+
+Wait for: `Started WorkloadServiceApplication in X seconds`
 
 ---
 
@@ -197,7 +215,7 @@ A `TestResetController` (`@Profile("integration")`) exposes `DELETE /api/v1/test
 # Ensure both profiles are active in docker-compose.yml:
 # SPRING_PROFILES_ACTIVE: docker,integration
 
-docker compose up -d
+docker compose -f compose.yml -f compose.integration.yml up -d
 ```
 
 The integration test scenarios themselves are defined and executed from the gym-crm module.

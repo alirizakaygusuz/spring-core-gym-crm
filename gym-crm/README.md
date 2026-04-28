@@ -466,12 +466,22 @@ Then execute tests using:
 
 ### **Build & Start**
 
-#### **Step 1: Build**
+#### **Step 1: Build image**
 ```bash
-mvn clean package -DskipTests
+docker build -t ali-gymcrm-app:latest .
 ```
 
-#### **Step 2: Start Containers and Check logs**
+#### **Step 2: Run standalone (disabled integrations)**
+```bash
+docker run --rm -p 8080:8080 ali-gymcrm-app:latest
+```
+
+#### **Step 3: Run with full stack (enabled integrations)**
+```bash
+docker compose up -d
+```
+
+# With logs visible
 ```bash
 docker compose up --build
 ```
