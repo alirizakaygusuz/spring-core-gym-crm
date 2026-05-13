@@ -294,6 +294,13 @@
 
 
 
+        <!-- =========== H2 Database Dependency- Standalone profile only (disabled integrations)============= -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- =========== Test REST Client Dependencies ============= -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

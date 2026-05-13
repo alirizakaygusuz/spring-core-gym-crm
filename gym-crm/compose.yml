@@ -60,7 +60,10 @@ services:
       - gymcrm-network
 
   app:
-    image: eclipse-temurin:17-jre
+    build:
+        context: .
+        dockerfile: Dockerfile
+    image: ali-gymcrm-app:latest
     container_name: ali-gymcrm-app
     depends_on:
       postgres:
@@ -92,9 +95,6 @@ services:
       ARTEMIS_PASSWORD: ${DOCKER_ARTEMIS_PASSWORD}
     ports:
       - "8080:8080"
-    volumes:
-      - ./target/gymcrm.jar:/app/gymcrm.jar
-    command: [ "java", "-jar", "/app/gymcrm.jar" ]
     networks:
       - gymcrm-network
 

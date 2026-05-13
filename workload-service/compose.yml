@@ -21,7 +21,10 @@ services:
       - gymcrm-network
 
   workload-app:
-    image: eclipse-temurin:17-jre
+    build:
+        context: .
+        dockerfile: Dockerfile
+    image: ali-gymcrm-workload:latest
     container_name: ali-gymcrm-workload
     depends_on:
       mongodb:
@@ -29,7 +32,7 @@ services:
     env_file:
       - .env
     environment:
-      SPRING_PROFILES_ACTIVE: docker,integration
+      SPRING_PROFILES_ACTIVE: docker
       DOCKER_MONGO_HOST: ${DOCKER_MONGO_HOST}
       DOCKER_MONGO_USER: ${DOCKER_MONGO_USER}
       DOCKER_MONGO_PASSWORD: ${DOCKER_MONGO_PASSWORD}
@@ -41,15 +44,13 @@ services:
       DOCKER_ARTEMIS_PASSWORD: ${DOCKER_ARTEMIS_PASSWORD}
     ports:
       - "${WORKLOAD_SERVICE_PORT}:${WORKLOAD_SERVICE_PORT}"
-    volumes:
-      - ./target/workload-service.jar:/app/workload-service.jar
-    command: [ "java", "-jar", "/app/workload-service.jar" ]
     networks:
       - gymcrm-network
 
 networks:
   gymcrm-network:
-    external: true
+    driver: bridge
+    name: gymcrm-network
 
 volumes:
   ali-gymcrm_mongodb:

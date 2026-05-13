@@ -1,0 +1,4 @@
+services:
+  workload-app:
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,integration

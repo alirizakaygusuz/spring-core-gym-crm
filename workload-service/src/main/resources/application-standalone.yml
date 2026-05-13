@@ -1,0 +1,23 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jms.artemis.ArtemisAutoConfiguration
+      - org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration
+  mongodb:
+    host: localhost
+    port: 27017
+    database: standalone
+    username: admin
+    password: admin
+    authentication-database: admin
+  artemis:
+    broker-url: tcp://localhost:61616
+    user: guest
+    password: guest
+
+security:
+  jwt:
+    secret: "standalone-secret-key-that-is-at-least-32-characters-long"
+
+server:
+  port: 8082
