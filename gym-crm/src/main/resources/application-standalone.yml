@@ -1,0 +1,39 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.jms.artemis.ArtemisAutoConfiguration
+      - org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration
+
+  flyway:
+    enabled: false
+  datasource:
+    url: jdbc:h2:mem:standalone
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ""
+  artemis:
+    broker-url: tcp://localhost:61616
+    user: guest
+    password: guest
+
+security:
+  jwt:
+    secret: "standalone-secret-key-that-is-at-least-32-characters-long"
+    expiration: 3600000ms
+  rate-limit:
+    login:
+      max-attempts: 3
+      block-duration: 5m
+      redis-key-prefix: "rate-limit:login:"
+  blacklist:
+    redis-key-prefix: "token:blacklist:"
+    enabled: false
